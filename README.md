@@ -1,1 +1,733 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ars Goetia: Domínio dos Reis - Protótipo Online</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Times New Roman', serif; background-color: #1a1a1a; color: #d1d1d1; }
+        .card-button { border: 1px solid #4a4a4a; background-color: #2a2a2a; color: #c0c0c0; padding: 8px 12px; margin: 4px; border-radius: 6px; cursor: pointer; text-align: left; transition: all 0.2s ease-in-out; box-shadow: 0 2px 4px rgba(0,0,0,0.5); font-size: 0.9rem; }
+        .card-button:hover:not(:disabled) { background-color: #3a3a3a; border-color: #888; }
+        .card-button:disabled { cursor: not-allowed; opacity: 0.5; }
+        .sacrificing { border-color: #ef4444 !important; box-shadow: 0 0 8px #ef4444; }
+        .game-board-element { border: 2px solid #5a3a1a; background-color: #3a2a1a; }
+        .log-area { background-color: #1f1f1f; border: 1px solid #4a4a4a; height: 200px; overflow-y: auto; padding: 10px; font-family: monospace; font-size: 0.85rem; display: flex; flex-direction: column-reverse; }
+        .prophecy-list li { font-size: 0.9rem; margin-bottom: 4px; cursor: help; position: relative; }
+        .prophecy-list li .tooltip { visibility: hidden; width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; margin-left: -125px; opacity: 0; transition: opacity 0.3s; }
+        .prophecy-list li:hover .tooltip { visibility: visible; opacity: 1; }
+        .prophecy-completed { text-decoration: line-through; color: #4ade80; }
+        .turn-indicator { transition: all 0.3s ease; }
+        .opponent-card { background-color: #1e1e1e; border: 1px dashed #4a4a4a; color: #666; }
+        #game-id-display { user-select: all; }
+        .gemini-btn { background-color: #885ff7; color: white; }
+        .gemini-btn:hover:not(:disabled) { background-color: #7a4ff3; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #885ff7; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div id="game-container" class="max-w-7xl mx-auto">
+        <div class="text-center mb-6">
+            <h1 class="text-4xl font-bold text-amber-200">Ars Goetia: Domínio dos Reis</h1>
+            <p class="text-lg text-gray-400">Protótipo Online</p>
+        </div>
+
+        <!-- Lobby -->
+        <div id="lobby" class="text-center bg-gray-900 p-8 rounded-lg max-w-lg mx-auto">
+             <h2 class="text-2xl font-bold text-amber-300 mb-4">Sala de Jogo</h2>
+             <button id="create-game-btn" class="w-full mb-4 px-6 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded-lg shadow-lg">Criar Novo Jogo</button>
+             <div id="game-id-section" class="hidden mb-4">
+                 <p class="text-gray-300">Compartilhe este ID com seu oponente:</p>
+                 <p id="game-id-display" class="bg-gray-800 text-amber-200 font-mono p-2 rounded mt-2"></p>
+             </div>
+             <hr class="border-gray-700 my-6">
+             <input type="text" id="join-game-input" placeholder="Cole o ID do Jogo aqui" class="w-full bg-gray-800 border border-gray-600 text-white p-2 rounded mb-4">
+             <button id="join-game-btn" class="w-full px-6 py-2 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-lg shadow-lg">Entrar no Jogo</button>
+        </div>
+
+        <!-- Game Board -->
+        <div id="game-board" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="flex flex-col items-center justify-center game-board-element p-4 rounded-lg">
+                    <h3 class="text-xl font-bold text-amber-300 mb-2">Grimório</h3>
+                    <p id="deck-count" class="text-2xl font-mono">100</p>
+                </div>
+                <div id="turn-display" class="flex flex-col items-center justify-center bg-gray-800 p-4 rounded-lg">
+                     <h2 id="turn-indicator" class="text-2xl font-bold text-center text-amber-400">Turno 1</h2>
+                     <p id="player-turn" class="text-gray-300">Aguardando Jogador 2...</p>
+                </div>
+                <div class="flex flex-col items-center justify-center game-board-element p-4 rounded-lg">
+                    <h3 class="text-xl font-bold text-amber-300 mb-2">Monte de Descarte</h3>
+                    <div id="discard-pile-card" class="card-button text-center min-h-[50px] flex items-center justify-center"></div>
+                </div>
+            </div>
+
+            <!-- Player Areas -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Player 1 Area -->
+                <div id="player1-area" class="bg-gray-900 p-6 rounded-lg border-2 border-transparent turn-indicator">
+                    <h2 class="text-2xl font-bold mb-3 text-blue-300">Jogador 1</h2>
+                    <div id="player1-hand" class="mb-4 min-h-[100px] flex flex-wrap"></div>
+                    <div class="bg-gray-800 p-3 rounded">
+                        <h4 class="font-bold mb-2 text-blue-200">Profecias Secretas:</h4>
+                        <ul id="player1-prophecies" class="list-disc list-inside prophecy-list"></ul>
+                    </div>
+                     <div class="mt-4">
+                         <h4 class="font-bold text-blue-200">Domínios Capturados: <span id="player1-dominions">0</span></h4>
+                     </div>
+                </div>
+                <!-- Player 2 Area -->
+                <div id="player2-area" class="bg-gray-900 p-6 rounded-lg border-2 border-transparent turn-indicator">
+                    <h2 class="text-2xl font-bold mb-3 text-green-300">Jogador 2</h2>
+                    <div id="player2-hand" class="mb-4 min-h-[100px] flex flex-wrap"></div>
+                    <div class="bg-gray-800 p-3 rounded">
+                        <h4 class="font-bold mb-2 text-green-200">Profecias Secretas:</h4>
+                        <ul id="player2-prophecies" class="list-disc list-inside prophecy-list"></ul>
+                    </div>
+                     <div class="mt-4">
+                         <h4 class="font-bold text-green-200">Domínios Capturados: <span id="player2-dominions">0</span></h4>
+                     </div>
+                </div>
+            </div>
+
+            <!-- Log Area -->
+            <div class="mt-6">
+                <h3 class="text-xl font-bold mb-2 text-amber-300">Log da Partida</h3>
+                <div id="log-area" class="log-area rounded-lg"></div>
+            </div>
+        </div>
+        
+        <!-- Modals -->
+        <div id="end-game-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-gray-900 p-8 rounded-lg shadow-2xl text-center border-2 border-amber-500">
+                <h2 id="winner-text" class="text-3xl font-bold text-amber-300 mb-4"></h2>
+                <p class="text-gray-300 mb-6">O grimório se esgotou ou um mestre ascendeu.</p>
+                <button onclick="window.location.reload()" class="px-6 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded-lg">Jogar Novamente</button>
+            </div>
+        </div>
+
+        <!-- Seal Decision Modal -->
+        <div id="seal-decision-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-gray-800 p-8 rounded-lg shadow-2xl text-center border-2 border-yellow-500">
+                <h2 class="text-2xl font-bold text-yellow-300 mb-4">Oponente jogou um Rei!</h2>
+                <p class="text-gray-300 mb-6">Você deseja usar o seu Selo de Salomão para roubar este Domínio?</p>
+                <div class="flex justify-center space-x-4">
+                    <button id="confirm-seal-btn" class="px-6 py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg">Sim, Usar Selo</button>
+                    <button id="decline-seal-btn" class="px-6 py-2 bg-red-700 hover:bg-red-600 text-white font-bold rounded-lg">Não, Passar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CÓDIGO CONSOLIDADO E CORRIGIDO -->
+    <script type="module">
+        // Importações do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Configuração do Firebase
+            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "DEMO", authDomain: "DEMO", projectId: "DEMO" };
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            const auth = getAuth(app);
+            
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Authentication failed:", error);
+                document.body.innerHTML = `<div class="text-center text-red-500 p-8">Erro de Autenticação. O jogo não funcionará. Por favor, recarregue a página.</div>`;
+                return;
+            }
+
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'ars-goetia-default';
+            const gamesCollectionPath = `/artifacts/${appId}/public/data/ars_goetia_games`;
+
+            // DATA
+            const demons = [
+                {Nome:"Bael", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"},
+                {Nome:"Paimon", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"},
+                {Nome:"Beleth", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"},
+                {Nome:"Purson", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"},
+                {Nome:"Asmoday", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"},
+                {Nome:"Vine", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"},
+                {Nome:"Balam", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"},
+                {Nome:"Zagan", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"},
+                {Nome:"Belial", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"},
+                {Nome:"Vassago", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"},
+                {Nome:"Sitri", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"},
+                {Nome:"Ipos", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"},
+                {Nome:"Stolas", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"},
+                {Nome:"Orobas", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"},
+                {Nome:"Seere", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"},
+                {Nome:"Agares", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Conhecimento"},
+                {Nome:"Valefor", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"},
+                {Nome:"Barbatos", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"},
+                {Nome:"Gusion", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Conhecimento"},
+                {Nome:"Eligos", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"},
+                {Nome:"Zepar", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"},
+                {Nome:"Bathin", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"},
+                {Nome:"Saleos", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"},
+                {Nome:"Bune", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"},
+                {Nome:"Berith", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"},
+                {Nome:"Astaroth", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Conhecimento"},
+                {Nome:"Focalor", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"},
+                {Nome:"Vepar", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"},
+                {Nome:"Vual", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"},
+                {Nome:"Crocell", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Conhecimento"},
+                {Nome:"Alloces", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"},
+                {Nome:"Murmur", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Conhecimento"},
+                {Nome:"Gremory", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"},
+                {Nome:"Vapula", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Conhecimento"},
+                {Nome:"Haures", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"},
+                {Nome:"Amduscias", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"},
+                {Nome:"Dantalion", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"},
+                {Nome:"Aim", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"},
+                {Nome:"Samigina", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"},
+                {Nome:"Amon", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Riqueza"},
+                {Nome:"Naberius", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"},
+                {Nome:"Forneus", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Riqueza"},
+                {Nome:"Marchosias", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Guerra"},
+                {Nome:"Phenex", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"},
+                {Nome:"Sabnock", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Guerra"},
+                {Nome:"Shax", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Guerra"},
+                {Nome:"Orias", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"},
+                {Nome:"Andras", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Guerra"},
+                {Nome:"Andrealphus", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"},
+                {Nome:"Cimeies", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Guerra"},
+                {Nome:"Decarabia", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Guerra"},
+                {Nome:"Botis", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Riqueza"},
+                {Nome:"Glasya-Labolas", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Conhecimento"},
+                {Nome:"Ronove", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Guerra"},
+                {Nome:"Furfur", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Guerra"},
+                {Nome:"Raum", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Riqueza"},
+                {Nome:"Bifrons", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Conhecimento"},
+                {Nome:"Halphas", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Guerra"},
+                {Nome:"Andromalius", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Riqueza"},
+                {Nome:"Marbas", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Guerra"},
+                {Nome:"Buer", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Conhecimento"},
+                {Nome:"Foras", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Riqueza"},
+                {Nome:"Gaap", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Conhecimento"},
+                {Nome:"Marax", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Conhecimento"},
+                {Nome:"Malphas", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Guerra"},
+                {Nome:"Haagenti", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Riqueza"},
+                {Nome:"Camio", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Conhecimento"},
+                {Nome:"Ose", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Conhecimento"},
+                {Nome:"Amy", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Riqueza"},
+                {Nome:"Valac", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Riqueza"}
+            ];
+            const metals = [...Array(9).fill({Nome: "Cobre", Título: "Duque"}), ...Array(7).fill({Nome: "Prata", Título: "Marquês"}), ...Array(5).fill({Nome: "Mercúrio", Título: "Presidente"}), ...Array(5).fill({Nome: "Estanho", Título: "Conde"})];
+            const seals = Array(2).fill({Nome: "Selo de Salomão"});
+            
+            const allProphecies = [
+                { id: 'p1', Nome: 'A Aristocracia Perversa', Desc: 'Capture um domínio com ao menos 4 demônios da afinidade Riqueza.', check: (domain) => domain.filter(c => c.Tipo === 'Demonio' && c.Afinidade === 'Riqueza').length >= 4 },
+                { id: 'p2', Nome: 'O Monólito Vermelho', Desc: 'Capture um Domínio onde TODOS os demônios são da afinidade Guerra.', check: (domain) => domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta').every(c => c.Afinidade === 'Guerra') && domain.filter(c => c.Tipo === 'Demonio').length > 0 },
+                { id: 'p3', Nome: 'A Insurreição dos Iguais', Desc: 'Capture um Domínio com >= 7 cartas, onde TODOS os demônios (exceto Reis) são da mesma Hierarquia (Baixa ou Média).', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta'); return domain.length >= 7 && (demons.length > 0 && (demons.every(d => d.Hierarquia === 'Baixa') || demons.every(d => d.Hierarquia === 'Média')) ); } },
+                { id: 'p4', Nome: 'A Pirâmide Perfeita', Desc: 'Capture um Domínio que contenha em ordem sequencial (ignorando metais) Presidente -> Conde -> Marquês.', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio'); const titles = demons.map(d => d.Título).join(','); return titles.includes('Presidente,Conde,Marquês'); } },
+                { id: 'p5', Nome: 'O Tesouro Profano', Desc: 'Capture um Domínio onde mais da metade das cartas são Metais.', check: (domain) => domain.filter(c => c.Tipo === 'Metal').length > domain.length / 2 },
+                { id: 'p6', Nome: 'O Mosaico do Caos', Desc: 'Capture um Domínio com >= 6 demônios, sem que nenhuma Afinidade apareça mais do que duas vezes.', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio'); const counts = demons.reduce((acc, d) => { acc[d.Afinidade] = (acc[d.Afinidade] || 0) + 1; return acc; }, {}); return demons.length >= 6 && Object.values(counts).every(v => v <= 2); } },
+                { id: 'p7', Nome: 'A Trindade Completa', Desc: 'Capture um Domínio que contenha EXATAMENTE um demônio de cada Afinidade.', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio'); const affinities = new Set(demons.map(d => d.Afinidade)); return demons.length === 3 && affinities.size === 3; } },
+                { id: 'p8', Nome: 'O Salto da Fé', Desc: 'Capture um Domínio com um Duque, onde TODOS os outros demônios são de Baixa Hierarquia e tenha ao menos 4 demônios.', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta'); return demons.length >= 4 && demons.some(d => d.Hierarquia === 'Média') && demons.filter(d => d.Hierarquia === 'Baixa').length === (demons.length - 1); } },
+                { id: 'p9', Nome: 'A Prata Romana', Desc: 'Capture um domínio que tenha ao menos 3 cartas de Prata.', check: (domain) => domain.filter(c => c.Tipo === 'Metal' && c.Nome === 'Prata').length >= 3 },
+                { id: 'p10', Nome: 'A Liga Infernal', Desc: 'Capture um Domínio que contenha pelo menos um de cada um dos 4 tipos de Metal.', check: (domain) => { const metalTypes = new Set(domain.filter(c => c.Tipo === 'Metal').map(m => m.Nome)); return metalTypes.size === 4; } },
+                { id: 'p11', Nome: 'A Legião Pura', Desc: 'Capture um Domínio que não contenha NENHUMA carta de Metal.', check: (domain) => domain.filter(c => c.Tipo === 'Metal').length === 0 },
+                { id: 'p12', Nome: 'O Segredo de Astaroth', Desc: 'Capture um Domínio que contenha o Duque Astaroth e >= 2 outros demônios de Conhecimento.', check: (domain) => domain.some(c => c.Nome === 'Astaroth') && domain.filter(c => c.Tipo === 'Demonio' && c.Afinidade === 'Conhecimento').length >= 3 },
+                { id: 'p13', Nome: 'A Orquestra de Amduscias', Desc: 'Capture um Domínio que contenha o Duque Amduscias e demônios de >= 2 outros Títulos.', check: (domain) => { const titles = new Set(domain.filter(c => c.Tipo === 'Demonio').map(d => d.Título)); return domain.some(c => c.Nome === 'Amduscias') && titles.size >= 3; } },
+                { id: 'p14', Nome: 'A Corrupção do Sábio', Desc: 'Cumprida se o Selo de Salomão for utilizado.', check: () => false, event: 'selo_played' },
+                { id: 'p15', Nome: 'O Servo de Bael', Desc: 'Cumprida quando qualquer Domínio é capturado.', check: () => false, event: 'domain_captured' },
+                { id: 'p16', Nome: 'O Grito do Abismo', Desc: 'Cumprida se você for forçado a fazer um Sacrifício.', check: () => false, event: 'sacrifice_made' },
+                { id: 'p17', Nome: 'A Escala da Loucura', Desc: 'Cumprida se você jogar o 3º demônio consecutivo da mesma Afinidade.', check: () => false, event: 'affinity_streak' },
+                { id: 'p18', Nome: 'O Mestre dos Marionetes', Desc: 'Capture um Domínio onde o primeiro Duque foi jogado por um oponente.', check: (domain, player, history) => { const firstDukePlay = history.find(play => play.card.Título === 'Duque'); return firstDukePlay && firstDukePlay.player !== player; } },
+            ];
+
+            // GLOBAL VARS
+            let localGameState = {};
+            let localPlayerId = null;
+            let gameId = null;
+            let unsubscribe = null;
+            let sacrificeSelection = [];
+
+            // HIERARCHY MAPS
+            const hierarchyMap = { 'Baixa': 1, 'Média': 2, 'Alta': 3 };
+            const metalHierarchy = { 'Presidente': 1, 'Conde': 1, 'Marquês': 1, 'Duque': 2 };
+
+            // UTILITY FUNCTIONS
+            function getProphecyDetails(id) {
+                return allProphecies.find(p => p.id === id);
+            }
+
+            function formatCardData(card) {
+                if (!card) return { displayText: 'Monte Vazio' };
+                let text = card.Nome;
+                if (card.Tipo === 'Demonio') {
+                    text = `${card.Nome} (${card.Título}, ${card.Afinidade}${card.Metal ? ', ' + card.Metal : ''})`;
+                } else if (card.Tipo === 'Metal') {
+                    text = `Metal: ${card.Nome}`;
+                }
+                return { ...card, displayText: text };
+            }
+            
+            async function updateFirestore(newState) {
+                if (gameId) {
+                    try {
+                        const gameRef = doc(db, gamesCollectionPath, gameId);
+                        await setDoc(gameRef, newState);
+                    } catch (e) {
+                        console.error("Error writing to Firestore: ", e);
+                        addLogToState(localGameState, "ERRO: Não foi possível sincronizar com o servidor.");
+                        updateUI();
+                    }
+                }
+            }
+
+            function addLogToState(state, message) {
+                if (!state.log) state.log = [];
+                state.log.unshift(message);
+                if(state.log.length > 20) state.log.pop();
+            }
+            
+            function showCustomAlert(message) {
+                 const alertBox = document.createElement('div');
+                 alertBox.style.position = 'fixed';
+                 alertBox.style.top = '20px';
+                 alertBox.style.left = '50%';
+                 alertBox.style.transform = 'translateX(-50%)';
+                 alertBox.style.backgroundColor = '#f8d7da';
+                 alertBox.style.color = '#721c24';
+                 alertBox.style.padding = '1rem';
+                 alertBox.style.border = '1px solid #f5c6cb';
+                 alertBox.style.borderRadius = '0.25rem';
+                 alertBox.style.zIndex = '1000';
+                 alertBox.textContent = message;
+                 document.body.appendChild(alertBox);
+                 setTimeout(() => {
+                     alertBox.remove();
+                 }, 3000);
+            }
+
+            // GAME LOGIC FUNCTIONS
+            function isLegalMove(cardToPlay, topCard) {
+                if (!topCard) return true;
+                if (cardToPlay.Tipo === 'Lendário') return false; // Selo não pode ser jogado normalmente
+
+                if (cardToPlay.Tipo === 'Demonio' && topCard.Tipo === 'Demonio' && hierarchyMap[cardToPlay.Hierarquia] > hierarchyMap[topCard.Hierarquia]) {
+                    return true;
+                }
+                if (cardToPlay.Título && cardToPlay.Título === topCard.Título) return true;
+                if (cardToPlay.Afinidade && cardToPlay.Afinidade === topCard.Afinidade) return true;
+                if (cardToPlay.Tipo === 'Metal' && topCard.Tipo === 'Metal') {
+                    const playMetalRank = metalHierarchy[cardToPlay.Título] || 0;
+                    const topMetalRank = metalHierarchy[topCard.Título] || 0;
+                    if (playMetalRank > topMetalRank) return true;
+                }
+                return false;
+            }
+
+            function checkEventProphecies(eventName, playerNumber, state) {
+                const playerId = `player${playerNumber}`;
+                let fulfilled = false;
+                state[playerId].prophecies.forEach(p => {
+                    const details = getProphecyDetails(p.id);
+                    if (!p.completed && details && details.event === eventName) {
+                        p.completed = true;
+                        fulfilled = true;
+                        addLogToState(state, `JOGADOR ${playerNumber} cumpriu a profecia: ${details.Nome}!`);
+                    }
+                });
+                if (fulfilled) checkWinCondition(state);
+            }
+
+            function checkDomainProphecies(playerNumber, domain, history, state) {
+                const playerId = `player${playerNumber}`;
+                const uncompleted = state[playerId].prophecies.filter(p => !p.completed);
+                if (uncompleted.length === 0) return;
+
+                for (const p of uncompleted) {
+                    const details = getProphecyDetails(p.id);
+                    if (details && !details.event && details.check(domain, playerNumber, history)) {
+                        p.completed = true;
+                        addLogToState(state, `JOGADOR ${playerNumber} cumpriu a profecia: ${details.Nome}!`);
+                        checkWinCondition(state);
+                        break; 
+                    }
+                }
+            }
+
+            function checkWinCondition(state) {
+                if (state.game_over) return false;
+                let p1Score = state.player1.prophecies.filter(p => p.completed).length;
+                let p2Score = state.player2.prophecies.filter(p => p.completed).length;
+                let winner = null;
+
+                if (p1Score >= 3) winner = 1;
+                else if (p2Score >= 3) winner = 2;
+                else if (state.deck.length === 0 && (state.turn_count-1) % 2 !== 0 && state.current_player === 1) {
+                    if (p1Score > p2Score) winner = 1;
+                    else if (p2Score > p1Score) winner = 2;
+                    else winner = 0;
+                }
+                
+                if(winner !== null) {
+                    state.game_over = true;
+                    state.winner = winner;
+                    return true;
+                }
+                return false;
+            }
+
+            function endGameUI(winner) {
+                const winnerText = document.getElementById('winner-text');
+                if (winner === 0) winnerText.textContent = "Empate!";
+                else winnerText.textContent = `Jogador ${winner} Venceu!`;
+                document.getElementById('end-game-modal').classList.remove('hidden');
+            }
+
+            function updateUI() {
+                if (!localGameState.deck || !localPlayerId) return;
+
+                const currentPlayerNumber = localGameState.current_player;
+                const localPlayerNumber = localPlayerId === 'player1' ? 1 : 2;
+                const isMyTurn = currentPlayerNumber === localPlayerNumber && !(localGameState.seal_decision && localGameState.seal_decision.active);
+                
+                document.getElementById('player1-area').querySelector('h2').textContent = `Jogador 1 ${localPlayerId === 'player1' ? '(Você)' : ''}`;
+                document.getElementById('player2-area').querySelector('h2').textContent = `Jogador 2 ${localPlayerId === 'player2' ? '(Você)' : ''}`;
+
+                document.getElementById('turn-indicator').textContent = `Turno ${localGameState.turn_count}`;
+                document.getElementById('player-turn').textContent = localGameState.status === 'waiting' ? 'Aguardando oponente...' : (isMyTurn ? "É A SUA VEZ!" : `Vez do Jogador ${currentPlayerNumber}`);
+                document.getElementById('player1-area').style.borderColor = currentPlayerNumber === 1 ? '#f59e0b' : 'transparent';
+                document.getElementById('player2-area').style.borderColor = currentPlayerNumber === 2 ? '#f59e0b' : 'transparent';
+                
+                document.getElementById('deck-count').textContent = localGameState.deck.length;
+                const topCard = localGameState.discard_pile.length > 0 ? localGameState.discard_pile[localGameState.discard_pile.length - 1] : null;
+                document.getElementById('discard-pile-card').textContent = topCard ? formatCardData(topCard).displayText : 'Monte Vazio';
+                
+                const logArea = document.getElementById('log-area');
+                logArea.innerHTML = '';
+                (localGameState.log || []).forEach(msg => {
+                    const p = document.createElement('p');
+                    p.textContent = `> ${msg}`;
+                    logArea.appendChild(p);
+                });
+
+                ['player1', 'player2'].forEach(pid => {
+                    const handContainer = document.getElementById(`${pid}-hand`);
+                    handContainer.innerHTML = '';
+                    const handData = localGameState[pid].hand;
+
+                    if (localPlayerId === pid) {
+                        handData.forEach((card, index) => {
+                            const btn = document.createElement('button');
+                            btn.className = 'card-button';
+                            if (sacrificeSelection.includes(index) && isMyTurn) btn.classList.add('sacrificing');
+                            btn.textContent = formatCardData(card).displayText;
+                            btn.onclick = () => handleCardClick(localPlayerNumber, index);
+                            btn.disabled = !isMyTurn;
+                            handContainer.appendChild(btn);
+                        });
+                    } else {
+                         for(let i=0; i < handData.length; i++) {
+                             const cardPlaceholder = document.createElement('div');
+                             cardPlaceholder.className = 'card-button opponent-card flex items-center justify-center';
+                             cardPlaceholder.textContent = `Oculta`;
+                             handContainer.appendChild(cardPlaceholder);
+                         }
+                    }
+                    
+                    const propheciesContainer = document.getElementById(`${pid}-prophecies`);
+                    propheciesContainer.innerHTML = '';
+                    localGameState[pid].prophecies.forEach(p => {
+                        const details = getProphecyDetails(p.id);
+                        if (!details) return;
+                        const li = document.createElement('li');
+                        if (localPlayerId === pid) {
+                             li.textContent = details.Nome;
+                            const tooltip = document.createElement('span');
+                            tooltip.className = 'tooltip';
+                            tooltip.textContent = details.Desc;
+                            li.appendChild(tooltip);
+                        } else {
+                            li.textContent = "Profecia Oculta";
+                        }
+                        if (p.completed) li.classList.add('prophecy-completed');
+                        propheciesContainer.appendChild(li);
+                    });
+                    document.getElementById(`${pid}-dominions`).textContent = localGameState[pid].domains_captured;
+                });
+
+                const sealModal = document.getElementById('seal-decision-modal');
+                const isSealDecisionTime = localGameState.seal_decision && localGameState.seal_decision.active;
+                const amITheDecider = isSealDecisionTime && localGameState.seal_decision.player === localPlayerNumber;
+
+                if (amITheDecider) {
+                    sealModal.classList.remove('hidden');
+                } else {
+                    sealModal.classList.add('hidden');
+                }
+                
+                if (localGameState.game_over) {
+                    endGameUI(localGameState.winner);
+                    if(unsubscribe) unsubscribe();
+                }
+            }
+            
+            async function handleCardClick(playerNumber, index) {
+                if (localGameState.game_over || localGameState.current_player !== playerNumber || (localGameState.seal_decision && localGameState.seal_decision.active)) return;
+                
+                const hand = localGameState[localPlayerId].hand;
+                const topCard = localGameState.discard_pile.length > 0 ? localGameState.discard_pile[localGameState.discard_pile.length - 1] : null;
+                const hasLegalMoves = hand.some(card => isLegalMove(card, topCard));
+
+                if (hasLegalMoves) {
+                    const cardToPlay = hand[index];
+                    if (isLegalMove(cardToPlay, topCard)) {
+                        let newState = JSON.parse(JSON.stringify(localGameState));
+                        await playCard(playerNumber, index, newState);
+                    } else {
+                        showCustomAlert("Jogada ilegal.");
+                    }
+                } else {
+                    addLogToState(localGameState, `Jogador ${playerNumber} não tem jogadas legais e precisa sacrificar 3 cartas.`);
+                    if (!sacrificeSelection.includes(index)) sacrificeSelection.push(index);
+                    else sacrificeSelection = sacrificeSelection.filter(i => i !== index);
+                    
+                    if (sacrificeSelection.length === 3) {
+                        let newState = JSON.parse(JSON.stringify(localGameState));
+                        await performSacrifice(playerNumber, newState);
+                    } else {
+                        updateUI();
+                    }
+                }
+            }
+
+            async function performSacrifice(playerNumber, state) {
+                addLogToState(state, `JOGADOR ${playerNumber} realiza um Sacrifício!`);
+                checkEventProphecies('sacrifice_made', playerNumber, state);
+                const playerId = `player${playerNumber}`;
+                const hand = state[playerId].hand;
+                const cardToPlay = hand[sacrificeSelection[2]];
+                const sortedIndices = sacrificeSelection.sort((a, b) => b - a);
+                sortedIndices.forEach(index => hand.splice(index, 1));
+                state.discard_pile.push(cardToPlay);
+                state.play_history.push({ player: playerNumber, card: cardToPlay });
+                addLogToState(state, `JOGADOR ${playerNumber} joga (via Sacrifício): ${formatCardData(cardToPlay).displayText}`);
+                sacrificeSelection = [];
+                await handleEndOfTurn(playerNumber, cardToPlay, state);
+            }
+
+            async function playCard(playerNumber, index, state) {
+                const playerId = `player${playerNumber}`;
+                const cardToPlay = state[playerId].hand.splice(index, 1)[0];
+                state.discard_pile.push(cardToPlay);
+                state.play_history.push({ player: playerNumber, card: cardToPlay });
+                addLogToState(state, `JOGADOR ${playerNumber} joga: ${formatCardData(cardToPlay).displayText}`);
+                const history = state.play_history;
+                if (history.length >= 3 && cardToPlay.Tipo === 'Demonio') {
+                    const last3Plays = history.slice(-3);
+                    if (last3Plays.every(p => p.player === playerNumber && p.card.Tipo === 'Demonio' && p.card.Afinidade === cardToPlay.Afinidade)) {
+                        checkEventProphecies('affinity_streak', playerNumber, state);
+                    }
+                }
+                await handleEndOfTurn(playerNumber, cardToPlay, state);
+            }
+            
+            async function handleEndOfTurn(playerNumber, playedCard, state) {
+                let kingPlayed = (playedCard.Título === 'Rei');
+
+                if (kingPlayed) {
+                    const opponentNumber = playerNumber === 1 ? 2 : 1;
+                    const opponentHasSeal = state[`player${opponentNumber}`].hand.some(c => c.Nome === 'Selo de Salomão');
+
+                    if (opponentHasSeal) {
+                        state.seal_decision = { active: true, player: opponentNumber, king_player: playerNumber };
+                        addLogToState(state, `Jogador ${opponentNumber} deve decidir se usa o Selo de Salomão.`);
+                    } else {
+                        captureDomain(playerNumber, state);
+                        advanceTurn(playerNumber, state);
+                    }
+                } else {
+                    advanceTurn(playerNumber, state);
+                }
+                
+                if(!checkWinCondition(state)){
+                    await updateFirestore(state);
+                } else {
+                    await updateFirestore(state);
+                }
+            }
+
+            function advanceTurn(lastPlayer, state) {
+                 const opponent = lastPlayer === 1 ? 2 : 1;
+                 const playerWhoDraws = state.current_player; 
+                 if (state.deck.length > 0) {
+                     const drawnCard = state.deck.pop();
+                     state[`player${playerWhoDraws}`].hand.push(drawnCard);
+                     addLogToState(state, `JOGADOR ${playerWhoDraws} compra uma carta.`);
+                 } else {
+                     addLogToState(state, "Grimório vazio!");
+                 }
+                state.turn_count++;
+                state.current_player = opponent;
+                sacrificeSelection = [];
+            }
+
+            function captureDomain(playerNumber, state) {
+                addLogToState(state, `JOGADOR ${playerNumber} captura um Domínio com ${state.discard_pile.length} cartas!`);
+                const capturedDomain = [...state.discard_pile];
+                state.discard_pile = [];
+                state.removed_from_game.push(...capturedDomain);
+                state[`player${playerNumber}`].domains_captured++;
+                checkEventProphecies('domain_captured', playerNumber, state);
+                checkDomainProphecies(playerNumber, capturedDomain, state.play_history, state);
+            }
+            
+            async function handleSelo(playerNumber) {
+                if (localGameState.game_over) return;
+                let newState = JSON.parse(JSON.stringify(localGameState));
+                const kingPlayerNumber = newState.seal_decision.king_player;
+
+                addLogToState(newState, `JOGADOR ${playerNumber} usa o Selo de Salomão!`);
+                const seloIndex = newState[`player${playerNumber}`].hand.findIndex(c => c.Nome === 'Selo de Salomão');
+                if(seloIndex === -1) return;
+                const seloCard = newState[`player${playerNumber}`].hand.splice(seloIndex, 1)[0];
+                newState.removed_from_game.push(seloCard);
+                newState.seal_decision = { active: false, player: null, king_player: null };
+                
+                captureDomain(playerNumber, newState);
+                checkEventProphecies('selo_played', playerNumber, newState);
+                checkEventProphecies('selo_played', kingPlayerNumber, newState);
+                
+                if (checkWinCondition(newState)) { 
+                    await updateFirestore(newState); 
+                    return; 
+                }
+                
+                advanceTurn(kingPlayerNumber, newState);
+                addLogToState(newState, `JOGADOR ${playerNumber} rouba o domínio! O turno continua.`);
+                await updateFirestore(newState);
+            }
+
+            async function handleDeclineSelo(decliningPlayerNumber) {
+                let newState = JSON.parse(JSON.stringify(localGameState));
+                const kingPlayerNumber = newState.seal_decision.king_player;
+                addLogToState(newState, `Jogador ${decliningPlayerNumber} decide não usar o Selo de Salomão.`);
+                newState.seal_decision = { active: false, player: null, king_player: null };
+                captureDomain(kingPlayerNumber, newState);
+                advanceTurn(kingPlayerNumber, newState);
+                if(!checkWinCondition(newState)){
+                    await updateFirestore(newState);
+                } else {
+                    await updateFirestore(newState);
+                }
+            }
+
+            document.getElementById('create-game-btn').addEventListener('click', async () => {
+                const newGameId = "game-" + Math.random().toString(36).substr(2, 9);
+                gameId = newGameId;
+                localPlayerId = 'player1';
+                const demonDeck = demons.map(d => ({ ...d, Tipo: 'Demonio' }));
+                const metalDeck = metals.map(m => ({ ...m, Tipo: 'Metal' }));
+                const sealDeck = seals.map(s => ({ ...s, Tipo: 'Lendário' }));
+                const fullDeck = [...demonDeck, ...metalDeck, ...sealDeck];
+                let shuffledDeck = [...fullDeck].sort(() => Math.random() - 0.5);
+                let shuffledProphecies = [...allProphecies].sort(() => Math.random() - 0.5);
+
+                let newGameState = {
+                    deck: shuffledDeck, discard_pile: [], play_history: [], removed_from_game: [], log: [],
+                    player1: { hand: [], prophecies: [], domains_captured: 0, uid: auth.currentUser?.uid || null },
+                    player2: { hand: [], prophecies: [], domains_captured: 0, uid: null },
+                    current_player: 1, turn_count: 1, game_over: false, winner: null, status: 'waiting',
+                    seal_decision: { active: false, player: null, king_player: null }
+                };
+                
+                newGameState.player1.prophecies = shuffledProphecies.slice(0, 3).map(p => ({id: p.id, completed: false}));
+                newGameState.player2.prophecies = shuffledProphecies.slice(3, 6).map(p => ({id: p.id, completed: false}));
+                for (let i = 0; i < 7; i++) { if(newGameState.deck.length > 0) newGameState.player1.hand.push(newGameState.deck.pop()); if(newGameState.deck.length > 0) newGameState.player2.hand.push(newGameState.deck.pop()); }
+                await setDoc(doc(db, gamesCollectionPath, gameId), newGameState);
+                document.getElementById('game-id-display').textContent = gameId;
+                document.getElementById('game-id-section').classList.remove('hidden');
+                document.getElementById('create-game-btn').disabled = true;
+                listenToGameChanges(gameId);
+            });
+
+            document.getElementById('join-game-btn').addEventListener('click', async () => {
+                const joinId = document.getElementById('join-game-input').value.trim();
+                if (!joinId) return;
+                const gameRef = doc(db, gamesCollectionPath, joinId);
+                const gameSnap = await getDoc(gameRef);
+                if (gameSnap.exists() && !gameSnap.data().player2.uid) {
+                    gameId = joinId;
+                    localPlayerId = 'player2';
+                    let gameData = gameSnap.data();
+                    gameData.player2.uid = auth.currentUser?.uid || null;
+                    gameData.status = 'active';
+                    let firstCard = gameData.deck.pop();
+                    while (firstCard && (firstCard.Tipo === 'Lendário' || firstCard.Título === 'Rei')) {
+                        gameData.deck.splice(Math.floor(Math.random() * gameData.deck.length), 0, firstCard);
+                        firstCard = gameData.deck.pop();
+                    }
+                    if(firstCard) {
+                        gameData.discard_pile.push(firstCard);
+                        gameData.play_history.push({player: 0, card: firstCard});
+                        addLogToState(gameData, `Carta inicial: ${formatCardData(firstCard).displayText}`);
+                    }
+                    addLogToState(gameData, "Jogador 2 entrou. O jogo começou!");
+                    await setDoc(gameRef, gameData);
+                    listenToGameChanges(gameId);
+                } else {
+                    showCustomAlert("Jogo não encontrado ou já está cheio.");
+                }
+            });
+
+            function listenToGameChanges(id) {
+                // CORREÇÃO: Mover a troca de tela para dentro do listener, baseado no status do jogo
+                if (unsubscribe) unsubscribe();
+                unsubscribe = onSnapshot(doc(db, gamesCollectionPath, id), (doc) => {
+                    if (doc.exists()) {
+                        localGameState = doc.data();
+                        
+                        // Apenas troca para o tabuleiro se o jogo estiver 'ativo' (p2 entrou)
+                        if (localGameState.status === 'active') {
+                            document.getElementById('lobby').classList.add('hidden');
+                            document.getElementById('game-board').classList.remove('hidden');
+                        }
+
+                        updateUI();
+                    } else {
+                        if (!localGameState.game_over) {
+                            showCustomAlert("O jogo foi encerrado pelo outro jogador.");
+                            setTimeout(() => window.location.reload(), 2000);
+                        }
+                    }
+                });
+            }
+
+            document.getElementById('confirm-seal-btn').addEventListener('click', () => {
+                if (localGameState.seal_decision && localGameState.seal_decision.active) {
+                    handleSelo(localGameState.seal_decision.player); 
+                }
+            });
+
+            document.getElementById('decline-seal-btn').addEventListener('click', () => {
+                if (localGameState.seal_decision && localGameState.seal_decision.active) {
+                    handleDeclineSelo(localGameState.seal_decision.player);
+                }
+            });
+
+            window.addEventListener('beforeunload', () => {
+                if (gameId && localPlayerId === 'player1' && !localGameState.game_over) {
+                   deleteDoc(doc(db, gamesCollectionPath, gameId));
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
 # Andraluiz27.github.io
