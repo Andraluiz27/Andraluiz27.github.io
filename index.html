@@ -27,51 +27,19 @@
         .domain-card-item { background-color: #2a2a2a; color: #c0c0c0; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; border: 1px solid #4a4a4a; }
         
         /* Novos estilos para Log e Chat */
-        .log-area, .chat-area {
-            background-color: #1f1f1f;
-            border: 1px solid #4a4a4a;
-            height: 180px; /* Altura ajustada */
-            overflow-y: auto;
-            padding: 10px;
-            font-family: monospace;
-            font-size: 0.85rem;
-        }
-        .log-area {
-            display: flex;
-            flex-direction: column-reverse; /* Mantém o log com o mais recente em cima */
-        }
+        .log-area, .chat-area { background-color: #1f1f1f; border: 1px solid #4a4a4a; height: 180px; overflow-y: auto; padding: 10px; font-family: monospace; font-size: 0.85rem; }
+        .log-area { display: flex; flex-direction: column-reverse; }
         .log-area strong { color: #f59e0b; }
-        
-        .chat-area {
-            display: flex;
-            flex-direction: column; /* Empilha as mensagens */
-        }
-        .chat-message {
-            padding: 6px 10px;
-            border-radius: 12px;
-            margin-bottom: 6px;
-            max-width: 85%;
-            word-wrap: break-word;
-        }
-        .chat-message.player1 {
-            background-color: #1e40af; /* Azul para Jogador 1 */
-            color: #eff6ff;
-            align-self: flex-start;
-            border-bottom-left-radius: 2px;
-        }
-        .chat-message.player2 {
-            background-color: #15803d; /* Verde para Jogador 2 */
-            color: #f0fdf4;
-            align-self: flex-end;
-            border-bottom-right-radius: 2px;
-        }
-        .chat-message .sender {
-            font-weight: bold;
-            font-size: 0.75rem;
-            display: block;
-            margin-bottom: 2px;
-            opacity: 0.9;
-        }
+        .chat-area { display: flex; flex-direction: column; }
+        .chat-message { padding: 6px 10px; border-radius: 12px; margin-bottom: 6px; max-width: 85%; word-wrap: break-word; }
+        .chat-message.player1 { background-color: #1e40af; color: #eff6ff; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .chat-message.player2 { background-color: #15803d; color: #f0fdf4; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .chat-message .sender { font-weight: bold; font-size: 0.75rem; display: block; margin-bottom: 2px; opacity: 0.9; }
+
+        /* Estilos para seleção de modo de jogo */
+        .game-mode-selector { display: flex; justify-content: center; gap: 1rem; margin-bottom: 1.5rem; }
+        .mode-btn { padding: 10px 20px; border: 2px solid #4a4a4a; background-color: #2a2a2a; color: #c0c0c0; font-weight: bold; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .mode-btn.active { background-color: #a16207; border-color: #f59e0b; color: white; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -84,6 +52,12 @@
 
         <!-- Lobby -->
         <div id="lobby" class="text-center bg-gray-900 p-8 rounded-lg max-w-lg mx-auto">
+             <h2 class="text-2xl font-bold text-amber-300 mb-4">Modo de Jogo</h2>
+             <div class="game-mode-selector">
+                <button id="mode-competitive-btn" class="mode-btn active">Competitivo</button>
+                <button id="mode-cooperative-btn" class="mode-btn">Cooperativo</button>
+             </div>
+             <hr class="border-gray-700 my-6">
              <h2 class="text-2xl font-bold text-amber-300 mb-4">Sala de Jogo</h2>
              <button id="create-game-btn" class="w-full mb-4 px-6 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded-lg shadow-lg">Criar Novo Jogo</button>
              <div id="game-id-section" class="hidden mb-4">
@@ -111,13 +85,20 @@
                     <div id="discard-pile-card" class="card-button text-center min-h-[50px] flex items-center justify-center"></div>
                 </div>
             </div>
+
+            <!-- CO-OP Prophecy Board -->
+            <div id="coop-board-container" class="hidden bg-gray-800 p-4 rounded-lg mb-6">
+                <h3 class="text-xl font-bold text-center text-amber-300 mb-2">Profecias Compartilhadas</h3>
+                <p class="text-center text-lg mb-4">Progresso: <span id="coop-prophecy-progress" class="font-bold text-green-400">0 / 5</span></p>
+                <div id="coop-prophecies" class="flex flex-wrap justify-center gap-2">
+                    <!-- Profecias cooperativas serão injetadas aqui -->
+                </div>
+            </div>
             
             <!-- Domain Board -->
             <div id="domain-board-container" class="bg-gray-800 p-4 rounded-lg mb-6">
                 <h3 class="text-xl font-bold text-center text-amber-300 mb-2">Domínio Atual</h3>
-                <div id="domain-board-cards" class="flex flex-wrap justify-center gap-2 min-h-[30px]">
-                    <!-- Nomes das cartas no domínio atual serão injetados aqui -->
-                </div>
+                <div id="domain-board-cards" class="flex flex-wrap justify-center gap-2 min-h-[30px]"></div>
             </div>
 
             <!-- Player Areas -->
@@ -126,7 +107,7 @@
                 <div id="player1-area" class="bg-gray-900 p-6 rounded-lg border-2 border-transparent turn-indicator">
                     <h2 class="text-2xl font-bold mb-3 text-blue-300">Jogador 1</h2>
                     <div id="player1-hand" class="mb-4 min-h-[100px] flex flex-wrap"></div>
-                    <div class="bg-gray-800 p-3 rounded">
+                    <div id="player1-prophecy-area" class="bg-gray-800 p-3 rounded">
                         <h4 class="font-bold mb-2 text-blue-200">Profecias Secretas:</h4>
                         <ul id="player1-prophecies" class="list-disc list-inside prophecy-list"></ul>
                     </div>
@@ -138,7 +119,7 @@
                 <div id="player2-area" class="bg-gray-900 p-6 rounded-lg border-2 border-transparent turn-indicator">
                     <h2 class="text-2xl font-bold mb-3 text-green-300">Jogador 2</h2>
                     <div id="player2-hand" class="mb-4 min-h-[100px] flex flex-wrap"></div>
-                    <div class="bg-gray-800 p-3 rounded">
+                    <div id="player2-prophecy-area" class="bg-gray-800 p-3 rounded">
                         <h4 class="font-bold mb-2 text-green-200">Profecias Secretas:</h4>
                         <ul id="player2-prophecies" class="list-disc list-inside prophecy-list"></ul>
                     </div>
@@ -191,25 +172,21 @@
         <!-- Prophecy Choice Modal -->
         <div id="prophecy-choice-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
             <div class="bg-gray-800 p-8 rounded-lg shadow-2xl text-center border-2 border-purple-500 max-w-lg">
-                <h2 class="text-2xl font-bold text-purple-300 mb-4">Múltiplas Profecias Cumpridas!</h2>
-                <p class="text-gray-300 mb-6">Você cumpriu mais de uma profecia com esta jogada. Escolha qual delas deseja registrar:</p>
-                <div id="prophecy-options" class="space-y-3 mb-6 text-left">
-                    <!-- As opções de profecia serão injetadas aqui pelo JavaScript -->
-                </div>
-                <button id="confirm-prophecy-btn" class="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg w-full">Confirmar Escolha</button>
+                <h2 id="prophecy-modal-title" class="text-2xl font-bold text-purple-300 mb-4">Múltiplas Profecias Cumpridas!</h2>
+                <p id="prophecy-modal-text" class="text-gray-300 mb-6">Escolha qual profecia deseja registrar:</p>
+                <div id="prophecy-options" class="space-y-3 mb-6 text-left"></div>
+                <p id="prophecy-vote-status" class="text-gray-400 text-sm mb-4 hidden"></p>
+                <button id="confirm-prophecy-btn" class="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg w-full">Confirmar</button>
             </div>
         </div>
     </div>
 
-    <!-- CÓDIGO CONSOLIDADO E CORRIGIDO -->
     <script type="module">
-        // Importações do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         document.addEventListener('DOMContentLoaded', async () => {
-            // Configuração do Firebase
             const firebaseConfig = {
               apiKey: "AIzaSyDkF5F_4wL1tE-BK6J6UnZInENW5rOOA3I",
               authDomain: "dominio-acb39.firebaseapp.com",
@@ -231,14 +208,14 @@
                 }
             } catch (error) {
                 console.error("Authentication failed:", error);
-                document.body.innerHTML = `<div class="text-center text-red-500 p-8">Erro de Autenticação. O jogo não funcionará. Por favor, recarregue a página.</div>`;
+                document.body.innerHTML = `<div class="text-center text-red-500 p-8">Erro de Autenticação.</div>`;
                 return;
             }
 
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'ars-goetia-default';
             const gamesCollectionPath = `/artifacts/${appId}/public/data/ars_goetia_games`;
-
-            // DATA
+            
+            // DATA (Completo)
             const demons = [
                 {Nome:"Bael", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"},
                 {Nome:"Paimon", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"},
@@ -294,7 +271,6 @@
             ];
             const metals = [...Array(4).fill({Nome: "Cobre", Título: "Duque"}), ...Array(5).fill({Nome: "Prata", Título: "Marquês"}), ...Array(4).fill({Nome: "Mercúrio", Título: "Presidente"}), ...Array(5).fill({Nome: "Estanho", Título: "Conde"})];
             const seals = Array(2).fill({Nome: "Selo de Salomão"});
-            
             const allProphecies = [
                 { id: 'p1', Nome: 'A Aristocracia Perversa', Desc: 'Capture um domínio com ao menos 4 demônios da afinidade Riqueza.', check: (domain) => domain.filter(c => c.Tipo === 'Demonio' && c.Afinidade === 'Riqueza').length >= 4 },
                 { id: 'p2', Nome: 'O Monólito Vermelho', Desc: 'Capture um Domínio onde TODOS os demônios são da afinidade Guerra.', check: (domain) => domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta').every(c => c.Afinidade === 'Guerra') && domain.filter(c => c.Tipo === 'Demonio').length > 0 },
@@ -322,6 +298,7 @@
             let gameId = null;
             let unsubscribe = null;
             let sacrificeSelection = [];
+            let selectedGameMode = 'competitive'; // Default game mode
 
             // HIERARCHY MAPS
             const titleHierarchy = { 'Presidente': 1, 'Conde': 2, 'Marquês': 3, 'Duque': 4 };
@@ -342,7 +319,7 @@
                 }
                 return { ...card, displayText: text };
             }
-            
+
             async function updateFirestore(newState) {
                 if (gameId) {
                     try {
@@ -350,7 +327,7 @@
                         await setDoc(gameRef, newState);
                     } catch (e) {
                         console.error("Error writing to Firestore: ", e);
-                        addLogToState(localGameState, "ERRO: Não foi possível sincronizar com o servidor.");
+                        addLogToState(localGameState, "ERRO: Não foi possível sincronizar.");
                         updateUI();
                     }
                 }
@@ -358,72 +335,39 @@
 
             function addLogToState(state, message, options) {
                 if (!state.log) state.log = [];
-                // Log entries are now objects to support different types
                 state.log.unshift({ text: message, type: options?.type || 'normal' });
-                if(state.log.length > 30) state.log.pop(); // Increased log size slightly
+                if (state.log.length > 30) state.log.pop();
             }
-            
+
             function showCustomAlert(message) {
-                 const alertBox = document.createElement('div');
-                 alertBox.style.position = 'fixed';
-                 alertBox.style.top = '20px';
-                 alertBox.style.left = '50%';
-                 alertBox.style.transform = 'translateX(-50%)';
-                 alertBox.style.backgroundColor = '#f8d7da';
-                 alertBox.style.color = '#721c24';
-                 alertBox.style.padding = '1rem';
-                 alertBox.style.border = '1px solid #f5c6cb';
-                 alertBox.style.borderRadius = '0.25rem';
-                 alertBox.style.zIndex = '1000';
-                 alertBox.textContent = message;
-                 document.body.appendChild(alertBox);
-                 setTimeout(() => {
-                     alertBox.remove();
-                 }, 3000);
+                const alertBox = document.createElement('div');
+                alertBox.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background-color:#f8d7da; color:#721c24; padding:1rem; border:1px solid #f5c6cb; border-radius:0.25rem; z-index:1000;';
+                alertBox.textContent = message;
+                document.body.appendChild(alertBox);
+                setTimeout(() => {
+                    alertBox.remove();
+                }, 3000);
             }
 
             // GAME LOGIC FUNCTIONS
             function isLegalMove(cardToPlay, topCard) {
                 if (!topCard) return true;
-                if (cardToPlay.Tipo === 'Lendário') return false; // Selo não pode ser jogado normalmente
-
-                // Regra 1: [CORRIGIDO] Um Rei pode ser jogado sobre QUALQUER carta para fechar o domínio.
-                if (cardToPlay.Título === 'Rei') {
-                    return true;
-                }
-
-                // --- Regras Existentes Mantidas ---
-                // Regra 2: Título de hierarquia superior (apenas Demônio sobre Demônio)
+                if (cardToPlay.Tipo === 'Lendário') return false;
+                if (cardToPlay.Título === 'Rei') return true;
                 if (cardToPlay.Tipo === 'Demonio' && topCard.Tipo === 'Demonio') {
                     const playTitleRank = titleHierarchy[cardToPlay.Título] || 0;
                     const topTitleRank = titleHierarchy[topCard.Título] || 0;
-                    if (playTitleRank > topTitleRank) {
-                        return true;
-                    }
+                    if (playTitleRank > topTitleRank) return true;
                 }
-
-                // Regra 3: Mesmo Título (cobre Demônio-Demônio, Metal-Demônio, Demônio-Metal com Títulos)
-                if (cardToPlay.Título && cardToPlay.Título === topCard.Título) {
-                    return true;
-                }
-
-                // --- Novas Regras e Alterações ---
-                // Regra 4: Demônio sobre Metal (se o demônio for do metal correspondente)
+                if (cardToPlay.Título && cardToPlay.Título === topCard.Título) return true;
                 if (cardToPlay.Tipo === 'Demonio' && topCard.Tipo === 'Metal') {
-                    if (cardToPlay.Metal && cardToPlay.Metal === topCard.Nome) {
-                        return true;
-                    }
+                    if (cardToPlay.Metal && cardToPlay.Metal === topCard.Nome) return true;
                 }
-
-                // Regra 5: Metal sobre Metal (se for de hierarquia superior)
                 if (cardToPlay.Tipo === 'Metal' && topCard.Tipo === 'Metal') {
                     const playMetalRank = metalHierarchy[cardToPlay.Nome] || 0;
                     const topMetalRank = metalHierarchy[topCard.Nome] || 0;
-                    if (playMetalRank > topMetalRank) {
-                        return true;
-                    }
+                    if (playMetalRank > topMetalRank) return true;
                 }
-
                 return false;
             }
 
@@ -442,14 +386,13 @@
             }
             
             function findFulfillableDomainProphecies(playerNumber, domain, history, state) {
-                const playerId = `player${playerNumber}`;
-                const uncompleted = state[playerId].prophecies.filter(p => !p.completed);
+                const prophecyList = state.gameMode === 'cooperative' ? state.sharedProphecies : state[`player${playerNumber}`].prophecies;
+                const uncompleted = prophecyList.filter(p => !p.completed);
                 if (uncompleted.length === 0) return [];
 
                 const fulfilled = [];
                 for (const p of uncompleted) {
                     const details = getProphecyDetails(p.id);
-                    // We only care about non-event prophecies here
                     if (details && !details.event && details.check(domain, playerNumber, history)) {
                         fulfilled.push(p.id);
                     }
@@ -459,24 +402,34 @@
 
             function checkWinCondition(state) {
                 if (state.game_over) return false;
-                let p1Score = state.player1.prophecies.filter(p => p.completed).length;
-                let p2Score = state.player2.prophecies.filter(p => p.completed).length;
+                
                 let winner = null;
                 let reason = '';
 
-                // Condição de Vitória: Ascensão
-                if (p1Score >= 3) {
-                    winner = 1;
-                    reason = 'Ascensão';
-                } else if (p2Score >= 3) {
-                    winner = 2;
-                    reason = 'Ascensão';
-                // Condição de Vitória: Esgotamento
-                } else if (state.deck.length === 0 && (state.turn_count-1) % 2 !== 0 && state.current_player === 1) {
-                    reason = 'Esgotamento';
-                    if (p1Score > p2Score) winner = 1;
-                    else if (p2Score > p1Score) winner = 2;
-                    else winner = 0; // Empate
+                if (state.gameMode === 'cooperative') {
+                    const completedCount = state.sharedProphecies.filter(p => p.completed).length;
+                    if (completedCount >= 5) {
+                        winner = 0; // 0 for co-op win
+                        reason = 'Ascensão Cooperativa';
+                    } else if (state.deck.length === 0 && (state.turn_count-1) % 2 !== 0 && state.current_player === 1) {
+                        winner = -1; // -1 for co-op loss
+                        reason = 'Esgotamento';
+                    }
+                } else { // Competitive mode
+                    let p1Score = state.player1.prophecies.filter(p => p.completed).length;
+                    let p2Score = state.player2.prophecies.filter(p => p.completed).length;
+                    if (p1Score >= 3) {
+                        winner = 1;
+                        reason = 'Ascensão';
+                    } else if (p2Score >= 3) {
+                        winner = 2;
+                        reason = 'Ascensão';
+                    } else if (state.deck.length === 0 && (state.turn_count-1) % 2 !== 0 && state.current_player === 1) {
+                        reason = 'Esgotamento';
+                        if (p1Score > p2Score) winner = 1;
+                        else if (p2Score > p1Score) winner = 2;
+                        else winner = 0; // Tie
+                    }
                 }
                 
                 if(winner !== null) {
@@ -488,32 +441,34 @@
                 return false;
             }
 
-            function endGameUI(winner, reason) {
+            function endGameUI(winner, reason, gameMode) {
                 const winnerText = document.getElementById('winner-text');
                 const reasonText = document.getElementById('win-reason-text');
                 
-                if (winner === 0) {
-                    winnerText.textContent = "Empate!";
+                if (gameMode === 'cooperative') {
+                    winnerText.textContent = winner === 0 ? "Vitória Cooperativa!" : "Derrota...";
                 } else {
-                    winnerText.textContent = `Jogador ${winner} Venceu!`;
+                    winnerText.textContent = winner === 0 ? "Empate!" : `Jogador ${winner} Venceu!`;
                 }
 
                 let reasonMessage = '';
                 switch(reason) {
+                    case 'Ascensão Cooperativa':
+                        reasonMessage = 'Vocês ascenderam juntos ao cumprir 5 profecias!';
+                        break;
                     case 'Ascensão':
                         reasonMessage = 'O Mestre ascendeu ao cumprir três profecias.';
                         break;
                     case 'Esgotamento':
-                        reasonMessage = 'O grimório se esgotou. A vitória foi decidida por profecias.';
+                        reasonMessage = gameMode === 'cooperative' ? 'O grimório se esgotou antes de cumprirem o ritual.' : 'O grimório se esgotou. A vitória foi decidida por profecias.';
                         break;
                     case 'Aniquilação':
-                        reasonMessage = 'O oponente não pôde continuar o ritual e foi aniquilado.';
+                        reasonMessage = gameMode === 'cooperative' ? 'Um dos jogadores foi aniquilado, encerrando o ritual.' : 'O oponente não pôde continuar e foi aniquilado.';
                         break;
                     default:
                         reasonMessage = 'O jogo terminou.';
                 }
                 reasonText.textContent = reasonMessage;
-
                 document.getElementById('end-game-modal').classList.remove('hidden');
             }
 
@@ -522,32 +477,41 @@
 
                 const currentPlayerNumber = localGameState.current_player;
                 const localPlayerNumber = localPlayerId === 'player1' ? 1 : 2;
-                const isMyTurn = currentPlayerNumber === localPlayerNumber && 
-                                 !(localGameState.seal_decision && localGameState.seal_decision.active) &&
-                                 !(localGameState.prophecy_choice && localGameState.prophecy_choice.active);
+                const isMyTurn = currentPlayerNumber === localPlayerNumber && !(localGameState.seal_decision?.active) && !(localGameState.prophecy_choice?.active);
+                
+                // Update UI based on game mode
+                const isCoop = localGameState.gameMode === 'cooperative';
+                document.getElementById('coop-board-container').classList.toggle('hidden', !isCoop);
+                document.getElementById('player1-prophecy-area').classList.toggle('hidden', isCoop);
+                document.getElementById('player2-prophecy-area').classList.toggle('hidden', isCoop);
+
+                if (isCoop) {
+                    const completedCount = localGameState.sharedProphecies.filter(p => p.completed).length;
+                    document.getElementById('coop-prophecy-progress').textContent = `${completedCount} / 5`;
+                    const coopPropheciesContainer = document.getElementById('coop-prophecies');
+                    coopPropheciesContainer.innerHTML = '';
+                    localGameState.sharedProphecies.forEach(p => {
+                        const details = getProphecyDetails(p.id);
+                        const pElem = document.createElement('div');
+                        pElem.className = `p-2 rounded border ${p.completed ? 'bg-green-900 border-green-500' : 'bg-gray-700 border-gray-500'}`;
+                        pElem.innerHTML = `<span class="font-bold">${details.Nome}</span> <small class="text-gray-400">(${details.Desc})</small>`;
+                        if (p.completed) pElem.classList.add('prophecy-completed');
+                        coopPropheciesContainer.appendChild(pElem);
+                    });
+                }
                 
                 document.getElementById('player1-area').querySelector('h2').textContent = `Jogador 1 ${localPlayerId === 'player1' ? '(Você)' : ''}`;
                 document.getElementById('player2-area').querySelector('h2').textContent = `Jogador 2 ${localPlayerId === 'player2' ? '(Você)' : ''}`;
-
                 document.getElementById('turn-indicator').textContent = `Turno ${localGameState.turn_count}`;
                 
                 let turnText = localGameState.status === 'waiting' ? 'Aguardando oponente...' : '';
                 if (localGameState.status === 'active' && !turnText) {
-                    const isSealDecisionTime = localGameState.seal_decision && localGameState.seal_decision.active;
-                    const isProphecyChoiceTime = localGameState.prophecy_choice && localGameState.prophecy_choice.active;
-
+                    const isSealDecisionTime = localGameState.seal_decision?.active;
+                    const isProphecyChoiceTime = localGameState.prophecy_choice?.active;
                     if (isSealDecisionTime) {
-                        if (localGameState.seal_decision.player === localPlayerNumber) {
-                            turnText = 'Sua decisão: Usar o Selo?';
-                        } else {
-                            turnText = 'Aguardando decisão do oponente...';
-                        }
+                        turnText = localGameState.seal_decision.player === localPlayerNumber ? 'Sua decisão: Usar o Selo?' : 'Aguardando decisão do oponente...';
                     } else if (isProphecyChoiceTime) {
-                        if (localGameState.prophecy_choice.player === localPlayerNumber) {
-                            turnText = 'Sua decisão: Escolha a Profecia.';
-                        } else {
-                            turnText = 'Aguardando decisão do oponente...';
-                        }
+                        turnText = 'Momento de Decisão da Profecia...';
                     } else if (isMyTurn) {
                         turnText = "É A SUA VEZ!";
                     } else {
@@ -558,7 +522,6 @@
 
                 document.getElementById('player1-area').style.borderColor = currentPlayerNumber === 1 ? '#f59e0b' : 'transparent';
                 document.getElementById('player2-area').style.borderColor = currentPlayerNumber === 2 ? '#f59e0b' : 'transparent';
-                
                 document.getElementById('deck-count').textContent = localGameState.deck.length;
                 const topCard = localGameState.discard_pile.length > 0 ? localGameState.discard_pile[localGameState.discard_pile.length - 1] : null;
                 document.getElementById('discard-pile-card').textContent = topCard ? formatCardData(topCard).displayText : 'Monte Vazio';
@@ -568,7 +531,6 @@
                 (localGameState.log || []).forEach(logEntry => {
                     const p = document.createElement('p');
                     if (logEntry.type === 'capture') {
-                        // Use innerHTML to parse the <strong> tag
                         p.innerHTML = `> <strong>${logEntry.text}</strong>`;
                     } else {
                         p.textContent = `> ${logEntry.text}`;
@@ -576,7 +538,6 @@
                     logArea.appendChild(p);
                 });
 
-                // Update Domain Board
                 const domainBoard = document.getElementById('domain-board-cards');
                 domainBoard.innerHTML = '';
                 if (localGameState.discard_pile && localGameState.discard_pile.length > 0) {
@@ -588,7 +549,13 @@
                     });
                 }
 
-                // NOVO: Renderizar Chat
+                const chatInput = document.getElementById('chat-input');
+                const sendChatBtn = document.getElementById('send-chat-btn');
+                const chatEnabled = isCoop ? localGameState.prophecy_choice?.active : true;
+                chatInput.disabled = !chatEnabled;
+                sendChatBtn.disabled = !chatEnabled;
+                chatInput.placeholder = chatEnabled ? "Digite sua mensagem..." : "O chat está selado...";
+
                 const chatArea = document.getElementById('chat-area');
                 chatArea.innerHTML = '';
                 (localGameState.chat || []).forEach(msg => {
@@ -597,15 +564,12 @@
                     msgDiv.innerHTML = `<span class="sender">${msg.sender}</span>${msg.text}`;
                     chatArea.appendChild(msgDiv);
                 });
-                // Auto-scroll do chat para a última mensagem
                 chatArea.scrollTop = chatArea.scrollHeight;
-
 
                 ['player1', 'player2'].forEach(pid => {
                     const handContainer = document.getElementById(`${pid}-hand`);
                     handContainer.innerHTML = '';
                     const handData = localGameState[pid].hand;
-
                     if (localPlayerId === pid) {
                         handData.forEach((card, index) => {
                             const btn = document.createElement('button');
@@ -617,67 +581,65 @@
                             handContainer.appendChild(btn);
                         });
                     } else {
-                         for(let i=0; i < handData.length; i++) {
-                             const cardPlaceholder = document.createElement('div');
-                             cardPlaceholder.className = 'card-button opponent-card flex items-center justify-center';
-                             cardPlaceholder.textContent = `Oculta`;
-                             handContainer.appendChild(cardPlaceholder);
-                         }
+                        for(let i=0; i < handData.length; i++) {
+                            const cardPlaceholder = document.createElement('div');
+                            cardPlaceholder.className = 'card-button opponent-card flex items-center justify-center';
+                            cardPlaceholder.textContent = `Oculta`;
+                            handContainer.appendChild(cardPlaceholder);
+                        }
                     }
                     
-                    const propheciesContainer = document.getElementById(`${pid}-prophecies`);
-                    propheciesContainer.innerHTML = '';
-                    localGameState[pid].prophecies.forEach(p => {
-                        const details = getProphecyDetails(p.id);
-                        if (!details) return;
-                        const li = document.createElement('li');
-                        if (localPlayerId === pid) {
-                             li.textContent = details.Nome;
-                            const tooltip = document.createElement('span');
-                            tooltip.className = 'tooltip';
-                            tooltip.textContent = details.Desc;
-                            li.appendChild(tooltip);
-                        } else {
-                            li.textContent = "Profecia Oculta";
-                        }
-                        if (p.completed) li.classList.add('prophecy-completed');
-                        propheciesContainer.appendChild(li);
-                    });
+                    if (!isCoop) {
+                        const propheciesContainer = document.getElementById(`${pid}-prophecies`);
+                        propheciesContainer.innerHTML = '';
+                        localGameState[pid].prophecies.forEach(p => {
+                            const details = getProphecyDetails(p.id);
+                            if (!details) return;
+                            const li = document.createElement('li');
+                            if (localPlayerId === pid) {
+                                li.textContent = details.Nome;
+                                const tooltip = document.createElement('span');
+                                tooltip.className = 'tooltip';
+                                tooltip.textContent = details.Desc;
+                                li.appendChild(tooltip);
+                            } else {
+                                li.textContent = "Profecia Oculta";
+                            }
+                            if (p.completed) li.classList.add('prophecy-completed');
+                            propheciesContainer.appendChild(li);
+                        });
+                    }
                     document.getElementById(`${pid}-dominions`).textContent = localGameState[pid].domains_captured;
                 });
 
-                // Seal Decision Modal Logic
                 const sealModal = document.getElementById('seal-decision-modal');
-                const isSealDecisionTime = localGameState.seal_decision && localGameState.seal_decision.active;
+                const isSealDecisionTime = localGameState.seal_decision?.active;
                 const amITheSealDecider = isSealDecisionTime && localGameState.seal_decision.player === localPlayerNumber;
                 if (amITheSealDecider) {
                     const iHaveTheSeal = localGameState[localPlayerId].hand.some(c => c.Nome === 'Selo de Salomão');
                     const confirmBtn = document.getElementById('confirm-seal-btn');
                     const declineBtn = document.getElementById('decline-seal-btn');
                     const modalText = document.getElementById('seal-modal-text');
-
                     if (iHaveTheSeal) {
-                        // Configure modal for a real choice
-                        modalText.textContent = 'Você deseja usar o seu Selo de Salomão para roubar este Domínio?';
+                        modalText.textContent = 'Você deseja usar o seu Selo de Salomão?';
                         confirmBtn.classList.remove('hidden');
                         declineBtn.textContent = 'Não, Passar';
                     } else {
-                        // Configure modal for a forced continuation, to mask timing
-                        modalText.textContent = 'Você não possui o Selo de Salomão para contestar este Domínio.';
-                        confirmBtn.classList.add('hidden'); // Hide the 'Yes' button
-                        declineBtn.textContent = 'Continuar'; // Change 'No' button text
+                        modalText.textContent = 'Você não possui o Selo de Salomão.';
+                        confirmBtn.classList.add('hidden');
+                        declineBtn.textContent = 'Continuar';
                     }
-                    sealModal.classList.remove('hidden'); // Show the modal in both cases
+                    sealModal.classList.remove('hidden');
                 } else {
                     sealModal.classList.add('hidden');
                 }
                 
-                // Prophecy Choice Modal Logic
                 const prophecyModal = document.getElementById('prophecy-choice-modal');
-                const isProphecyChoiceTime = localGameState.prophecy_choice && localGameState.prophecy_choice.active;
-                const amITheProphecyDecider = isProphecyChoiceTime && localGameState.prophecy_choice.player === localPlayerNumber;
+                const isProphecyChoiceTime = localGameState.prophecy_choice?.active;
+                const amITheProphecyDecider = isProphecyChoiceTime && (isCoop || localGameState.prophecy_choice.player === localPlayerNumber);
                 if(amITheProphecyDecider) {
                     const optionsContainer = document.getElementById('prophecy-options');
+                    const voteStatus = document.getElementById('prophecy-vote-status');
                     optionsContainer.innerHTML = '';
                     localGameState.prophecy_choice.choices.forEach((pId, index) => {
                         const details = getProphecyDetails(pId);
@@ -688,33 +650,50 @@
                         radio.name = 'prophecy-selection';
                         radio.value = pId;
                         if (index === 0) radio.checked = true;
-
                         const label = document.createElement('label');
                         label.htmlFor = `prophecy-radio-${pId}`;
                         label.className = 'prophecy-choice-label';
                         label.innerHTML = `<strong class="text-purple-300">${details.Nome}</strong><br><small class="text-gray-400">${details.Desc}</small>`;
-                        
                         wrapper.appendChild(radio);
                         wrapper.appendChild(label);
                         optionsContainer.appendChild(wrapper);
                     });
+                    
+                    if (isCoop) {
+                        document.getElementById('prophecy-modal-title').textContent = "Votação de Profecia!";
+                        document.getElementById('prophecy-modal-text').textContent = "Comuniquem-se e votem em qual profecia registrar:";
+                        document.getElementById('confirm-prophecy-btn').textContent = 'Votar';
+                        const myVote = localGameState.prophecy_choice.votes[localPlayerId];
+                        if (myVote) {
+                            optionsContainer.querySelectorAll('input').forEach(r => r.disabled = true);
+                            const myVotedLabel = document.querySelector(`label[for="prophecy-radio-${myVote}"]`);
+                            if(myVotedLabel) myVotedLabel.style.borderColor = '#8b5cf6';
+                            voteStatus.textContent = 'Você votou. Aguardando o outro jogador...';
+                            voteStatus.classList.remove('hidden');
+                        } else {
+                            voteStatus.classList.add('hidden');
+                        }
+                    } else { // Reset for competitive mode
+                        document.getElementById('prophecy-modal-title').textContent = "Múltiplas Profecias Cumpridas!";
+                        document.getElementById('prophecy-modal-text').textContent = "Escolha qual profecia deseja registrar:";
+                        document.getElementById('confirm-prophecy-btn').textContent = 'Confirmar';
+                        voteStatus.classList.add('hidden');
+                    }
+                    
                     prophecyModal.classList.remove('hidden');
                 } else {
                     prophecyModal.classList.add('hidden');
                 }
 
                 if (localGameState.game_over) {
-                    endGameUI(localGameState.winner, localGameState.win_reason);
+                    endGameUI(localGameState.winner, localGameState.win_reason, localGameState.gameMode);
                     if(unsubscribe) unsubscribe();
                 }
             }
             
             async function handleCardClick(playerNumber, index) {
-                const isMyTurn = localGameState.current_player === playerNumber && 
-                                 !(localGameState.seal_decision && localGameState.seal_decision.active) &&
-                                 !(localGameState.prophecy_choice && localGameState.prophecy_choice.active);
+                const isMyTurn = localGameState.current_player === playerNumber && !(localGameState.seal_decision?.active) && !(localGameState.prophecy_choice?.active);
                 if (localGameState.game_over || !isMyTurn) return;
-                
                 const hand = localGameState[localPlayerId].hand;
                 const topCard = localGameState.discard_pile.length > 0 ? localGameState.discard_pile[localGameState.discard_pile.length - 1] : null;
                 const hasLegalMoves = hand.some(card => isLegalMove(card, topCard));
@@ -728,10 +707,9 @@
                         showCustomAlert("Jogada ilegal.");
                     }
                 } else {
-                    // Condição de Vitória: Aniquilação
                     if (hand.length < 3) {
                         let newState = JSON.parse(JSON.stringify(localGameState));
-                        const winner = playerNumber === 1 ? 2 : 1;
+                        const winner = localGameState.gameMode === 'cooperative' ? -1 : (playerNumber === 1 ? 2 : 1);
                         addLogToState(newState, `JOGADOR ${playerNumber} não pode sacrificar e perde por Aniquilação!`);
                         newState.game_over = true;
                         newState.winner = winner;
@@ -739,11 +717,12 @@
                         await updateFirestore(newState);
                         return;
                     }
-
                     addLogToState(localGameState, `Jogador ${playerNumber} não tem jogadas legais e precisa sacrificar 3 cartas.`);
-                    if (!sacrificeSelection.includes(index)) sacrificeSelection.push(index);
-                    else sacrificeSelection = sacrificeSelection.filter(i => i !== index);
-                    
+                    if (!sacrificeSelection.includes(index)) {
+                        sacrificeSelection.push(index);
+                    } else {
+                        sacrificeSelection = sacrificeSelection.filter(i => i !== index);
+                    }
                     if (sacrificeSelection.length === 3) {
                         let newState = JSON.parse(JSON.stringify(localGameState));
                         await performSacrifice(playerNumber, newState);
@@ -755,7 +734,7 @@
 
             async function performSacrifice(playerNumber, state) {
                 addLogToState(state, `JOGADOR ${playerNumber} realiza um Sacrifício!`);
-                checkEventProphecies('sacrifice_made', playerNumber, state);
+                if(state.gameMode === 'competitive') checkEventProphecies('sacrifice_made', playerNumber, state);
                 const playerId = `player${playerNumber}`;
                 const hand = state[playerId].hand;
                 const cardToPlay = hand[sacrificeSelection[2]];
@@ -774,45 +753,43 @@
                 state.discard_pile.push(cardToPlay);
                 state.play_history.push({ player: playerNumber, card: cardToPlay });
                 addLogToState(state, `JOGADOR ${playerNumber} joga: ${formatCardData(cardToPlay).displayText}`);
-                const history = state.play_history;
-                if (history.length >= 3 && cardToPlay.Tipo === 'Demonio') {
-                    const last3Plays = history.slice(-3);
-                    if (last3Plays.every(p => p.player === playerNumber && p.card.Tipo === 'Demonio' && p.card.Afinidade === cardToPlay.Afinidade)) {
-                        checkEventProphecies('affinity_streak', playerNumber, state);
+                if(state.gameMode === 'competitive') {
+                    const history = state.play_history;
+                    if (history.length >= 3 && cardToPlay.Tipo === 'Demonio') {
+                        const last3Plays = history.slice(-3);
+                        if (last3Plays.every(p => p.player === playerNumber && p.card.Tipo === 'Demonio' && p.card.Afinidade === cardToPlay.Afinidade)) {
+                            checkEventProphecies('affinity_streak', playerNumber, state);
+                        }
                     }
                 }
                 await handleEndOfTurn(playerNumber, cardToPlay, state);
             }
-            
-            async function handleEndOfTurn(playerNumber, playedCard, state) {
-                let kingPlayed = (playedCard.Título === 'Rei');
 
-                if (kingPlayed) {
+            async function handleEndOfTurn(playerNumber, playedCard, state) {
+                if (playedCard.Título === 'Rei') {
                     const opponentNumber = playerNumber === 1 ? 2 : 1;
-                    // O jogo SEMPRE entra no estado de decisão. O cliente do oponente irá resolver
-                    // automaticamente se ele não tiver o selo. Isso esconde a informação.
                     state.seal_decision = { active: true, player: opponentNumber, king_player: playerNumber };
                     await updateFirestore(state);
                 } else {
                     advanceTurn(playerNumber, state);
                     if(!checkWinCondition(state)){
-                         await updateFirestore(state);
+                        await updateFirestore(state);
                     } else {
-                         await updateFirestore(state);
+                        await updateFirestore(state);
                     }
                 }
             }
 
             function advanceTurn(lastPlayer, state) {
-                 const opponent = lastPlayer === 1 ? 2 : 1;
-                 const playerWhoDraws = state.current_player; 
-                 if (state.deck.length > 0) {
-                     const drawnCard = state.deck.pop();
-                     state[`player${playerWhoDraws}`].hand.push(drawnCard);
-                     addLogToState(state, `JOGADOR ${playerWhoDraws} compra uma carta.`);
-                 } else {
-                     addLogToState(state, "Grimório vazio!");
-                 }
+                const opponent = lastPlayer === 1 ? 2 : 1;
+                const playerWhoDraws = state.current_player;
+                if (state.deck.length > 0) {
+                    const drawnCard = state.deck.pop();
+                    state[`player${playerWhoDraws}`].hand.push(drawnCard);
+                    addLogToState(state, `JOGADOR ${playerWhoDraws} compra uma carta.`);
+                } else {
+                    addLogToState(state, "Grimório vazio!");
+                }
                 state.turn_count++;
                 state.current_player = opponent;
                 sacrificeSelection = [];
@@ -824,16 +801,17 @@
                 state.discard_pile = [];
                 state.removed_from_game.push(...capturedDomain);
                 state[`player${playerNumber}`].domains_captured++;
-                checkEventProphecies('domain_captured', playerNumber, state);
-
+                if(state.gameMode === 'competitive') checkEventProphecies('domain_captured', playerNumber, state);
+                
                 const fulfillableProphecies = findFulfillableDomainProphecies(playerNumber, capturedDomain, state.play_history, state);
                 
                 if (fulfillableProphecies.length === 1) {
                     const prophecyId = fulfillableProphecies[0];
-                    const prophecy = state[`player${playerNumber}`].prophecies.find(p => p.id === prophecyId);
+                    const prophecyList = state.gameMode === 'cooperative' ? state.sharedProphecies : state[`player${playerNumber}`].prophecies;
+                    const prophecy = prophecyList.find(p => p.id === prophecyId);
                     if (prophecy) {
                         prophecy.completed = true;
-                        addLogToState(state, `JOGADOR ${playerNumber} cumpriu a profecia: ${getProphecyDetails(prophecyId).Nome}!`);
+                        addLogToState(state, `Profecia cumprida: ${getProphecyDetails(prophecyId).Nome}!`);
                     }
                     if (checkWinCondition(state)) {
                         await updateFirestore(state);
@@ -843,12 +821,11 @@
                     await updateFirestore(state);
 
                 } else if (fulfillableProphecies.length > 1) {
-                    state.prophecy_choice = { active: true, player: playerNumber, choices: fulfillableProphecies, domain_owner: playerNumber };
-                    addLogToState(state, `JOGADOR ${playerNumber} deve escolher uma profecia para cumprir.`);
+                    state.prophecy_choice = { active: true, player: playerNumber, choices: fulfillableProphecies, domain_owner: playerNumber, votes: { player1: null, player2: null } };
+                    addLogToState(state, `Múltiplas profecias cumpridas! Momento de decisão.`);
                     await updateFirestore(state);
 
                 } else {
-                    // No prophecies fulfilled, just advance turn
                     advanceTurn(playerNumber, state);
                     await updateFirestore(state);
                 }
@@ -858,49 +835,36 @@
                 if (localGameState.game_over) return;
                 let newState = JSON.parse(JSON.stringify(localGameState));
                 const kingPlayerNumber = newState.seal_decision.king_player;
-
                 addLogToState(newState, `JOGADOR ${playerNumber} usa o Selo de Salomão!`);
                 const seloIndex = newState[`player${playerNumber}`].hand.findIndex(c => c.Nome === 'Selo de Salomão');
                 if(seloIndex === -1) return;
-                const seloCard = newState[`player${playerNumber}`].hand.splice(seloIndex, 1)[0];
-                newState.removed_from_game.push(seloCard);
+                newState[`player${playerNumber}`].hand.splice(seloIndex, 1)[0];
                 newState.seal_decision = { active: false, player: null, king_player: null };
-                
-                checkEventProphecies('selo_played', playerNumber, newState);
-                checkEventProphecies('selo_played', kingPlayerNumber, newState);
-                
-                // Now process the domain capture for the player using the seal
+                if(newState.gameMode === 'competitive') {
+                    checkEventProphecies('selo_played', playerNumber, newState);
+                    checkEventProphecies('selo_played', kingPlayerNumber, newState);
+                }
                 await processDomainCapture(playerNumber, newState);
             }
 
             async function handleDeclineSelo(decliningPlayerNumber) {
                 let newState = JSON.parse(JSON.stringify(localGameState));
                 const kingPlayerNumber = newState.seal_decision.king_player;
-                addLogToState(newState, `Jogador ${decliningPlayerNumber} decide não usar o Selo de Salomão.`);
+                addLogToState(newState, `Jogador ${decliningPlayerNumber} decide não usar o Selo.`);
                 newState.seal_decision = { active: false, player: null, king_player: null };
                 await processDomainCapture(kingPlayerNumber, newState);
             }
 
-            // NOVO: Função para enviar mensagens do chat
             async function sendChatMessage() {
                 const chatInput = document.getElementById('chat-input');
                 const messageText = chatInput.value.trim();
                 if (!messageText) return;
-
                 const senderId = localPlayerId === 'player1' ? 1 : 2;
-                const newMessage = {
-                    sender: `Jogador ${senderId}`,
-                    senderId: localPlayerId,
-                    text: messageText,
-                    timestamp: new Date().toISOString()
-                };
-
+                const newMessage = { sender: `Jogador ${senderId}`, senderId: localPlayerId, text: messageText, timestamp: new Date().toISOString() };
                 let newState = JSON.parse(JSON.stringify(localGameState));
                 if (!newState.chat) newState.chat = [];
                 newState.chat.push(newMessage);
-                // Opcional: limitar o tamanho do histórico de chat
                 if (newState.chat.length > 50) newState.chat.shift();
-
                 await updateFirestore(newState);
                 chatInput.value = '';
                 chatInput.focus();
@@ -924,12 +888,23 @@
                     current_player: 1, turn_count: 1, game_over: false, winner: null, status: 'waiting',
                     win_reason: null,
                     seal_decision: { active: false, player: null, king_player: null },
-                    prophecy_choice: { active: false, player: null, choices: [], domain_owner: null }
+                    prophecy_choice: { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} },
+                    gameMode: selectedGameMode
                 };
                 
-                newGameState.player1.prophecies = shuffledProphecies.slice(0, 3).map(p => ({id: p.id, completed: false}));
-                newGameState.player2.prophecies = shuffledProphecies.slice(3, 6).map(p => ({id: p.id, completed: false}));
-                for (let i = 0; i < 7; i++) { if(newGameState.deck.length > 0) newGameState.player1.hand.push(newGameState.deck.pop()); if(newGameState.deck.length > 0) newGameState.player2.hand.push(newGameState.deck.pop()); }
+                if (selectedGameMode === 'cooperative') {
+                    newGameState.sharedProphecies = shuffledProphecies.slice(0, 5).map(p => ({id: p.id, completed: false}));
+                    newGameState.player1.prophecies = []; // Clear individual prophecies
+                    newGameState.player2.prophecies = [];
+                } else {
+                    newGameState.player1.prophecies = shuffledProphecies.slice(0, 3).map(p => ({id: p.id, completed: false}));
+                    newGameState.player2.prophecies = shuffledProphecies.slice(3, 6).map(p => ({id: p.id, completed: false}));
+                }
+
+                for (let i = 0; i < 7; i++) {
+                    if(newGameState.deck.length > 0) newGameState.player1.hand.push(newGameState.deck.pop());
+                    if(newGameState.deck.length > 0) newGameState.player2.hand.push(newGameState.deck.pop());
+                }
                 await setDoc(doc(db, gamesCollectionPath, gameId), newGameState);
                 document.getElementById('game-id-display').textContent = gameId;
                 document.getElementById('game-id-section').classList.remove('hidden');
@@ -969,29 +944,59 @@
             async function handleConfirmProphecyChoice() {
                 const selectedRadio = document.querySelector('input[name="prophecy-selection"]:checked');
                 if (!selectedRadio) {
-                    showCustomAlert("Por favor, selecione uma profecia.");
+                    showCustomAlert("Por favor, selecione uma opção.");
                     return;
                 }
                 const chosenId = selectedRadio.value;
                 let newState = JSON.parse(JSON.stringify(localGameState));
-                const playerNumber = newState.prophecy_choice.player;
-                const domainOwner = newState.prophecy_choice.domain_owner;
-                const prophecy = newState[`player${playerNumber}`].prophecies.find(p => p.id === chosenId);
 
-                if (prophecy) {
-                    prophecy.completed = true;
-                    addLogToState(newState, `JOGADOR ${playerNumber} cumpriu a profecia: ${getProphecyDetails(chosenId).Nome}!`);
-                }
-                
-                newState.prophecy_choice = { active: false, player: null, choices: [], domain_owner: null };
-                
-                if (checkWinCondition(newState)) {
+                if (newState.gameMode === 'cooperative') {
+                    newState.prophecy_choice.votes[localPlayerId] = chosenId;
+                    const { votes, domain_owner } = newState.prophecy_choice;
+
+                    // Check if both have voted
+                    if (votes.player1 && votes.player2) {
+                        let finalChoiceId;
+                        if (votes.player1 === votes.player2) {
+                            finalChoiceId = votes.player1;
+                            addLogToState(newState, `Ambos os jogadores votaram em ${getProphecyDetails(finalChoiceId).Nome}.`);
+                        } else {
+                            // Tie-breaker
+                            const tieChoices = [votes.player1, votes.player2];
+                            finalChoiceId = tieChoices[Math.floor(Math.random() * 2)];
+                            addLogToState(newState, `Votação empatada! O destino escolheu ${getProphecyDetails(finalChoiceId).Nome}.`);
+                        }
+                        const prophecy = newState.sharedProphecies.find(p => p.id === finalChoiceId);
+                        if (prophecy) {
+                            prophecy.completed = true;
+                            addLogToState(newState, `Profecia cumprida: ${getProphecyDetails(finalChoiceId).Nome}!`);
+                        }
+                        
+                        newState.prophecy_choice = { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} };
+                        if (checkWinCondition(newState)) {
+                            await updateFirestore(newState);
+                            return;
+                        }
+                        advanceTurn(domain_owner, newState);
+                    }
                     await updateFirestore(newState);
-                    return;
+
+                } else { // Competitive Mode
+                    const playerNumber = newState.prophecy_choice.player;
+                    const domainOwner = newState.prophecy_choice.domain_owner;
+                    const prophecy = newState[`player${playerNumber}`].prophecies.find(p => p.id === chosenId);
+                    if (prophecy) {
+                        prophecy.completed = true;
+                        addLogToState(newState, `JOGADOR ${playerNumber} cumpriu: ${getProphecyDetails(chosenId).Nome}!`);
+                    }
+                    newState.prophecy_choice = { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} };
+                    if (checkWinCondition(newState)) {
+                        await updateFirestore(newState);
+                        return;
+                    }
+                    advanceTurn(domainOwner, newState);
+                    await updateFirestore(newState);
                 }
-                
-                advanceTurn(domainOwner, newState);
-                await updateFirestore(newState);
             }
 
             document.getElementById('confirm-prophecy-btn').addEventListener('click', handleConfirmProphecyChoice);
@@ -1001,16 +1006,14 @@
                 unsubscribe = onSnapshot(doc(db, gamesCollectionPath, id), (doc) => {
                     if (doc.exists()) {
                         localGameState = doc.data();
-                        
                         if (localGameState.status === 'active') {
                             document.getElementById('lobby').classList.add('hidden');
                             document.getElementById('game-board').classList.remove('hidden');
                         }
-
                         updateUI();
                     } else {
                         if (!localGameState.game_over) {
-                            showCustomAlert("O jogo foi encerrado pelo outro jogador.");
+                            showCustomAlert("O jogo foi encerrado.");
                             setTimeout(() => window.location.reload(), 2000);
                         }
                     }
@@ -1018,34 +1021,45 @@
             }
 
             document.getElementById('confirm-seal-btn').addEventListener('click', () => {
-                if (localGameState.seal_decision && localGameState.seal_decision.active) {
-                    handleSelo(localGameState.seal_decision.player); 
+                if (localGameState.seal_decision?.active) {
+                    handleSelo(localGameState.seal_decision.player);
                 }
             });
 
             document.getElementById('decline-seal-btn').addEventListener('click', () => {
-                if (localGameState.seal_decision && localGameState.seal_decision.active) {
+                if (localGameState.seal_decision?.active) {
                     handleDeclineSelo(localGameState.seal_decision.player);
                 }
             });
-            
-            // NOVO: Listeners para o chat
+
             document.getElementById('send-chat-btn').addEventListener('click', sendChatMessage);
             document.getElementById('chat-input').addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
-                    e.preventDefault(); // Impede o comportamento padrão do Enter (ex: submeter formulário)
+                    e.preventDefault();
                     sendChatMessage();
                 }
             });
 
+            // Game Mode Selection Listeners
+            const compBtn = document.getElementById('mode-competitive-btn');
+            const coopBtn = document.getElementById('mode-cooperative-btn');
+            compBtn.addEventListener('click', () => {
+                selectedGameMode = 'competitive';
+                compBtn.classList.add('active');
+                coopBtn.classList.remove('active');
+            });
+            coopBtn.addEventListener('click', () => {
+                selectedGameMode = 'cooperative';
+                coopBtn.classList.add('active');
+                compBtn.classList.remove('active');
+            });
+
             window.addEventListener('beforeunload', () => {
                 if (gameId && localPlayerId === 'player1' && !localGameState.game_over) {
-                   deleteDoc(doc(db, gamesCollectionPath, gameId));
+                    deleteDoc(doc(db, gamesCollectionPath, gameId));
                 }
             });
         });
     </script>
 </body>
 </html>
-
-
