@@ -1,3 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goetia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Times New Roman', serif; background-color: #1a1a1a; color: #d1d1d1; }
+        .card-button { border: 1px solid #4a4a4a; background-color: #2a2a2a; color: #c0c0c0; padding: 8px 12px; margin: 4px; border-radius: 6px; cursor: pointer; text-align: left; transition: all 0.2s ease-in-out; box-shadow: 0 2px 4px rgba(0,0,0,0.5); font-size: 0.9rem; }
+        .card-button:hover:not(:disabled) { background-color: #3a3a3a; border-color: #888; }
+        .card-button:disabled { cursor: not-allowed; opacity: 0.5; }
+        .sacrificing { border-color: #ef4444 !important; box-shadow: 0 0 8px #ef4444; }
+        .game-board-element { border: 2px solid #5a3a1a; background-color: #3a2a1a; }
+        .prophecy-list li { font-size: 0.9rem; margin-bottom: 4px; cursor: help; position: relative; }
+        .prophecy-list li .tooltip { visibility: hidden; width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; margin-left: -125px; opacity: 0; transition: opacity 0.3s; }
+        .prophecy-list li:hover .tooltip { visibility: visible; opacity: 1; }
+        .prophecy-completed { text-decoration: line-through; color: #4ade80; }
+        .turn-indicator { transition: all 0.3s ease; }
+        .opponent-card { background-color: #1e1e1e; border: 1px dashed #4a4a4a; color: #666; }
+        #game-id-display { user-select: all; }
+        /* Estilos para o novo modal de profecia */
+        .prophecy-choice-label { display: block; padding: 12px; border: 1px solid #4a4a4a; border-radius: 6px; background-color: #2a2a2a; cursor: pointer; transition: background-color 0.2s; }
+        .prophecy-choice-label:hover { background-color: #3a3a3a; }
+        input[type="radio"]:checked + .prophecy-choice-label { background-color: #4c1d95; border-color: #8b5cf6; }
+        input[type="radio"] { opacity: 0; position: fixed; width: 0; }
+        .domain-card-item { background-color: #2a2a2a; color: #c0c0c0; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; border: 1px solid #4a4a4a; }
+        
+        /* Novos estilos para Log e Chat */
+        .log-area, .chat-area { background-color: #1f1f1f; border: 1px solid #4a4a4a; height: 180px; overflow-y: auto; padding: 10px; font-family: monospace; font-size: 0.85rem; }
+        .log-area { display: flex; flex-direction: column-reverse; }
+        .log-area strong { color: #f59e0b; }
+        .chat-area { display: flex; flex-direction: column; }
+        .chat-message { padding: 6px 10px; border-radius: 12px; margin-bottom: 6px; max-width: 85%; word-wrap: break-word; }
+        .chat-message.player1 { background-color: #1e40af; color: #eff6ff; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .chat-message.player2 { background-color: #15803d; color: #f0fdf4; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .chat-message .sender { font-weight: bold; font-size: 0.75rem; display: block; margin-bottom: 2px; opacity: 0.9; }
+
+        /* Estilos para seleção de modo de jogo */
+        .game-mode-selector { display: flex; justify-content: center; gap: 1rem; margin-bottom: 1.5rem; }
+        .mode-btn { padding: 10px 20px; border: 2px solid #4a4a4a; background-color: #2a2a2a; color: #c0c0c0; font-weight: bold; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .mode-btn.active { background-color: #a16207; border-color: #f59e0b; color: white; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div id="game-container" class="max-w-7xl mx-auto">
+        <div class="text-center mb-6">
+            <h1 class="text-4xl font-bold text-amber-200">Goetia</h1>
+            <p class="text-lg text-gray-400">Protótipo Online</p>
+        </div>
+
+        <!-- Lobby -->
+        <div id="lobby" class="text-center bg-gray-900 p-8 rounded-lg max-w-lg mx-auto">
+             <h2 class="text-2xl font-bold text-amber-300 mb-4">Modo de Jogo</h2>
+             <div class="game-mode-selector">
+                <button id="mode-competitive-btn" class="mode-btn active">Competitivo</button>
+                <button id="mode-cooperative-btn" class="mode-btn">Cooperativo</button>
+             </div>
+             <hr class="border-gray-700 my-6">
+             <h2 class="text-2xl font-bold text-amber-300 mb-4">Sala de Jogo</h2>
+             <button id="create-game-btn" class="w-full mb-4 px-6 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded-lg shadow-lg">Criar Novo Jogo</button>
+             <div id="game-id-section" class="hidden mb-4">
+                 <p class="text-gray-300">Compartilhe este ID com seu oponente:</p>
+                 <p id="game-id-display" class="bg-gray-800 text-amber-200 font-mono p-2 rounded mt-2"></p>
+             </div>
+             <hr class="border-gray-700 my-6">
+             <input type="text" id="join-game-input" placeholder="Cole o ID do Jogo aqui" class="w-full bg-gray-800 border border-gray-600 text-white p-2 rounded mb-4">
+             <button id="join-game-btn" class="w-full px-6 py-2 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-lg shadow-lg">Entrar no Jogo</button>
+        </div>
+
+        <!-- Game Board -->
+        <div id="game-board" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="flex flex-col items-center justify-center game-board-element p-4 rounded-lg">
+                    <h3 class="text-xl font-bold text-amber-300 mb-2">Grimório</h3>
+                    <p id="deck-count" class="text-2xl font-mono">100</p>
+                </div>
+                <div id="turn-display" class="flex flex-col items-center justify-center bg-gray-800 p-4 rounded-lg">
+                     <h2 id="turn-indicator" class="text-2xl font-bold text-center text-amber-400">Turno 1</h2>
+                     <p id="player-turn" class="text-gray-300">Aguardando Jogador 2...</p>
+                </div>
+                <div class="flex flex-col items-center justify-center game-board-element p-4 rounded-lg">
+                    <h3 class="text-xl font-bold text-amber-300 mb-2">Monte de Descarte</h3>
+                    <div id="discard-pile-card" class="card-button text-center min-h-[50px] flex items-center justify-center"></div>
+                </div>
+            </div>
+
+            <!-- CO-OP Prophecy Board -->
+            <div id="coop-board-container" class="hidden bg-gray-800 p-4 rounded-lg mb-6">
+                <h3 class="text-xl font-bold text-center text-amber-300 mb-2">Profecias Compartilhadas</h3>
+                <p class="text-center text-lg mb-4">Progresso: <span id="coop-prophecy-progress" class="font-bold text-green-400">0 / 5</span></p>
+                <div id="coop-prophecies" class="flex flex-wrap justify-center gap-2">
+                    <!-- Profecias cooperativas serão injetadas aqui -->
+                </div>
+            </div>
+            
+            <!-- Domain Board -->
+            <div id="domain-board-container" class="bg-gray-800 p-4 rounded-lg mb-6">
+                <h3 class="text-xl font-bold text-center text-amber-300 mb-2">Domínio Atual</h3>
+                <div id="domain-board-cards" class="flex flex-wrap justify-center gap-2 min-h-[30px]"></div>
+            </div>
+
+            <!-- Player Areas -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Player 1 Area -->
+                <div id="player1-area" class="bg-gray-900 p-6 rounded-lg border-2 border-transparent turn-indicator">
+                    <h2 class="text-2xl font-bold mb-3 text-blue-300">Jogador 1</h2>
+                    <div id="player1-hand" class="mb-4 min-h-[100px] flex flex-wrap"></div>
+                    <div id="player1-prophecy-area" class="bg-gray-800 p-3 rounded">
+                        <h4 class="font-bold mb-2 text-blue-200">Profecias Secretas:</h4>
+                        <ul id="player1-prophecies" class="list-disc list-inside prophecy-list"></ul>
+                    </div>
+                     <div class="mt-4">
+                         <h4 class="font-bold text-blue-200">Domínios Capturados: <span id="player1-dominions">0</span></h4>
+                     </div>
+                </div>
+                <!-- Player 2 Area -->
+                <div id="player2-area" class="bg-gray-900 p-6 rounded-lg border-2 border-transparent turn-indicator">
+                    <h2 class="text-2xl font-bold mb-3 text-green-300">Jogador 2</h2>
+                    <div id="player2-hand" class="mb-4 min-h-[100px] flex flex-wrap"></div>
+                    <div id="player2-prophecy-area" class="bg-gray-800 p-3 rounded">
+                        <h4 class="font-bold mb-2 text-green-200">Profecias Secretas:</h4>
+                        <ul id="player2-prophecies" class="list-disc list-inside prophecy-list"></ul>
+                    </div>
+                     <div class="mt-4">
+                         <h4 class="font-bold text-green-200">Domínios Capturados: <span id="player2-dominions">0</span></h4>
+                     </div>
+                </div>
+            </div>
+
+            <!-- Log and Chat Area Container -->
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Log Area -->
+                <div>
+                    <h3 class="text-xl font-bold mb-2 text-amber-300">Log da Partida</h3>
+                    <div id="log-area" class="log-area rounded-lg"></div>
+                </div>
+                <!-- Chat Area -->
+                <div>
+                    <h3 class="text-xl font-bold mb-2 text-amber-300">Chat</h3>
+                    <div id="chat-area" class="chat-area rounded-t-lg"></div>
+                    <div class="flex">
+                        <input type="text" id="chat-input" placeholder="Digite sua mensagem..." class="flex-grow bg-gray-800 border border-gray-600 text-white p-2 focus:outline-none focus:border-amber-500 rounded-bl-lg">
+                        <button id="send-chat-btn" class="px-4 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded-br-lg">Enviar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modals -->
+        <div id="end-game-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-gray-900 p-8 rounded-lg shadow-2xl text-center border-2 border-amber-500">
+                <h2 id="winner-text" class="text-3xl font-bold text-amber-300 mb-4"></h2>
+                <p id="win-reason-text" class="text-gray-300 mb-6"></p>
+                <button onclick="window.location.reload()" class="px-6 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded-lg">Jogar Novamente</button>
+            </div>
+        </div>
+
+        <!-- Seal Decision Modal -->
+        <div id="seal-decision-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-gray-800 p-8 rounded-lg shadow-2xl text-center border-2 border-yellow-500">
+                <h2 class="text-2xl font-bold text-yellow-300 mb-4">Oponente jogou um Rei!</h2>
+                <p id="seal-modal-text" class="text-gray-300 mb-6">Você deseja usar o seu Selo de Salomão para roubar este Domínio?</p>
+                <div class="flex justify-center space-x-4">
+                    <button id="confirm-seal-btn" class="px-6 py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg">Sim, Usar Selo</button>
+                    <button id="decline-seal-btn" class="px-6 py-2 bg-red-700 hover:bg-red-600 text-white font-bold rounded-lg">Não, Passar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prophecy Choice Modal -->
+        <div id="prophecy-choice-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-gray-800 p-8 rounded-lg shadow-2xl text-center border-2 border-purple-500 max-w-lg">
+                <h2 id="prophecy-modal-title" class="text-2xl font-bold text-purple-300 mb-4">Múltiplas Profecias Cumpridas!</h2>
+                <p id="prophecy-modal-text" class="text-gray-300 mb-6">Escolha qual profecia deseja registrar:</p>
+                <div id="prophecy-options" class="space-y-3 mb-6 text-left"></div>
+                <p id="prophecy-vote-status" class="text-gray-400 text-sm mb-4 hidden"></p>
+                <button id="confirm-prophecy-btn" class="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg w-full">Confirmar</button>
+            </div>
+        </div>
+    </div>
+        
 <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
