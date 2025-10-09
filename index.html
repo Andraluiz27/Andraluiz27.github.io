@@ -335,12 +335,12 @@
                 if (!topCard) return true;
                 if (cardToPlay.Tipo === 'Lendário') return false; // Selo não pode ser jogado normalmente
 
-                // --- Regras Existentes Mantidas ---
-                // Regra 1: Rei sobre qualquer Metal.
-                if (cardToPlay.Título === 'Rei' && topCard.Tipo === 'Metal') {
+                // Regra 1: [CORRIGIDO] Um Rei pode ser jogado sobre QUALQUER carta para fechar o domínio.
+                if (cardToPlay.Título === 'Rei') {
                     return true;
                 }
 
+                // --- Regras Existentes Mantidas ---
                 // Regra 2: Título de hierarquia superior (apenas Demônio sobre Demônio)
                 if (cardToPlay.Tipo === 'Demonio' && topCard.Tipo === 'Demonio') {
                     const playTitleRank = titleHierarchy[cardToPlay.Título] || 0;
@@ -356,14 +356,14 @@
                 }
 
                 // --- Novas Regras e Alterações ---
-                // Regra 4: [NOVO] Demônio sobre Metal (se o demônio for do metal correspondente)
+                // Regra 4: Demônio sobre Metal (se o demônio for do metal correspondente)
                 if (cardToPlay.Tipo === 'Demonio' && topCard.Tipo === 'Metal') {
                     if (cardToPlay.Metal && cardToPlay.Metal === topCard.Nome) {
                         return true;
                     }
                 }
 
-                // Regra 5: [ALTERADO] Metal sobre Metal (se for de hierarquia superior)
+                // Regra 5: Metal sobre Metal (se for de hierarquia superior)
                 if (cardToPlay.Tipo === 'Metal' && topCard.Tipo === 'Metal') {
                     const playMetalRank = metalHierarchy[cardToPlay.Nome] || 0;
                     const topMetalRank = metalHierarchy[topCard.Nome] || 0;
@@ -913,4 +913,3 @@
     </script>
 </body>
 </html>
-
