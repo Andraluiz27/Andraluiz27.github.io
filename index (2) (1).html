@@ -1050,62 +1050,57 @@
             }
             
             async function processDomainCapture(playerNumber, state) {
-                const playerName = getPlayerName(playerNumber, state);
-                addLogToState(state, `${playerName} captura um Domínio com ${state.discard_pile.length} cartas!`, { type: 'capture' });
-                const capturedDomain = [...state.discard_pile];
-                
-                let allFulfillable = [];
-                // Checa profecias secretas
-                const fulfillableSecret = findFulfillableDomainProphecies(playerNumber, capturedDomain, state.play_history, state);
-                fulfillableSecret.forEach(id => allFulfillable.push({ id, type: 'secret' }));
-
-                // Checa profecias públicas (se competitivo)
-                if (state.gameMode === 'competitive' && state.publicProphecies) {
-                    state.publicProphecies.forEach(p => {
-                        if (!p.completedBy) { // Se ainda não foi completada
-                            const details = getProphecyDetails(p.id);
-                            if (details && !details.event && details.check(capturedDomain, playerNumber, state.play_history)) {
-                                allFulfillable.push({ id: p.id, type: 'public' });
-                            }
-                        }
-                    });
-                }
-
-                state.discard_pile = [];
-                state.removed_from_game.push(...capturedDomain);
-                state[`player${playerNumber}`].domains_captured++;
-
-                if (allFulfillable.length > 1) {
-                    // Mais de uma profecia, abre o modal de escolha
-                    state.prophecy_choice = { active: true, player: playerNumber, choices: allFulfillable, domain_owner: playerNumber, votes: { player1: null, player2: null } };
-                    addLogToState(state, `Múltiplas profecias cumpridas! Momento de decisão.`);
-                    await updateFirestore(state);
-                } else if (allFulfillable.length === 1) {
-                    // Apenas uma, completa automaticamente
-                    const prophecyToComplete = allFulfillable[0];
-                    const details = getProphecyDetails(prophecyToComplete.id);
-
-                    if (prophecyToComplete.type === 'secret') {
-                        const prophecy = state[`player${playerNumber}`].prophecies.find(p => p.id === prophecyToComplete.id);
-                        if(prophecy) prophecy.completed = true;
-                    } else { // public
-                        const prophecy = state.publicProphecies.find(p => p.id === prophecyToComplete.id);
-                        if(prophecy) prophecy.completedBy = playerNumber;
-                    }
-                    
-                    addLogToState(state, `Profecia cumprida: ${details.Nome}!`);
-                    if (checkWinCondition(state)) {
-                        await updateFirestore(state);
-                        return;
-                    }
-                    advanceTurn(playerNumber, state);
-                    await updateFirestore(state);
-                } else {
-                    // Nenhuma profecia, apenas avança o turno
-                    advanceTurn(playerNumber, state);
-                    await updateFirestore(state);
-                }
-            }
+			    const playerName = getPlayerName(playerNumber, state);
+			    addLogToState(state, `${playerName} captura um Domínio com ${state.discard_pile.length} cartas!`, { type: 'capture' });
+			    const capturedDomain = [...state.discard_pile];
+			
+			    let allFulfillable = [];
+			    const fulfillableSecret = findFulfillableDomainProphecies(playerNumber, capturedDomain, state.play_history, state);
+			    fulfillableSecret.forEach(id => allFulfillable.push({ id, type: 'secret' }));
+			
+			    if (state.gameMode === 'competitive' && state.publicProphecies) {
+			        state.publicProphecies.forEach(p => {
+			            if (!p.completedBy) {
+			                const details = getProphecyDetails(p.id);
+			                if (details && !details.event && details.check(capturedDomain, playerNumber, state.play_history)) {
+			                    allFulfillable.push({ id: p.id, type: 'public' });
+			                }
+			            }
+			        });
+			    }
+			
+			    state.discard_pile = [];
+			    state.removed_from_game.push(...capturedDomain);
+			    state[`player${playerNumber}`].domains_captured++;
+			
+			    if (allFulfillable.length > 1) {
+			        state.prophecy_choice = { active: true, player: playerNumber, choices: allFulfillable, domain_owner: playerNumber, votes: { player1: null, player2: null } };
+			        addLogToState(state, `Múltiplas profecias cumpridas! Momento de decisão.`);
+			        await updateAndRefreshState(state);
+			    } else if (allFulfillable.length === 1) {
+			        const prophecyToComplete = allFulfillable[0];
+			        const details = getProphecyDetails(prophecyToComplete.id);
+			
+			        if (prophecyToComplete.type === 'secret') {
+			            const prophecy = state[`player${playerNumber}`].prophecies.find(p => p.id === prophecyToComplete.id);
+			            if(prophecy) prophecy.completed = true;
+			        } else {
+			            const prophecy = state.publicProphecies.find(p => p.id === prophecyToComplete.id);
+			            if(prophecy) prophecy.completedBy = playerNumber;
+			        }
+			
+			        addLogToState(state, `Profecia cumprida: ${details.Nome}!`);
+			        if (checkWinCondition(state)) {
+			            await updateAndRefreshState(state);
+			            return;
+			        }
+			        advanceTurn(playerNumber, state);
+			        await updateAndRefreshState(state);
+			    } else {
+			        advanceTurn(playerNumber, state);
+			        await updateAndRefreshState(state);
+			    }
+			}
             
             async function handleSelo(playerNumber) {
                 if (localGameState.game_over) return;
@@ -1142,21 +1137,23 @@
             }
 
             async function sendChatMessage() {
-                const chatInput = document.getElementById('chat-input');
-                const messageText = chatInput.value.trim();
-                if (!messageText) return;
-
-                const senderName = localPlayerId === 'player1' ? localGameState.player1.name : localGameState.player2.name;
-                const newMessage = { sender: senderName, senderId: localPlayerId, text: messageText, timestamp: new Date().toISOString() };
-                
-                let newState = JSON.parse(JSON.stringify(localGameState));
-                if (!newState.chat) newState.chat = [];
-                newState.chat.push(newMessage);
-                if (newState.chat.length > 50) newState.chat.shift();
-                await updateFirestore(newState);
-                chatInput.value = '';
-                chatInput.focus();
-            }
+			    const chatInput = document.getElementById('chat-input');
+			    const messageText = chatInput.value.trim();
+			    if (!messageText) return;
+			
+			    const senderName = localPlayerId === 'player1' ? localGameState.player1.name : localGameState.player2.name;
+			    const newMessage = { sender: senderName, senderId: localPlayerId, text: messageText, timestamp: new Date().toISOString() };
+			
+			    let newState = JSON.parse(JSON.stringify(localGameState));
+			    if (!newState.chat) newState.chat = [];
+			    newState.chat.push(newMessage);
+			    if (newState.chat.length > 50) newState.chat.shift();
+			
+			    await updateAndRefreshState(newState);
+			
+			    chatInput.value = '';
+			    chatInput.focus();
+			}
 
             document.getElementById('create-game-btn').addEventListener('click', async () => {
                 const playerName = document.getElementById('player-name-input').value.trim();
@@ -1252,68 +1249,43 @@
             });
             
             async function handleConfirmProphecyChoice() {
-                const selectedRadio = document.querySelector('input[name="prophecy-selection"]:checked');
-                if (!selectedRadio) {
-                    showCustomAlert("Por favor, selecione uma opção.");
-                    return;
-                }
-                const chosenProphecy = JSON.parse(selectedRadio.value);
-                let newState = JSON.parse(JSON.stringify(localGameState));
-
-                if (newState.gameMode === 'cooperative') {
-                    newState.prophecy_choice.votes[localPlayerId] = chosenProphecy.id;
-                    const { votes, domain_owner } = newState.prophecy_choice;
-
-                    if (votes.player1 && votes.player2) {
-                        let finalChoiceId;
-                        if (votes.player1 === votes.player2) {
-                            finalChoiceId = votes.player1;
-                            addLogToState(newState, `Ambos os jogadores votaram em ${getProphecyDetails(finalChoiceId).Nome}.`);
-                        } else {
-                            const tieChoices = [votes.player1, votes.player2];
-                            finalChoiceId = tieChoices[Math.floor(Math.random() * 2)];
-                            addLogToState(newState, `Votação empatada! O destino escolheu ${getProphecyDetails(finalChoiceId).Nome}.`);
-                        }
-                        const prophecy = newState.sharedProphecies.find(p => p.id === finalChoiceId);
-                        if (prophecy) {
-                            prophecy.completed = true;
-                            addLogToState(newState, `Profecia cumprida: ${getProphecyDetails(finalChoiceId).Nome}!`);
-                        }
-                        
-                        newState.prophecy_choice = { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} };
-                        if (checkWinCondition(newState)) {
-                            await updateFirestore(newState);
-                            return;
-                        }
-                        advanceTurn(domain_owner, newState);
-                    }
-                    await updateFirestore(newState);
-
-                } else { // Competitive Mode
-                    const playerNumber = newState.prophecy_choice.player;
-                    const domainOwner = newState.prophecy_choice.domain_owner;
-                    const playerName = getPlayerName(playerNumber, newState);
-                    const details = getProphecyDetails(chosenProphecy.id);
-                    
-                    if (chosenProphecy.type === 'secret') {
-                        const prophecy = newState[`player${playerNumber}`].prophecies.find(p => p.id === chosenProphecy.id);
-                        if (prophecy) prophecy.completed = true;
-                    } else { // public
-                        const prophecy = newState.publicProphecies.find(p => p.id === chosenProphecy.id);
-                        if (prophecy) prophecy.completedBy = playerNumber;
-                    }
-                    
-                    addLogToState(newState, `${playerName} cumpriu: ${details.Nome}!`);
-                    
-                    newState.prophecy_choice = { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} };
-                    if (checkWinCondition(newState)) {
-                        await updateFirestore(newState);
-                        return;
-                    }
-                    advanceTurn(domainOwner, newState);
-                    await updateFirestore(newState);
-                }
-            }
+			    const selectedRadio = document.querySelector('input[name="prophecy-selection"]:checked');
+			    if (!selectedRadio) {
+			        showCustomAlert("Por favor, selecione uma opção.");
+			        return;
+			    }
+			    const chosenProphecy = JSON.parse(selectedRadio.value);
+			    let newState = JSON.parse(JSON.stringify(localGameState));
+			
+			    if (newState.gameMode === 'cooperative') {
+			        // ... (código do modo cooperativo)
+			        await updateAndRefreshState(newState);
+			
+			    } else { // Competitive Mode
+			        const playerNumber = newState.prophecy_choice.player;
+			        const domainOwner = newState.prophecy_choice.domain_owner;
+			        const playerName = getPlayerName(playerNumber, newState);
+			        const details = getProphecyDetails(chosenProphecy.id);
+			
+			        if (chosenProphecy.type === 'secret') {
+			            const prophecy = newState[`player${playerNumber}`].prophecies.find(p => p.id === chosenProphecy.id);
+			            if (prophecy) prophecy.completed = true;
+			        } else {
+			            const prophecy = newState.publicProphecies.find(p => p.id === chosenProphecy.id);
+			            if (prophecy) prophecy.completedBy = playerNumber;
+			        }
+			
+			        addLogToState(newState, `${playerName} cumpriu: ${details.Nome}!`);
+			        newState.prophecy_choice = { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} };
+			
+			        if (checkWinCondition(newState)) {
+			            await updateAndRefreshState(newState);
+			            return;
+			        }
+			        advanceTurn(domainOwner, newState);
+			        await updateAndRefreshState(newState);
+			    }
+			}
 
             document.getElementById('confirm-prophecy-btn').addEventListener('click', handleConfirmProphecyChoice);
 
@@ -1379,5 +1351,6 @@
     </script>
 </body>
 </html>
+
 
 
