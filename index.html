@@ -38,7 +38,7 @@
     .card-button:disabled { cursor: not-allowed; opacity: 0.5; }
     .sacrificing { border-color: #ef4444 !important; box-shadow: 0 0 8px #ef4444; }
     .game-board-element { border: 2px solid #5a3a1a; background-color: #3a2a1a; }
-    .prophecy-list li { font-size: 0.75rem; margin-bottom: 4px; cursor: help; position: relative; }
+    .prophecy-list li { font-size: 0.85rem; margin-bottom: 4px; cursor: help; position: relative; }
     .prophecy-list li .tooltip { visibility: hidden; width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; margin-left: -125px; opacity: 0; transition: opacity 0.3s; }
     .prophecy-list li:hover .tooltip { visibility: visible; opacity: 1; }
     .prophecy-completed { text-decoration: line-through; color: #4ade80; }
@@ -147,8 +147,13 @@
     }
 
     .help-tooltip p, .help-tooltip ul {
-        font-size: 0.50rem;
-        color: #c0c0c0;
+    font-size: 0.75rem;
+    color: #c0c0c0;
+    }
+
+    /* Adicione a nova regra para os títulos aqui */
+    .help-tooltip strong {
+    font-size: 0.8rem;
     }
     /* ===== FIM DO CÓDIGO ADICIONADO ===== */
 </style>
@@ -1219,6 +1224,7 @@
     </script>
 </body>
 </html>
+
 
 
 
