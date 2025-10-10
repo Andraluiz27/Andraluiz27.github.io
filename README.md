@@ -42,7 +42,7 @@ Dois Modos de Jogo:
 
       Jogue!
 
-Acesse as regras em: 
+Acesse as regras em: [MANUAL GOETIA (1).pdf](https://github.com/user-attachments/files/22852641/MANUAL.GOETIA.1.pdf)
 
 🛠️ Tecnologias Utilizadas
 
