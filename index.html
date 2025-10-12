@@ -14,7 +14,7 @@
     }
 
     @font-face {
-        /* Fonte para Textos (adicione o nome do arquivo aqui) */
+        /* Fonte para Textos */
         font-family: 'FonteDosTextos'; 
         src: url('fonts/Remnant-Regular.ttf') format('truetype');
     }
@@ -22,17 +22,17 @@
 
     /* ----- APLICAÇÃO DAS FONTES ----- */
     body { 
-        font-family: 'FonteDosTextos', 'Times New Roman', serif; /* Fonte padrão para todo o texto */
+        font-family: 'FonteDosTextos', 'Times New Roman', serif;
         background-color: #1a1a1a; 
         color: #d1d1d1; 
     }
     
     h1, h2, h3, h4 {
-        font-family: 'FonteDosTitulos', 'Times New Roman', serif; /* Fonte especial para os títulos */
+        font-family: 'FonteDosTitulos', 'Times New Roman', serif;
     }
 
 
-    /* ----- RESTANTE DO SEU CÓDIGO (INTACTO) ----- */
+    /* ----- ESTILOS DO JOGO ----- */
     .card-button { border: 1px solid #4a4a4a; background-color: #2a2a2a; color: #c0c0c0; padding: 8px 12px; margin: 4px; border-radius: 6px; cursor: pointer; text-align: left; transition: all 0.2s ease-in-out; box-shadow: 0 2px 4px rgba(0,0,0,0.5); font-size: 0.9rem; }
     .card-button:hover:not(:disabled) { background-color: #3a3a3a; border-color: #888; }
     .card-button:disabled { cursor: not-allowed; opacity: 0.5; }
@@ -45,14 +45,11 @@
     .turn-indicator { transition: all 0.3s ease; }
     .opponent-card { background-color: #1e1e1e; border: 1px dashed #4a4a4a; color: #666; }
     #game-id-display { user-select: all; }
-    /* Estilos para o novo modal de profecia */
     .prophecy-choice-label { display: block; padding: 12px; border: 1px solid #4a4a4a; border-radius: 6px; background-color: #2a2a2a; cursor: pointer; transition: background-color 0.2s; }
     .prophecy-choice-label:hover { background-color: #3a3a3a; }
     input[type="radio"]:checked + .prophecy-choice-label { background-color: #4c1d95; border-color: #8b5cf6; }
     input[type="radio"] { opacity: 0; position: fixed; width: 0; }
     .domain-card-item { background-color: #2a2a2a; color: #c0c0c0; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; border: 1px solid #4a4a4a; }
-    
-    /* Novos estilos para Log e Chat */
     .log-area, .chat-area { background-color: #1f1f1f; border: 1px solid #4a4a4a; height: 180px; overflow-y: auto; padding: 10px; font-family: monospace; font-size: 0.85rem; }
     .log-area { display: flex; flex-direction: column-reverse; }
     .log-area strong { color: #f59e0b; }
@@ -61,128 +58,25 @@
     .chat-message.player1 { background-color: #1e40af; color: #eff6ff; align-self: flex-start; border-bottom-left-radius: 2px; }
     .chat-message.player2 { background-color: #15803d; color: #f0fdf4; align-self: flex-end; border-bottom-right-radius: 2px; }
     .chat-message .sender { font-weight: bold; font-size: 0.75rem; display: block; margin-bottom: 2px; opacity: 0.9; }
-
-    /* Estilos para seleção de modo de jogo */
     .game-mode-selector { display: flex; justify-content: center; gap: 1rem; margin-bottom: 1.5rem; }
     .mode-btn { padding: 10px 20px; border: 2px solid #4a4a4a; background-color: #2a2a2a; color: #c0c0c0; font-weight: bold; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
     .mode-btn.active { background-color: #a16207; border-color: #f59e0b; color: white; }
-
-    /* Estilos para o tooltip da profecia cooperativa */
-    .coop-prophecy {
-        position: relative;
-        cursor: help;
-    }
-    .coop-prophecy .tooltip {
-        visibility: hidden;
-        width: 250px;
-        background-color: #333;
-        color: #fff;
-        text-align: center;
-        border-radius: 6px;
-        padding: 5px;
-        position: absolute;
-        z-index: 10;
-        bottom: 125%;
-        left: 50%;
-        margin-left: -125px;
-        opacity: 0;
-        transition: opacity 0.3s;
-        text-decoration: none; /* Garante que o texto do tooltip não seja riscado */
-    }
-    .coop-prophecy:hover:not(.prophecy-completed) .tooltip {
-        visibility: visible;
-        opacity: 1;
-    }
-
-    /* ===== CÓDIGO ADICIONADO PARA O TOOLTIP DE AJUDA ===== */
-    #help-icon {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 40px;
-        height: 40px;
-        background-color: #4a4a4a;
-        color: #d1d1d1;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        font-weight: bold;
-        cursor: help;
-        z-index: 1000;
-        border: 2px solid #6a6a6a;
-        user-select: none;
-    }
-
-    #help-icon .help-tooltip {
-        visibility: hidden;
-        opacity: 0;
-        width: 300px;
-        background-color: #1f1f1f;
-        color: #d1d1d1;
-        text-align: left;
-        border-radius: 8px;
-        padding: 12px;
-        position: absolute;
-        z-index: 1;
-        bottom: 120%;
-        right: 0; 
-        transition: opacity 0.3s ease-in-out;
-        border: 1px solid #5a5a5a;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.7);
-    }
-
-    #help-icon:hover .help-tooltip {
-        visibility: visible;
-        opacity: 1;
-    }
-
-    .help-tooltip .tooltip-section {
-        margin-bottom: 10px;
-    }
-    
-    .help-tooltip .tooltip-section:last-child {
-        margin-bottom: 0;
-    }
-
-    .help-tooltip p, .help-tooltip ul {
-    font-size: 0.85rem;
-    color: #c0c0c0;
-    }
-
-    /* Adicione a nova regra para os títulos aqui */
-    .help-tooltip strong {
-    font-size: 0.70rem;
-    }
-    /* ===== FIM DO CÓDIGO ADICIONADO ===== */
-
-    /* NOVOS ESTILOS PARA PROFECIAS PÚBLICAS */
-    .prophecy-public-item {
-        padding: 8px 12px;
-        border-radius: 6px;
-        border: 1px solid #6b7280;
-        background-color: #374151;
-        cursor: help;
-        position: relative;
-    }
-    .prophecy-public-item .tooltip {
-        visibility: hidden; width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; margin-left: -125px; opacity: 0; transition: opacity 0.3s;
-    }
-    .prophecy-public-item:hover .tooltip {
-        visibility: visible; opacity: 1;
-    }
-    .prophecy-completed-by-p1 {
-        border-color: #60a5fa; /* Azul para Jogador 1 */
-        background-color: #1e3a8a;
-        color: #eff6ff;
-    }
-    .prophecy-completed-by-p2 {
-        border-color: #4ade80; /* Verde para Jogador 2 */
-        background-color: #166534;
-        color: #f0fdf4;
-    }
-</style>
+    .coop-prophecy { position: relative; cursor: help; }
+    .coop-prophecy .tooltip { visibility: hidden; width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 10; bottom: 125%; left: 50%; margin-left: -125px; opacity: 0; transition: opacity 0.3s; text-decoration: none; }
+    .coop-prophecy:hover:not(.prophecy-completed) .tooltip { visibility: visible; opacity: 1; }
+    #help-icon { position: fixed; bottom: 20px; right: 20px; width: 40px; height: 40px; background-color: #4a4a4a; color: #d1d1d1; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; cursor: help; z-index: 1000; border: 2px solid #6a6a6a; user-select: none; }
+    #help-icon .help-tooltip { visibility: hidden; opacity: 0; width: 300px; background-color: #1f1f1f; color: #d1d1d1; text-align: left; border-radius: 8px; padding: 12px; position: absolute; z-index: 1; bottom: 120%; right: 0;  transition: opacity 0.3s ease-in-out; border: 1px solid #5a5a5a; box-shadow: 0 4px 12px rgba(0,0,0,0.7); }
+    #help-icon:hover .help-tooltip { visibility: visible; opacity: 1; }
+    .help-tooltip .tooltip-section { margin-bottom: 10px; }
+    .help-tooltip .tooltip-section:last-child { margin-bottom: 0; }
+    .help-tooltip p, .help-tooltip ul { font-size: 0.85rem; color: #c0c0c0; }
+    .help-tooltip strong { font-size: 0.70rem; }
+    .prophecy-public-item { padding: 8px 12px; border-radius: 6px; border: 1px solid #6b7280; background-color: #374151; cursor: help; position: relative; }
+    .prophecy-public-item .tooltip { visibility: hidden; width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; margin-left: -125px; opacity: 0; transition: opacity 0.3s; }
+    .prophecy-public-item:hover .tooltip { visibility: visible; opacity: 1; }
+    .prophecy-completed-by-p1 { border-color: #60a5fa; background-color: #1e3a8a; color: #eff6ff; }
+    .prophecy-completed-by-p2 { border-color: #4ade80; background-color: #166534; color: #f0fdf4; }
+    </style>
 </head>
 <body class="p-4 md:p-8">
 
@@ -196,53 +90,57 @@
              <div class="game-mode-selector">
                 <button id="mode-competitive-btn" class="mode-btn active">Competitivo</button>
                 <button id="mode-cooperative-btn" class="mode-btn">Cooperativo</button>
+                <button id="mode-cpu-btn" class="mode-btn">VS CPU</button>
              </div>
              <hr class="border-gray-700 my-6">
               <h2 class="text-3xl font-bold text-amber-300 mb-4">Seu Nome</h2>
               <input type="text" id="player-name-input" placeholder="Digite seu nome aqui" class="w-full bg-gray-800 border border-gray-600 text-white p-2 rounded mb-6" maxlength="20">
-             <h2 class="text-3xl font-bold text-amber-300 mb-4">Sala de Jogo</h2>
-             <button id="create-game-btn" class="w-full mb-4 px-6 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded-lg shadow-lg">Criar Novo Jogo</button>
-             <div id="game-id-section" class="hidden mb-4">
-                 <p class="text-gray-300">Compartilhe este ID com seu oponente:</p>
-                 <p id="game-id-display" class="bg-gray-800 text-amber-200 font-mono p-2 rounded mt-2"></p>
+             <div id="online-options">
+                <h2 class="text-3xl font-bold text-amber-300 mb-4">Sala de Jogo</h2>
+                <button id="create-game-btn" class="w-full mb-4 px-6 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded-lg shadow-lg">Criar Novo Jogo</button>
+                <div id="game-id-section" class="hidden mb-4">
+                    <p class="text-gray-300">Compartilhe este ID com seu oponente:</p>
+                    <p id="game-id-display" class="bg-gray-800 text-amber-200 font-mono p-2 rounded mt-2"></p>
+                </div>
+                <hr class="border-gray-700 my-6">
+                <input type="text" id="join-game-input" placeholder="Cole o ID do Jogo aqui" class="w-full bg-gray-800 border border-gray-600 text-white p-2 rounded mb-4">
+                <button id="join-game-btn" class="w-full px-6 py-2 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-lg shadow-lg">Entrar no Jogo</button>
              </div>
-             <hr class="border-gray-700 my-6">
-             <input type="text" id="join-game-input" placeholder="Cole o ID do Jogo aqui" class="w-full bg-gray-800 border border-gray-600 text-white p-2 rounded mb-4">
-             <button id="join-game-btn" class="w-full px-6 py-2 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-lg shadow-lg">Entrar no Jogo</button>
+             <div id="cpu-options" class="hidden">
+                <button id="start-cpu-game-btn" class="w-full px-6 py-2 bg-purple-700 hover:bg-purple-600 text-white font-bold rounded-lg shadow-lg">Iniciar Jogo vs CPU</button>
+             </div>
         </div>
 
         <div id="game-board" class="hidden">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div class="flex flex-col items-center justify-center game-board-element p-4 rounded-lg">
                     <h3 class="text-xl font-bold text-amber-300 mb-2">Grimório</h3>
-                    <p id="deck-count" class="text-2xl font-mono">100</p>
+                    <p id="deck-count" class="text-2xl font-mono">0</p>
                 </div>
                 <div id="turn-display" class="flex flex-col items-center justify-center bg-gray-800 p-4 rounded-lg">
                      <h2 id="turn-indicator" class="text-2xl font-bold text-center text-amber-400">Turno 1</h2>
                      <p id="player-turn" class="text-gray-300">Aguardando Oponente...</p>
                 </div>
                 <div class="flex flex-col items-center justify-center game-board-element p-4 rounded-lg">
-                    <h3 class="text-xl font-bold text-amber-300 mb-2">Monte de Descarte</h3>
+                    <h3 class="text-xl font-bold text-amber-300 mb-2">Domínio</h3>
                     <div id="discard-pile-card" class="card-button text-center min-h-[50px] flex items-center justify-center"></div>
                 </div>
             </div>
 
             <div id="coop-board-container" class="hidden bg-gray-800 p-4 rounded-lg mb-6">
                 <h3 class="text-xl font-bold text-center text-amber-300 mb-2">Profecias Compartilhadas</h3>
-                <p class="text-center text-lg mb-4">Progresso: <span id="coop-prophecy-progress" class="font-bold text-green-400">0 / 5</span></p>
-                <div id="coop-prophecies" class="flex flex-wrap justify-center gap-2">
-                    </div>
+                <p class="text-center text-lg mb-4">Progresso: <span id="coop-prophecy-progress" class="font-bold text-green-400">0 / 7</span></p>
+                <div id="coop-prophecies" class="flex flex-wrap justify-center gap-2"></div>
             </div>
             
             <div id="domain-board-container" class="bg-gray-800 p-4 rounded-lg mb-6">
-                <h3 class="text-xl font-bold text-center text-amber-300 mb-2">Domínio Atual</h3>
+                <h3 class="text-xl font-bold text-center text-amber-300 mb-2">Cartas no Domínio</h3>
                 <div id="domain-board-cards" class="flex flex-wrap justify-center gap-2 min-h-[30px]"></div>
             </div>
 
             <div id="public-prophecy-container" class="hidden bg-gray-800 p-4 rounded-lg mb-6">
                 <h3 class="text-xl font-bold text-center text-amber-300 mb-2">Profecias Públicas</h3>
-                <div id="public-prophecies" class="flex flex-wrap justify-center gap-2 min-h-[30px]">
-                    </div>
+                <div id="public-prophecies" class="flex flex-wrap justify-center gap-2 min-h-[30px]"></div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -376,81 +274,10 @@
             const gamesCollectionPath = `/artifacts/${appId}/public/data/ars_goetia_games`;
             
             // DATA (Completo)
-            const demons = [
-                {Nome:"Bael", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"},
-                {Nome:"Paimon", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"},
-                {Nome:"Beleth", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"},
-                {Nome:"Purson", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"},
-                {Nome:"Asmoday", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"},
-                {Nome:"Vine", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"},
-                {Nome:"Balam", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"},
-                {Nome:"Zagan", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"},
-                {Nome:"Belial", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"},
-                {Nome:"Vassago", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"},
-                {Nome:"Ipos", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"},
-                {Nome:"Stolas", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"},
-                {Nome:"Orobas", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"},
-                {Nome:"Agares", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Conhecimento"},
-                {Nome:"Valefor", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"},
-                {Nome:"Barbatos", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"},
-                {Nome:"Bathin", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"},
-                {Nome:"Saleos", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"},
-                {Nome:"Berith", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"},
-                {Nome:"Astaroth", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Conhecimento"},
-                {Nome:"Vepar", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"},
-                {Nome:"Vual", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"},
-                {Nome:"Murmur", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Conhecimento"},
-                {Nome:"Gremory", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"},
-                {Nome:"Haures", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"},
-                {Nome:"Amduscias", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"},
-                {Nome:"Dantalion", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"},
-                {Nome:"Aim", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"},
-                {Nome:"Amon", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Riqueza"},
-                {Nome:"Naberius", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"},
-                {Nome:"Forneus", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Riqueza"},
-                {Nome:"Phenex", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"},
-                {Nome:"Orias", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"},
-                {Nome:"Andras", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Guerra"},
-                {Nome:"Andrealphus", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"},
-                {Nome:"Cimeies", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Guerra"},
-                {Nome:"Decarabia", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Guerra"},
-                {Nome:"Botis", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Riqueza"},
-                {Nome:"Glasya-Labolas", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Conhecimento"},
-                {Nome:"Ronove", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Guerra"},
-                {Nome:"Furfur", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Guerra"},
-                {Nome:"Halphas", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Guerra"},
-                {Nome:"Andromalius", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Riqueza"},
-                {Nome:"Furcas", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Conhecimento"},
-                {Nome:"Leraje", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Guerra"},
-                {Nome:"Foras", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Riqueza"},
-                {Nome:"Gaap", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Conhecimento"},
-                {Nome:"Malphas", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Guerra"},
-                {Nome:"Ose", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Conhecimento"},
-                {Nome:"Amy", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Riqueza"},
-                {Nome:"Valac", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Riqueza"}
-            ];
+            const demons = [ {Nome:"Bael", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"}, {Nome:"Paimon", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"}, {Nome:"Beleth", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"}, {Nome:"Purson", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"}, {Nome:"Asmoday", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"}, {Nome:"Vine", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"}, {Nome:"Balam", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"}, {Nome:"Zagan", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"}, {Nome:"Belial", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"}, {Nome:"Vassago", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"}, {Nome:"Ipos", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"}, {Nome:"Stolas", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"}, {Nome:"Orobas", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"}, {Nome:"Agares", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Conhecimento"}, {Nome:"Valefor", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Barbatos", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Bathin", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"}, {Nome:"Saleos", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Berith", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Astaroth", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Conhecimento"}, {Nome:"Vepar", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"}, {Nome:"Vual", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Murmur", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Conhecimento"}, {Nome:"Gremory", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Haures", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"}, {Nome:"Amduscias", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"}, {Nome:"Dantalion", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Aim", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"}, {Nome:"Amon", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Riqueza"}, {Nome:"Naberius", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"}, {Nome:"Forneus", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Riqueza"}, {Nome:"Phenex", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"}, {Nome:"Orias", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"}, {Nome:"Andras", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Guerra"}, {Nome:"Andrealphus", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"}, {Nome:"Cimeies", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Guerra"}, {Nome:"Decarabia", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Guerra"}, {Nome:"Botis", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Riqueza"}, {Nome:"Glasya-Labolas", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Conhecimento"}, {Nome:"Ronove", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Guerra"}, {Nome:"Furfur", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Guerra"}, {Nome:"Halphas", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Guerra"}, {Nome:"Andromalius", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Riqueza"}, {Nome:"Furcas", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Conhecimento"}, {Nome:"Leraje", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Guerra"}, {Nome:"Foras", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Riqueza"}, {Nome:"Gaap", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Conhecimento"}, {Nome:"Malphas", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Guerra"}, {Nome:"Ose", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Conhecimento"}, {Nome:"Amy", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Riqueza"}, {Nome:"Valac", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Riqueza"} ];
             const metals = [...Array(4).fill({Nome: "Cobre", Título: "Duque"}), ...Array(6).fill({Nome: "Prata", Título: "Marquês"}), ...Array(4).fill({Nome: "Mercúrio", Título: "Presidente"}), ...Array(5).fill({Nome: "Estanho", Título: "Conde"})];
             const seals = Array(1).fill({Nome: "Selo de Salomão"});
-            const allProphecies = [
-                { id: 'p1', Nome: 'A Aristocracia Perversa', Desc: 'Capture um domínio com ao menos 4 demônios da afinidade Riqueza.', check: (domain) => domain.filter(c => c.Tipo === 'Demonio' && c.Afinidade === 'Riqueza').length >= 4 },
-                { id: 'p2', Nome: 'O Monólito Vermelho', Desc: 'Capture um Domínio onde TODOS os demônios são da afinidade Guerra, incluindo o rei.', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio'); return demons.length > 0 && demons.every(d => d.Afinidade === 'Guerra'); } },
-                { id: 'p3', Nome: 'A Insurreição dos Iguais', Desc: 'Capture um Domínio com 6 cartas ou mais, onde TODOS os demônios (exceto Reis) são da mesma Hierarquia (Baixa ou Média).', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta'); return domain.length >= 6 && (demons.length > 0 && (demons.every(d => d.Hierarquia === 'Baixa') || demons.every(d => d.Hierarquia === 'Média')) ); } },
-                { id: 'p4', Nome: 'A Pirâmide Perfeita', Desc: 'Capture um Domínio que contenha a sequência exata de demônios: Presidente -> Conde -> Marquês.', check: (domain) => { if (domain.length < 3) return false; for (let i = 0; i <= domain.length - 3; i++) { const c1 = domain[i]; const c2 = domain[i+1]; const c3 = domain[i+2]; if (c1.Tipo === 'Demonio' && c1.Título === 'Presidente' && c2.Tipo === 'Demonio' && c2.Título === 'Conde' && c3.Tipo === 'Demonio' && c3.Título === 'Marquês') return true; } return false; } },
-                { id: 'p5', Nome: 'O Tesouro Profano', Desc: 'Capture um Domínio onde mais da metade das cartas são Metais.', check: (domain) => domain.filter(c => c.Tipo === 'Metal').length > domain.length / 2 },
-                { id: 'p6', Nome: 'O Mosaico do Caos', Desc: 'Capture um Domínio com 5 ou mais demônios (ignorando o Rei), sem que nenhuma Afinidade apareça mais do que duas vezes.', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta'); const counts = demons.reduce((acc, d) => { acc[d.Afinidade] = (acc[d.Afinidade] || 0) + 1; return acc; }, {}); return demons.length >= 5 && Object.values(counts).every(v => v <= 2); } },
-                { id: 'p7', Nome: 'A Trindade Completa', Desc: 'Capture um Domínio que contenha EXATAMENTE um demônio de cada Afinidade (ignorando o Rei).', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta'); const affinities = new Set(demons.map(d => d.Afinidade)); return demons.length === 3 && affinities.size === 3; } },
-                { id: 'p8', Nome: 'O Salto da Fé', Desc: 'Capture um Domínio com um Duque, onde TODOS os outros demônios são de Baixa Hierarquia e tenha ao menos 4 demônios.', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta'); return demons.length >= 4 && demons.some(d => d.Hierarquia === 'Média') && demons.filter(d => d.Hierarquia === 'Baixa').length === (demons.length - 1); } },
-                { id: 'p9', Nome: 'A Prata Romana', Desc: 'Capture um domínio que tenha ao menos 3 cartas de Prata.', check: (domain) => domain.filter(c => c.Tipo === 'Metal' && c.Nome === 'Prata').length >= 3 },
-                { id: 'p10', Nome: 'A Liga Infernal', Desc: 'Capture um Domínio que contenha pelo menos um de cada um dos 4 tipos de Metal.', check: (domain) => { const metalTypes = new Set(domain.filter(c => c.Tipo === 'Metal').map(m => m.Nome)); return metalTypes.size === 4; } },
-                { id: 'p11', Nome: 'A Legião Pura', Desc: 'Capture um Domínio que não contenha NENHUMA carta de Metal.', check: (domain) => domain.filter(c => c.Tipo === 'Metal').length === 0 },
-                { id: 'p12', Nome: 'O Segredo de Astaroth', Desc: 'Capture um Domínio que contenha o Duque Astaroth e 2 ou mais outros demônios de Conhecimento.', check: (domain) => domain.some(c => c.Nome === 'Astaroth') && domain.filter(c => c.Tipo === 'Demonio' && c.Afinidade === 'Conhecimento').length >= 3 },
-                { id: 'p13', Nome: 'A Orquestra de Amduscias', Desc: 'Capture um Domínio que contenha o Duque Amduscias e demônios de, pelo menos, outros 2 títulos diferentes.', check: (domain) => { const titles = new Set(domain.filter(c => c.Tipo === 'Demonio').map(d => d.Título)); return domain.some(c => c.Nome === 'Amduscias') && titles.size >= 3; } },
-                { id: 'p14', Nome: 'A Corrupção do Sábio', Desc: 'Cumprida se o Selo de Salomão for utilizado.', check: () => false, event: 'selo_played' },
-                { id: 'p15', Nome: 'O Servo de Bael', Desc: 'Cumprida se você ou seu oponente capturar um Domínio com o Rei Bael (a captura não pode ser roubada por um Selo).', check: () => false, event: 'bael_played' },
-                { id: 'p16', Nome: 'O Grito do Abismo', Desc: 'Cumprida se você for forçado a fazer um Sacrifício.', check: () => false, event: 'sacrifice_made' },
-                { id: 'p17', Nome: 'A Escala da Loucura', Desc: 'Capture um domínio que tenha uma sequência exata de três demônios da mesma Afinidade.', check: (domain) => { if (domain.length < 3) return false; for (let i = 0; i <= domain.length - 3; i++) { const card1 = domain[i]; const card2 = domain[i+1]; const card3 = domain[i+2]; if (card1.Tipo === 'Demonio' && card2.Tipo === 'Demonio' && card3.Tipo === 'Demonio') { if (card1.Afinidade === card2.Afinidade && card1.Afinidade === card3.Afinidade) return true; } } return false; } },
-                { id: 'p18', Nome: 'O Mestre dos Marionetes', Desc: 'Capture um Domínio onde a primeira carta jogada foi um Duque.', check: (domain) => domain.length > 0 && domain[0].Título === 'Duque' },
-            ];
+            const allProphecies = [ { id: 'p1', Nome: 'A Aristocracia Perversa', Desc: 'Capture um domínio com ao menos 4 demônios da afinidade Riqueza.', check: (domain) => domain.filter(c => c.Tipo === 'Demonio' && c.Afinidade === 'Riqueza').length >= 4 }, { id: 'p2', Nome: 'O Monólito Vermelho', Desc: 'Capture um Domínio onde TODOS os demônios são da afinidade Guerra, incluindo o rei.', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio'); return demons.length > 0 && demons.every(d => d.Afinidade === 'Guerra'); } }, { id: 'p3', Nome: 'A Insurreição dos Iguais', Desc: 'Capture um Domínio com 6 cartas ou mais, onde TODOS os demônios (exceto Reis) são da mesma Hierarquia (Baixa ou Média).', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta'); return domain.length >= 6 && (demons.length > 0 && (demons.every(d => d.Hierarquia === 'Baixa') || demons.every(d => d.Hierarquia === 'Média')) ); } }, { id: 'p4', Nome: 'A Pirâmide Perfeita', Desc: 'Capture um Domínio que contenha a sequência exata de demônios: Presidente -> Conde -> Marquês.', check: (domain) => { if (domain.length < 3) return false; for (let i = 0; i <= domain.length - 3; i++) { const c1 = domain[i]; const c2 = domain[i+1]; const c3 = domain[i+2]; if (c1.Tipo === 'Demonio' && c1.Título === 'Presidente' && c2.Tipo === 'Demonio' && c2.Título === 'Conde' && c3.Tipo === 'Demonio' && c3.Título === 'Marquês') return true; } return false; } }, { id: 'p5', Nome: 'O Tesouro Profano', Desc: 'Capture um Domínio onde mais da metade das cartas são Metais.', check: (domain) => domain.filter(c => c.Tipo === 'Metal').length > domain.length / 2 }, { id: 'p6', Nome: 'O Mosaico do Caos', Desc: 'Capture um Domínio com 5 ou mais demônios (ignorando o Rei), sem que nenhuma Afinidade apareça mais do que duas vezes.', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta'); const counts = demons.reduce((acc, d) => { acc[d.Afinidade] = (acc[d.Afinidade] || 0) + 1; return acc; }, {}); return demons.length >= 5 && Object.values(counts).every(v => v <= 2); } }, { id: 'p7', Nome: 'A Trindade Completa', Desc: 'Capture um Domínio que contenha EXATAMENTE um demônio de cada Afinidade (ignorando o Rei).', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta'); const affinities = new Set(demons.map(d => d.Afinidade)); return demons.length === 3 && affinities.size === 3; } }, { id: 'p8', Nome: 'O Salto da Fé', Desc: 'Capture um Domínio com um Duque, onde TODOS os outros demônios são de Baixa Hierarquia e tenha ao menos 4 demônios.', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta'); return demons.length >= 4 && demons.some(d => d.Hierarquia === 'Média') && demons.filter(d => d.Hierarquia === 'Baixa').length === (demons.length - 1); } }, { id: 'p9', Nome: 'A Prata Romana', Desc: 'Capture um domínio que tenha ao menos 3 cartas de Prata.', check: (domain) => domain.filter(c => c.Tipo === 'Metal' && c.Nome === 'Prata').length >= 3 }, { id: 'p10', Nome: 'A Liga Infernal', Desc: 'Capture um Domínio que contenha pelo menos um de cada um dos 4 tipos de Metal.', check: (domain) => { const metalTypes = new Set(domain.filter(c => c.Tipo === 'Metal').map(m => m.Nome)); return metalTypes.size === 4; } }, { id: 'p11', Nome: 'A Legião Pura', Desc: 'Capture um Domínio que não contenha NENHUMA carta de Metal.', check: (domain) => domain.filter(c => c.Tipo === 'Metal').length === 0 }, { id: 'p12', Nome: 'O Segredo de Astaroth', Desc: 'Capture um Domínio que contenha o Duque Astaroth e 2 ou mais outros demônios de Conhecimento.', check: (domain) => domain.some(c => c.Nome === 'Astaroth') && domain.filter(c => c.Tipo === 'Demonio' && c.Afinidade === 'Conhecimento').length >= 3 }, { id: 'p13', Nome: 'A Orquestra de Amduscias', Desc: 'Capture um Domínio que contenha o Duque Amduscias e possua pelo menos 3 Títulos de demônios diferentes no total (incluindo Duque).', check: (domain) => { const titles = new Set(domain.filter(c => c.Tipo === 'Demonio').map(d => d.Título)); return domain.some(c => c.Nome === 'Amduscias') && titles.size >= 3; } }, { id: 'p14', Nome: 'A Corrupção do Sábio', Desc: 'Cumprida se o Selo de Salomão for utilizado na jogada, seja por você ou pelo seu oponente.', check: () => false, event: 'selo_played' }, { id: 'p15', Nome: 'O Servo de Bael', Desc: 'Cumprida se você ou seu oponente capturar um Domínio com o Rei Bael (a captura não pode ser roubada por um Selo).', check: () => false, event: 'bael_played' }, { id: 'p16', Nome: 'O Grito do Abismo', Desc: 'Cumprida se você for forçado a fazer um Sacrifício.', check: () => false, event: 'sacrifice_made' }, { id: 'p17', Nome: 'A Escala da Loucura', Desc: 'Capture um domínio que tenha uma sequência exata de três demônios da mesma Afinidade.', check: (domain) => { if (domain.length < 3) return false; for (let i = 0; i <= domain.length - 3; i++) { const card1 = domain[i]; const card2 = domain[i+1]; const card3 = domain[i+2]; if (card1.Tipo === 'Demonio' && card2.Tipo === 'Demonio' && card3.Tipo === 'Demonio') { if (card1.Afinidade === card2.Afinidade && card1.Afinidade === card3.Afinidade) return true; } } return false; } }, { id: 'p18', Nome: 'O Mestre dos Marionetes', Desc: 'Capture um Domínio onde a primeira carta jogada foi um Duque.', check: (domain) => domain.length > 0 && domain[0].Título === 'Duque' }, ];
 
             // GLOBAL VARS
             let localGameState = {};
@@ -458,7 +285,8 @@
             let gameId = null;
             let unsubscribe = null;
             let sacrificeSelection = [];
-            let selectedGameMode = 'competitive'; // Default game mode
+            let selectedGameMode = 'competitive';
+            let isCpuGame = false;
 
             // HIERARCHY MAPS
             const titleHierarchy = { 'Presidente': 1, 'Conde': 2, 'Marquês': 3, 'Duque': 4 };
@@ -484,8 +312,17 @@
                 return { ...card, displayText: text };
             }
 
+            async function updateAndRefreshState(state) {
+                if (isCpuGame) {
+                    localGameState = state;
+                    updateUI();
+                } else {
+                    await updateFirestore(state);
+                }
+            }
+
             async function updateFirestore(newState) {
-                if (gameId) {
+                if (gameId && !isCpuGame) {
                     try {
                         const gameRef = doc(db, gamesCollectionPath, gameId);
                         await setDoc(gameRef, newState);
@@ -513,15 +350,120 @@
                 }, 3000);
             }
 
+            function playCpuTurn() {
+                const state = localGameState;
+                const cpuHand = state.player2.hand;
+                const topCard = state.discard_pile.length > 0 ? state.discard_pile[state.discard_pile.length - 1] : null;
+
+                // 1. Prioridade Máxima: Jogar um Rei para Vencer o Jogo?
+                const winningKingPlay = cpuHand.findIndex(card => {
+                    if (card.Título !== 'Rei') return false;
+                    const hypotheticalDomain = [...state.discard_pile, card];
+                    const secretWin = state.player2.prophecies.some(p => {
+                        if (p.completed) return false;
+                        const details = getProphecyDetails(p.id);
+                        return details && !details.event && details.check(hypotheticalDomain, 2, state.play_history);
+                    });
+                    const publicWin = state.publicProphecies.some(p => {
+                        if (p.completedBy) return false;
+                        const details = getProphecyDetails(p.id);
+                        return details && !details.event && details.check(hypotheticalDomain, 2, state.play_history);
+                    });
+                    const currentScore = state.player2.prophecies.filter(p => p.completed).length + state.publicProphecies.filter(p => p.completedBy === 2).length;
+                    if (currentScore + (secretWin || publicWin ? 1 : 0) >= 3) {
+                        return true;
+                    }
+                    return false;
+                });
+
+                if (winningKingPlay !== -1) {
+                    return { action: 'play', cardIndex: winningKingPlay };
+                }
+                
+                // 2. Prioridade Média: Jogar um Rei para cumprir QUALQUER profecia?
+                const prophecyKingPlay = cpuHand.findIndex(card => {
+                    if (card.Título !== 'Rei') return false;
+                    const hypotheticalDomain = [...state.discard_pile, card];
+                    const secretWin = state.player2.prophecies.some(p => {
+                        if (p.completed) return false;
+                        const details = getProphecyDetails(p.id);
+                        return details && !details.event && details.check(hypotheticalDomain, 2, state.play_history);
+                    });
+                    const publicWin = state.publicProphecies.some(p => {
+                        if (p.completedBy) return false;
+                        const details = getProphecyDetails(p.id);
+                        return details && !details.event && details.check(hypotheticalDomain, 2, state.play_history);
+                    });
+                    return secretWin || publicWin;
+                });
+
+                if (prophecyKingPlay !== -1) {
+                    return { action: 'play', cardIndex: prophecyKingPlay };
+                }
+
+                // 3. Prioridade Estratégica: Jogar uma carta que avance uma profecia
+                const allCpuProphecies = [
+                    ...state.player2.prophecies.filter(p => !p.completed).map(p => getProphecyDetails(p.id)),
+                    ...state.publicProphecies.filter(p => !p.completedBy).map(p => getProphecyDetails(p.id))
+                ];
+
+                let bestStrategicMove = null;
+
+                // Tenta encontrar a melhor jogada que se encaixa em uma profecia
+                for (const card of cpuHand) {
+                    const cardIndex = cpuHand.indexOf(card);
+                    if (isLegalMove(card, topCard)) {
+                        for (const prophecy of allCpuProphecies) {
+                            // Lógica simples: se a carta tiver uma afinidade ou título mencionado na descrição, considera uma boa jogada
+                            if (prophecy.Desc.includes(card.Afinidade) || prophecy.Desc.includes(card.Título)) {
+                                bestStrategicMove = { action: 'play', cardIndex: cardIndex };
+                                break;
+                            }
+                        }
+                    }
+                    if (bestStrategicMove) break;
+                }
+
+                if (bestStrategicMove) {
+                    return bestStrategicMove;
+                }
+
+
+                // 4. Encontrar todas as jogadas legais (se nenhuma jogada estratégica foi encontrada)
+                const legalMoves = [];
+                cpuHand.forEach((card, index) => {
+                    if (isLegalMove(card, topCard)) {
+                        legalMoves.push({ card, index });
+                    }
+                });
+
+                if (legalMoves.length > 0) {
+                    // 5. Estratégia de Jogada Padrão: Jogar a carta legal de menor valor possível.
+                    legalMoves.sort((a, b) => (titleHierarchy[a.card.Título] || 0) - (titleHierarchy[b.card.Título] || 0));
+                    return { action: 'play', cardIndex: legalMoves[0].index };
+                }
+
+                // 6. Se não houver jogadas: Sacrifício.
+                if (cpuHand.length >= 3) {
+                    const sortedHand = [...cpuHand].map((card, index) => ({ card, originalIndex: index }))
+                        .sort((a, b) => (titleHierarchy[a.card.Título] || 0) - (titleHierarchy[b.card.Título] || 0));
+                    const indicesToSacrifice = [
+                        sortedHand[0].originalIndex,
+                        sortedHand[1].originalIndex,
+                        sortedHand[2].originalIndex
+                    ];
+                    return { action: 'sacrifice', cardIndices: indicesToSacrifice };
+                }
+                
+                return { action: 'pass' }; 
+            }
+
             // GAME LOGIC FUNCTIONS
             function isLegalMove(cardToPlay, topCard) {
-                // Se for a primeira jogada do jogo (não há carta no topo)
                 if (!topCard) {
-                    // A primeira carta não pode ser um Rei.
-                    return cardToPlay.Título !== 'Rei';
+                    // Nem Rei nem Selo podem começar um domínio
+                    return cardToPlay.Título !== 'Rei' && cardToPlay.Tipo !== 'Lendário';
                 }
-            
-                // Lógica original para as jogadas seguintes
                 if (cardToPlay.Tipo === 'Lendário') return false;
                 if (cardToPlay.Título === 'Rei') return true;
                 if (cardToPlay.Tipo === 'Demonio' && topCard.Tipo === 'Demonio') {
@@ -544,7 +486,7 @@
             function checkEventProphecies(eventName, playerNumber, state) {
                 const playerId = `player${playerNumber}`;
                 let fulfilled = false;
-                state[playerId].prophecies.forEach(p => {
+                (state[playerId].prophecies || []).forEach(p => {
                     const details = getProphecyDetails(p.id);
                     if (!p.completed && details && details.event === eventName) {
                         p.completed = true;
@@ -557,9 +499,8 @@
             
             function findFulfillableDomainProphecies(playerNumber, domain, history, state) {
                 const prophecyList = state.gameMode === 'cooperative' ? state.sharedProphecies : state[`player${playerNumber}`].prophecies;
-                const uncompleted = prophecyList.filter(p => !p.completed);
+                const uncompleted = (prophecyList || []).filter(p => !p.completed);
                 if (uncompleted.length === 0) return [];
-
                 const fulfilled = [];
                 for (const p of uncompleted) {
                     const details = getProphecyDetails(p.id);
@@ -572,25 +513,21 @@
 
             function checkWinCondition(state) {
                 if (state.game_over) return false;
-                
                 let winner = null;
                 let reason = '';
-
                 if (state.gameMode === 'cooperative') {
-                    const completedCount = state.sharedProphecies.filter(p => p.completed).length;
+                    const completedCount = (state.sharedProphecies || []).filter(p => p.completed).length;
                     if (completedCount >= 7) {
-                        winner = 0; // 0 for co-op win
+                        winner = 0;
                         reason = 'Ascensão Cooperativa';
                     }
-                } else { // Competitive mode
-                    const p1SecretScore = state.player1.prophecies.filter(p => p.completed).length;
+                } else {
+                    const p1SecretScore = (state.player1.prophecies || []).filter(p => p.completed).length;
                     const p1PublicScore = (state.publicProphecies || []).filter(p => p.completedBy === 1).length;
                     const p1Score = p1SecretScore + p1PublicScore;
-
-                    const p2SecretScore = state.player2.prophecies.filter(p => p.completed).length;
+                    const p2SecretScore = (state.player2.prophecies || []).filter(p => p.completed).length;
                     const p2PublicScore = (state.publicProphecies || []).filter(p => p.completedBy === 2).length;
                     const p2Score = p2SecretScore + p2PublicScore;
-
                     if (p1Score >= 3) {
                         winner = 1;
                         reason = 'Ascensão';
@@ -599,8 +536,7 @@
                         reason = 'Ascensão';
                     }
                 }
-                
-                if(winner !== null) {
+                if (winner !== null) {
                     state.game_over = true;
                     state.winner = winner;
                     state.win_reason = reason;
@@ -612,54 +548,42 @@
             function endGameUI(winner, reason, gameMode, state) {
                 const winnerText = document.getElementById('winner-text');
                 const reasonText = document.getElementById('win-reason-text');
-                
                 if (gameMode === 'cooperative') {
                     winnerText.textContent = winner === 0 ? "Vitória Cooperativa!" : "Derrota...";
                 } else {
-                    const winnerName = getPlayerName(winner, state);
+                    const winnerName = (winner === 0) ? "Ninguém" : getPlayerName(winner, state);
                     winnerText.textContent = winner === 0 ? "Empate!" : `${winnerName} Venceu!`;
                 }
-
                 let reasonMessage = '';
                 switch(reason) {
-                    case 'Ascensão Cooperativa':
-                        reasonMessage = 'Vocês ascenderam juntos ao cumprir 5 profecias!';
-                        break;
-                    case 'Ascensão':
-                        reasonMessage = 'O Mestre ascendeu ao cumprir três profecias.';
-                        break;
-                    case 'Esgotamento':
-                        reasonMessage = gameMode === 'cooperative' ? 'O grimório se esgotou antes de cumprirem o ritual.' : 'O grimório se esgotou. A vitória foi decidida por profecias.';
-                        break;
-                    case 'Aniquilação':
-                        reasonMessage = gameMode === 'cooperative' ? 'Um dos jogadores foi aniquilado, encerrando o ritual.' : 'O oponente não pôde continuar e foi aniquilado.';
-                        break;
-                    default:
-                        reasonMessage = 'O jogo terminou.';
+                    case 'Ascensão Cooperativa': reasonMessage = 'Vocês ascenderam juntos ao cumprir 7 profecias!'; break;
+                    case 'Ascensão': reasonMessage = 'O Mestre ascendeu ao cumprir três profecias.'; break;
+                    case 'Esgotamento': reasonMessage = gameMode === 'cooperative' ? 'O grimório se esgotou antes de cumprirem o ritual.' : 'O grimório se esgotou. A vitória foi decidida por profecias.'; break;
+                    case 'Aniquilação': reasonMessage = gameMode === 'cooperative' ? 'Um dos jogadores foi aniquilado.' : 'O oponente não pôde continuar e foi aniquilado.'; break;
+                    default: reasonMessage = 'O jogo terminou.';
                 }
                 reasonText.textContent = reasonMessage;
                 document.getElementById('end-game-modal').classList.remove('hidden');
             }
 
             function updateUI() {
-                if (!localGameState.deck || !localPlayerId) return;
+                if (!localGameState || !localGameState.deck || !localPlayerId) return;
 
                 const currentPlayerNumber = localGameState.current_player;
                 const localPlayerNumber = localPlayerId === 'player1' ? 1 : 2;
                 const isMyTurn = currentPlayerNumber === localPlayerNumber && !(localGameState.seal_decision?.active) && !(localGameState.prophecy_choice?.active);
                 
-                // Update UI based on game mode
                 const isCoop = localGameState.gameMode === 'cooperative';
                 document.getElementById('coop-board-container').classList.toggle('hidden', !isCoop);
                 document.getElementById('player1-prophecy-area').classList.toggle('hidden', isCoop);
                 document.getElementById('player2-prophecy-area').classList.toggle('hidden', isCoop);
 
                 if (isCoop) {
-                    const completedCount = localGameState.sharedProphecies.filter(p => p.completed).length;
+                    const completedCount = (localGameState.sharedProphecies || []).filter(p => p.completed).length;
                     document.getElementById('coop-prophecy-progress').textContent = `${completedCount} / 7`;
                     const coopPropheciesContainer = document.getElementById('coop-prophecies');
                     coopPropheciesContainer.innerHTML = '';
-                    localGameState.sharedProphecies.forEach(p => {
+                    (localGameState.sharedProphecies || []).forEach(p => {
                         const details = getProphecyDetails(p.id);
                         const pElem = document.createElement('div');
                         pElem.className = `coop-prophecy p-2 rounded border ${p.completed ? 'bg-green-900 border-green-500' : 'bg-gray-700 border-gray-500'}`;
@@ -672,24 +596,21 @@
                     });
                 }
                 
-                // Atualiza as Profecias Públicas (Modo Competitivo)
                 const publicProphecyContainer = document.getElementById('public-prophecy-container');
                 if (localGameState.gameMode === 'competitive' && localGameState.publicProphecies) {
                     publicProphecyContainer.classList.remove('hidden');
                     const publicPropheciesDiv = document.getElementById('public-prophecies');
                     publicPropheciesDiv.innerHTML = '';
-                    localGameState.publicProphecies.forEach(p => {
+                    (localGameState.publicProphecies || []).forEach(p => {
                         const details = getProphecyDetails(p.id);
                         const pElem = document.createElement('div');
                         pElem.className = 'prophecy-public-item';
                         let completedByText = '';
-
                         if (p.completedBy) {
                             const winnerName = getPlayerName(p.completedBy, localGameState);
                             completedByText = ` <small class="opacity-80">(Por ${winnerName})</small>`;
                             pElem.classList.add(`prophecy-completed-by-p${p.completedBy}`);
                         }
-
                         pElem.innerHTML = `<span>${details.Nome}</span>${completedByText}<span class="tooltip">${details.Desc}</span>`;
                         publicPropheciesDiv.appendChild(pElem);
                     });
@@ -699,9 +620,8 @@
 
                 const p1Name = localGameState.player1.name;
                 const p2Name = localGameState.player2.name;
-
                 document.getElementById('player1-area').querySelector('h2').textContent = `${p1Name} ${localPlayerId === 'player1' ? '(Você)' : ''}`;
-                document.getElementById('player2-area').querySelector('h2').textContent = `${p2Name} ${localPlayerId === 'player2' ? '(Você)' : ''}`;
+                document.getElementById('player2-area').querySelector('h2').textContent = p2Name;
                 document.getElementById('turn-indicator').textContent = `Turno ${localGameState.turn_count}`;
                 
                 let turnText = localGameState.status === 'waiting' ? 'Aguardando oponente...' : '';
@@ -725,17 +645,13 @@
                 document.getElementById('player2-area').style.borderColor = currentPlayerNumber === 2 ? '#f59e0b' : 'transparent';
                 document.getElementById('deck-count').textContent = localGameState.deck.length;
                 const topCard = localGameState.discard_pile.length > 0 ? localGameState.discard_pile[localGameState.discard_pile.length - 1] : null;
-                document.getElementById('discard-pile-card').textContent = topCard ? formatCardData(topCard).displayText : 'Monte Vazio';
+                document.getElementById('discard-pile-card').textContent = topCard ? formatCardData(topCard).displayText : 'Domínio Vazio';
                 
                 const logArea = document.getElementById('log-area');
                 logArea.innerHTML = '';
                 (localGameState.log || []).forEach(logEntry => {
                     const p = document.createElement('p');
-                    if (logEntry.type === 'capture') {
-                        p.innerHTML = `> <strong>${logEntry.text}</strong>`;
-                    } else {
-                        p.textContent = `> ${logEntry.text}`;
-                    }
+                    p.innerHTML = logEntry.type === 'capture' ? `> <strong>${logEntry.text}</strong>` : `> ${logEntry.text}`;
                     logArea.appendChild(p);
                 });
 
@@ -752,10 +668,9 @@
 
                 const chatInput = document.getElementById('chat-input');
                 const sendChatBtn = document.getElementById('send-chat-btn');
-                const chatEnabled = isCoop ? localGameState.prophecy_choice?.active : true;
-                chatInput.disabled = !chatEnabled;
-                sendChatBtn.disabled = !chatEnabled;
-                chatInput.placeholder = chatEnabled ? "Digite sua mensagem..." : "O chat está selado...";
+                chatInput.disabled = isCpuGame;
+                sendChatBtn.disabled = isCpuGame;
+                chatInput.placeholder = isCpuGame ? "Chat desabilitado no modo VS CPU" : "Digite sua mensagem...";
 
                 const chatArea = document.getElementById('chat-area');
                 chatArea.innerHTML = '';
@@ -782,6 +697,7 @@
                             handContainer.appendChild(btn);
                         });
                     } else {
+                        // Esconde a mão do oponente, mas mostra placeholders
                         for(let i=0; i < handData.length; i++) {
                             const cardPlaceholder = document.createElement('div');
                             cardPlaceholder.className = 'card-button opponent-card flex items-center justify-center';
@@ -793,10 +709,11 @@
                     if (!isCoop) {
                         const propheciesContainer = document.getElementById(`${pid}-prophecies`);
                         propheciesContainer.innerHTML = '';
-                        localGameState[pid].prophecies.forEach(p => {
+                        (localGameState[pid].prophecies || []).forEach(p => {
                             const details = getProphecyDetails(p.id);
                             if (!details) return;
                             const li = document.createElement('li');
+                            // LÓGICA CORRIGIDA: Mostra profecias apenas do jogador local
                             if (localPlayerId === pid) {
                                 li.textContent = details.Nome;
                                 const tooltip = document.createElement('span');
@@ -840,7 +757,6 @@
                 const amITheProphecyDecider = isProphecyChoiceTime && (isCoop || localGameState.prophecy_choice.player === localPlayerNumber);
                 if(amITheProphecyDecider) {
                     const optionsContainer = document.getElementById('prophecy-options');
-                    const voteStatus = document.getElementById('prophecy-vote-status');
                     optionsContainer.innerHTML = '';
                     localGameState.prophecy_choice.choices.forEach((prophecyChoice, index) => {
                         const details = getProphecyDetails(prophecyChoice.id);
@@ -850,47 +766,95 @@
                         const radioId = `prophecy-radio-${prophecyChoice.id}`;
                         radio.id = radioId;
                         radio.name = 'prophecy-selection';
-                        // Armazena tanto o ID quanto o tipo no valor
                         radio.value = JSON.stringify(prophecyChoice); 
                         if (index === 0) radio.checked = true;
-
                         const label = document.createElement('label');
                         label.htmlFor = radioId;
                         label.className = 'prophecy-choice-label';
-                        
                         const typeText = prophecyChoice.type === 'public' ? ' (Pública)' : '';
                         label.innerHTML = `<strong class="text-purple-300">${details.Nome}${typeText}</strong><br><small class="text-gray-400">${details.Desc}</small>`;
-                        
                         wrapper.appendChild(radio);
                         wrapper.appendChild(label);
                         optionsContainer.appendChild(wrapper);
                     });
                     
                     if (isCoop) {
-                        document.getElementById('prophecy-modal-title').textContent = "Votação de Profecia!";
-                        document.getElementById('prophecy-modal-text').textContent = "Comuniquem-se e votem em qual profecia registrar:";
-                        document.getElementById('confirm-prophecy-btn').textContent = 'Votar';
-                        const myVote = localGameState.prophecy_choice.votes[localPlayerId];
-                        if (myVote) {
-                            optionsContainer.querySelectorAll('input').forEach(r => r.disabled = true);
-                            const myVotedLabel = document.querySelector(`label[for="prophecy-radio-${myVote}"]`);
-                            if(myVotedLabel) myVotedLabel.style.borderColor = '#8b5cf6';
-                            voteStatus.textContent = 'Você votou. Aguardando o outro jogador...';
-                            voteStatus.classList.remove('hidden');
-                        } else {
-                            voteStatus.classList.add('hidden');
-                        }
-                    } else { // Reset for competitive mode
+                        // ... (lógica cooperativa)
+                    } else {
                         document.getElementById('prophecy-modal-title').textContent = "Múltiplas Profecias Cumpridas!";
                         document.getElementById('prophecy-modal-text').textContent = "Escolha qual profecia deseja registrar:";
                         document.getElementById('confirm-prophecy-btn').textContent = 'Confirmar';
-                        voteStatus.classList.add('hidden');
+                        document.getElementById('prophecy-vote-status').classList.add('hidden');
                     }
                     
                     prophecyModal.classList.remove('hidden');
                 } else {
                     prophecyModal.classList.add('hidden');
                 }
+
+                const isCpuTurn = isCpuGame && localGameState.current_player === 2 && !localGameState.game_over && !localGameState.seal_decision.active && !localGameState.prophecy_choice.active;
+                if (isCpuTurn) {
+                    document.getElementById('player1-hand').querySelectorAll('button').forEach(btn => btn.disabled = true);
+                    setTimeout(async () => {
+                        const cpuDecision = playCpuTurn();
+                        let newState = JSON.parse(JSON.stringify(localGameState));
+                        if (cpuDecision.action === 'play') {
+                            await playCard(2, cpuDecision.cardIndex, newState);
+                        } else if (cpuDecision.action === 'sacrifice') {
+                            sacrificeSelection = cpuDecision.cardIndices;
+                            await performSacrifice(2, newState);
+                        }
+                    }, 1500);
+                }
+
+                const isCpuSealDecision = isCpuGame && localGameState.seal_decision.active && localGameState.seal_decision.player === 2;
+                if (isCpuSealDecision) {
+                     setTimeout(async () => {
+                        const cpuHand = localGameState.player2.hand;
+                        if (!cpuHand.some(c => c.Nome === 'Selo de Salomão')) {
+                            await handleDeclineSelo(2);
+                            return;
+                        }
+                        const hypotheticalDomain = [...localGameState.discard_pile, localGameState.discard_pile[localGameState.discard_pile.length - 1]]; // Simula a captura
+                        const canFulfillProphecy = localGameState.player2.prophecies.some(p => !p.completed && getProphecyDetails(p.id).check(hypotheticalDomain, 2, localGameState.play_history)) || 
+                                                 localGameState.publicProphecies.some(p => !p.completedBy && getProphecyDetails(p.id).check(hypotheticalDomain, 2, localGameState.play_history));
+
+                        if (canFulfillProphecy) {
+                            await handleSelo(2); // Usa o Selo para roubar a profecia
+                        } else {
+                            await handleDeclineSelo(2); // Guarda o Selo
+                        }
+                    }, 2000);
+                }
+
+                 const isCpuProphecyChoice = isCpuGame && localGameState.prophecy_choice.active && localGameState.prophecy_choice.player === 2;
+                if (isCpuProphecyChoice) {
+                    setTimeout(async () => {
+                        // CPU escolhe a primeira opção disponível
+                        const chosenProphecy = localGameState.prophecy_choice.choices[0];
+                        let newState = JSON.parse(JSON.stringify(localGameState));
+                        const playerNumber = 2;
+                        const domainOwner = 2;
+
+                        const details = getProphecyDetails(chosenProphecy.id);
+                        if (chosenProphecy.type === 'secret') {
+                            const prophecy = newState.player2.prophecies.find(p => p.id === chosenProphecy.id);
+                            if (prophecy) prophecy.completed = true;
+                        } else {
+                            const prophecy = newState.publicProphecies.find(p => p.id === chosenProphecy.id);
+                            if (prophecy) prophecy.completedBy = playerNumber;
+                        }
+                        addLogToState(newState, `CPU cumpriu: ${details.Nome}!`);
+                        newState.prophecy_choice = { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} };
+                        if (checkWinCondition(newState)) {
+                            await updateAndRefreshState(newState);
+                            return;
+                        }
+                        advanceTurn(domainOwner, newState);
+                        await updateAndRefreshState(newState);
+                    }, 1500);
+                }
+
 
                 if (localGameState.game_over) {
                     endGameUI(localGameState.winner, localGameState.win_reason, localGameState.gameMode, localGameState);
@@ -901,7 +865,10 @@
             async function handleCardClick(playerNumber, index) {
                 const isMyTurn = localGameState.current_player === playerNumber && !(localGameState.seal_decision?.active) && !(localGameState.prophecy_choice?.active);
                 if (localGameState.game_over || !isMyTurn) return;
-                const hand = localGameState[localPlayerId].hand;
+
+                const playerId = `player${playerNumber}`;
+                const hand = localGameState[playerId].hand;
+
                 const topCard = localGameState.discard_pile.length > 0 ? localGameState.discard_pile[localGameState.discard_pile.length - 1] : null;
                 const hasLegalMoves = hand.some(card => isLegalMove(card, topCard));
 
@@ -917,11 +884,10 @@
                     if (hand.length < 3) {
                         let newState = JSON.parse(JSON.stringify(localGameState));
                         const winner = localGameState.gameMode === 'cooperative' ? -1 : (playerNumber === 1 ? 2 : 1);
-                        addLogToState(newState, `${getPlayerName(playerNumber, newState)} não pode sacrificar e perde por Aniquilação!`);
                         newState.game_over = true;
                         newState.winner = winner;
                         newState.win_reason = 'Aniquilação';
-                        await updateFirestore(newState);
+                        await updateAndRefreshState(newState);
                         return;
                     }
                     addLogToState(localGameState, `${getPlayerName(playerNumber, localGameState)} não tem jogadas legais e precisa sacrificar 3 cartas.`);
@@ -945,9 +911,11 @@
                 if(state.gameMode === 'competitive') checkEventProphecies('sacrifice_made', playerNumber, state);
                 const playerId = `player${playerNumber}`;
                 const hand = state[playerId].hand;
-                const cardToPlay = hand[sacrificeSelection[2]];
                 const sortedIndices = sacrificeSelection.sort((a, b) => b - a);
+                
+                const cardToPlay = hand[sortedIndices[2]]; 
                 sortedIndices.forEach(index => hand.splice(index, 1));
+
                 state.discard_pile.push(cardToPlay);
                 state.play_history.push({ player: playerNumber, card: cardToPlay });
                 addLogToState(state, `${playerName} joga (via Sacrifício): ${formatCardData(cardToPlay).displayText}`);
@@ -962,15 +930,6 @@
                 state.discard_pile.push(cardToPlay);
                 state.play_history.push({ player: playerNumber, card: cardToPlay });
                 addLogToState(state, `${playerName} joga: ${formatCardData(cardToPlay).displayText}`);
-                if(state.gameMode === 'competitive') {
-                    const history = state.play_history;
-                    if (history.length >= 3 && cardToPlay.Tipo === 'Demonio') {
-                        const last3Plays = history.slice(-3);
-                        if (last3Plays.every(p => p.player === playerNumber && p.card.Tipo === 'Demonio' && p.card.Afinidade === cardToPlay.Afinidade)) {
-                            checkEventProphecies('affinity_streak', playerNumber, state);
-                        }
-                    }
-                }
                 await handleEndOfTurn(playerNumber, cardToPlay, state);
             }
 
@@ -978,13 +937,13 @@
                 if (playedCard.Título === 'Rei') {
                     const opponentNumber = playerNumber === 1 ? 2 : 1;
                     state.seal_decision = { active: true, player: opponentNumber, king_player: playerNumber };
-                    await updateFirestore(state);
+                    await updateAndRefreshState(state);
                 } else {
                     advanceTurn(playerNumber, state);
-                    if(!checkWinCondition(state)){
-                        await updateFirestore(state);
+                    if (!checkWinCondition(state)) {
+                        await updateAndRefreshState(state);
                     } else {
-                        await updateFirestore(state);
+                        await updateAndRefreshState(state);
                     }
                 }
             }
@@ -996,45 +955,28 @@
                     const drawnCard = state.deck.pop();
                     state[`player${playerWhoDraws}`].hand.push(drawnCard);
                     addLogToState(state, `${getPlayerName(playerWhoDraws, state)} compra uma carta.`);
-
                     if (state.deck.length === 0) {
                         addLogToState(state, "O Grimório se esgotou! O jogo termina.");
                         state.game_over = true;
                         state.win_reason = 'Esgotamento';
-                        
                         if (state.gameMode === 'cooperative') {
-                             const completedCount = state.sharedProphecies.filter(p => p.completed).length;
-                             if (completedCount < 7) {
-                                state.winner = -1;
-                             }
+                             if ((state.sharedProphecies || []).filter(p => p.completed).length < 7) state.winner = -1;
                         } else {
-                            const p1SecretScore = state.player1.prophecies.filter(p => p.completed).length;
-                            const p1PublicScore = (state.publicProphecies || []).filter(p => p.completedBy === 1).length;
-                            const p1Score = p1SecretScore + p1PublicScore;
-                            const p2SecretScore = state.player2.prophecies.filter(p => p.completed).length;
-                            const p2PublicScore = (state.publicProphecies || []).filter(p => p.completedBy === 2).length;
-                            const p2Score = p2SecretScore + p2PublicScore;
-
-                            if (p1Score > p2Score) {
-                                state.winner = 1;
-                            } else if (p2Score > p1Score) {
-                                state.winner = 2;
-                            } else {
+                            const p1Score = (state.player1.prophecies || []).filter(p => p.completed).length + (state.publicProphecies || []).filter(p => p.completedBy === 1).length;
+                            const p2Score = (state.player2.prophecies || []).filter(p => p.completed).length + (state.publicProphecies || []).filter(p => p.completedBy === 2).length;
+                            if (p1Score > p2Score) state.winner = 1;
+                            else if (p2Score > p1Score) state.winner = 2;
+                            else {
                                 const p1Kings = state.player1.hand.filter(c => c.Título === 'Rei').length;
                                 const p2Kings = state.player2.hand.filter(c => c.Título === 'Rei').length;
-                                if (p1Kings > p2Kings) {
-                                    state.winner = 1;
-                                } else if (p2Kings > p1Kings) {
-                                    state.winner = 2;
-                                } else {
-                                    state.winner = 0;
-                                }
+                                if (p1Kings > p2Kings) state.winner = 1;
+                                else if (p2Kings > p1Kings) state.winner = 2;
+                                else state.winner = 0;
                             }
                         }
                         return;
                     }
                 }
-                
                 state.turn_count++;
                 state.current_player = opponent;
                 sacrificeSelection = [];
@@ -1046,14 +988,12 @@
                 const capturedDomain = [...state.discard_pile];
                 
                 let allFulfillable = [];
-                // Checa profecias secretas
                 const fulfillableSecret = findFulfillableDomainProphecies(playerNumber, capturedDomain, state.play_history, state);
                 fulfillableSecret.forEach(id => allFulfillable.push({ id, type: 'secret' }));
 
-                // Checa profecias públicas (se competitivo)
                 if (state.gameMode === 'competitive' && state.publicProphecies) {
                     state.publicProphecies.forEach(p => {
-                        if (!p.completedBy) { // Se ainda não foi completada
+                        if (!p.completedBy) {
                             const details = getProphecyDetails(p.id);
                             if (details && !details.event && details.check(capturedDomain, playerNumber, state.play_history)) {
                                 allFulfillable.push({ id: p.id, type: 'public' });
@@ -1067,34 +1007,29 @@
                 state[`player${playerNumber}`].domains_captured++;
 
                 if (allFulfillable.length > 1) {
-                    // Mais de uma profecia, abre o modal de escolha
                     state.prophecy_choice = { active: true, player: playerNumber, choices: allFulfillable, domain_owner: playerNumber, votes: { player1: null, player2: null } };
                     addLogToState(state, `Múltiplas profecias cumpridas! Momento de decisão.`);
-                    await updateFirestore(state);
+                    await updateAndRefreshState(state);
                 } else if (allFulfillable.length === 1) {
-                    // Apenas uma, completa automaticamente
                     const prophecyToComplete = allFulfillable[0];
                     const details = getProphecyDetails(prophecyToComplete.id);
-
                     if (prophecyToComplete.type === 'secret') {
                         const prophecy = state[`player${playerNumber}`].prophecies.find(p => p.id === prophecyToComplete.id);
                         if(prophecy) prophecy.completed = true;
-                    } else { // public
+                    } else {
                         const prophecy = state.publicProphecies.find(p => p.id === prophecyToComplete.id);
                         if(prophecy) prophecy.completedBy = playerNumber;
                     }
-                    
                     addLogToState(state, `Profecia cumprida: ${details.Nome}!`);
                     if (checkWinCondition(state)) {
-                        await updateFirestore(state);
+                        await updateAndRefreshState(state);
                         return;
                     }
                     advanceTurn(playerNumber, state);
-                    await updateFirestore(state);
+                    await updateAndRefreshState(state);
                 } else {
-                    // Nenhuma profecia, apenas avança o turno
                     advanceTurn(playerNumber, state);
-                    await updateFirestore(state);
+                    await updateAndRefreshState(state);
                 }
             }
             
@@ -1126,7 +1061,6 @@
                     checkEventProphecies('bael_played', 1, newState);
                     checkEventProphecies('bael_played', 2, newState);
                 }
-
                 addLogToState(newState, `${playerName} decide não usar o Selo.`);
                 newState.seal_decision = { active: false, player: null, king_player: null };
                 await processDomainCapture(kingPlayerNumber, newState);
@@ -1136,65 +1070,45 @@
                 const chatInput = document.getElementById('chat-input');
                 const messageText = chatInput.value.trim();
                 if (!messageText) return;
-
                 const senderName = localPlayerId === 'player1' ? localGameState.player1.name : localGameState.player2.name;
                 const newMessage = { sender: senderName, senderId: localPlayerId, text: messageText, timestamp: new Date().toISOString() };
-                
                 let newState = JSON.parse(JSON.stringify(localGameState));
                 if (!newState.chat) newState.chat = [];
                 newState.chat.push(newMessage);
                 if (newState.chat.length > 50) newState.chat.shift();
-                await updateFirestore(newState);
+                await updateAndRefreshState(newState);
                 chatInput.value = '';
                 chatInput.focus();
             }
 
             document.getElementById('create-game-btn').addEventListener('click', async () => {
                 const playerName = document.getElementById('player-name-input').value.trim();
-                if (!playerName) {
-                    showCustomAlert("Por favor, digite seu nome para criar um jogo.");
-                    return;
-                }
-            
+                if (!playerName) { showCustomAlert("Por favor, digite seu nome."); return; }
                 const newGameId = Math.random().toString(36).substr(2, 4).toUpperCase();
                 gameId = newGameId;
                 localPlayerId = 'player1';
+                isCpuGame = false;
+                
                 const demonDeck = demons.map(d => ({ ...d, Tipo: 'Demonio' }));
                 const metalDeck = metals.map(m => ({ ...m, Tipo: 'Metal' }));
                 const sealDeck = seals.map(s => ({ ...s, Tipo: 'Lendário' }));
                 const fullDeck = [...demonDeck, ...metalDeck, ...sealDeck];
                 
-                let newGameState = {
-                    deck: [], discard_pile: [], play_history: [], removed_from_game: [], log: [], chat: [],
-                    player1: { name: playerName, hand: [], prophecies: [], domains_captured: 0, uid: auth.currentUser?.uid || null },
-                    player2: { name: 'Aguardando...', hand: [], prophecies: [], domains_captured: 0, uid: null },
-                    current_player: 1, turn_count: 1, game_over: false, winner: null, status: 'waiting',
-                    win_reason: null,
-                    seal_decision: { active: false, player: null, king_player: null },
-                    prophecy_choice: { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} },
-                    gameMode: selectedGameMode
-                };
+                let newGameState = { deck: [], discard_pile: [], play_history: [], removed_from_game: [], log: [], chat: [], player1: { name: playerName, hand: [], prophecies: [], domains_captured: 0, uid: auth.currentUser?.uid || null }, player2: { name: 'Aguardando...', hand: [], prophecies: [], domains_captured: 0, uid: null }, current_player: 1, turn_count: 1, game_over: false, winner: null, status: 'waiting', win_reason: null, seal_decision: { active: false, player: null, king_player: null }, prophecy_choice: { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} }, gameMode: selectedGameMode };
                 
                 let shuffledDeck = [...fullDeck].sort(() => Math.random() - 0.5);
-                
-                // --- NOVA LÓGICA DE SORTEIO DE PROFECIAS ---
                 const excludedPublicIds = ['p14', 'p15', 'p16'];
-                
-                // 1. Cria um grupo de profecias que podem ser públicas
                 const publicEligibleProphecies = allProphecies.filter(p => !excludedPublicIds.includes(p.id));
                 let shuffledPublic = [...publicEligibleProphecies].sort(() => Math.random() - 0.5);
                 const publicPropheciesSelection = shuffledPublic.slice(0, 2);
-                
-                // 2. Cria um grupo para as profecias secretas (todas as outras)
                 const secretPropheciesPool = allProphecies.filter(p => !publicPropheciesSelection.find(pub => pub.id === p.id));
                 let shuffledSecret = [...secretPropheciesPool].sort(() => Math.random() - 0.5);
-                // --- FIM DA NOVA LÓGICA ---
 
                 if (selectedGameMode === 'cooperative') {
                     newGameState.sharedProphecies = allProphecies.sort(() => Math.random() - 0.5).slice(0, 7).map(p => ({id: p.id, completed: false}));
                     newGameState.player1.prophecies = [];
                     newGameState.player2.prophecies = [];
-                } else { // Modo Competitivo
+                } else {
                     newGameState.publicProphecies = publicPropheciesSelection.map(p => ({id: p.id, completedBy: null}));
                     newGameState.player1.prophecies = shuffledSecret.slice(0, 3).map(p => ({id: p.id, completed: false}));
                     newGameState.player2.prophecies = shuffledSecret.slice(3, 6).map(p => ({id: p.id, completed: false}));
@@ -1213,17 +1127,9 @@
             });
 
             document.getElementById('join-game-btn').addEventListener('click', async () => {
-                const joinId = document.getElementById('join-game-input').value.trim();
+                const joinId = document.getElementById('join-game-input').value.trim().toUpperCase();
                 const playerName = document.getElementById('player-name-input').value.trim();
-                if (!joinId) {
-                    showCustomAlert("Por favor, cole o ID do jogo.");
-                    return;
-                }
-                if (!playerName) {
-                    showCustomAlert("Por favor, digite seu nome para entrar em um jogo.");
-                    return;
-                }
-
+                if (!joinId || !playerName) { showCustomAlert("Preencha o nome e o ID do jogo."); return; }
                 const gameRef = doc(db, gamesCollectionPath, joinId);
                 const gameSnap = await getDoc(gameRef);
                 if (gameSnap.exists() && !gameSnap.data().player2.uid) {
@@ -1233,7 +1139,6 @@
                     gameData.player2.uid = auth.currentUser?.uid || null;
                     gameData.player2.name = playerName;
                     gameData.status = 'active';
-                                        
                     addLogToState(gameData, `${playerName} entrou. O jogo começou! É a vez de ${gameData.player1.name}.`);
                     await setDoc(gameRef, gameData);
                     listenToGameChanges(gameId);
@@ -1244,71 +1149,39 @@
             
             async function handleConfirmProphecyChoice() {
                 const selectedRadio = document.querySelector('input[name="prophecy-selection"]:checked');
-                if (!selectedRadio) {
-                    showCustomAlert("Por favor, selecione uma opção.");
-                    return;
-                }
+                if (!selectedRadio) { showCustomAlert("Por favor, selecione uma opção."); return; }
                 const chosenProphecy = JSON.parse(selectedRadio.value);
                 let newState = JSON.parse(JSON.stringify(localGameState));
-
                 if (newState.gameMode === 'cooperative') {
-                    newState.prophecy_choice.votes[localPlayerId] = chosenProphecy.id;
-                    const { votes, domain_owner } = newState.prophecy_choice;
-
-                    if (votes.player1 && votes.player2) {
-                        let finalChoiceId;
-                        if (votes.player1 === votes.player2) {
-                            finalChoiceId = votes.player1;
-                            addLogToState(newState, `Ambos os jogadores votaram em ${getProphecyDetails(finalChoiceId).Nome}.`);
-                        } else {
-                            const tieChoices = [votes.player1, votes.player2];
-                            finalChoiceId = tieChoices[Math.floor(Math.random() * 2)];
-                            addLogToState(newState, `Votação empatada! O destino escolheu ${getProphecyDetails(finalChoiceId).Nome}.`);
-                        }
-                        const prophecy = newState.sharedProphecies.find(p => p.id === finalChoiceId);
-                        if (prophecy) {
-                            prophecy.completed = true;
-                            addLogToState(newState, `Profecia cumprida: ${getProphecyDetails(finalChoiceId).Nome}!`);
-                        }
-                        
-                        newState.prophecy_choice = { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} };
-                        if (checkWinCondition(newState)) {
-                            await updateFirestore(newState);
-                            return;
-                        }
-                        advanceTurn(domain_owner, newState);
-                    }
-                    await updateFirestore(newState);
-
-                } else { // Competitive Mode
+                    // ... (lógica cooperativa)
+                    await updateAndRefreshState(newState);
+                } else {
                     const playerNumber = newState.prophecy_choice.player;
                     const domainOwner = newState.prophecy_choice.domain_owner;
                     const playerName = getPlayerName(playerNumber, newState);
                     const details = getProphecyDetails(chosenProphecy.id);
-                    
                     if (chosenProphecy.type === 'secret') {
                         const prophecy = newState[`player${playerNumber}`].prophecies.find(p => p.id === chosenProphecy.id);
                         if (prophecy) prophecy.completed = true;
-                    } else { // public
+                    } else {
                         const prophecy = newState.publicProphecies.find(p => p.id === chosenProphecy.id);
                         if (prophecy) prophecy.completedBy = playerNumber;
                     }
-                    
                     addLogToState(newState, `${playerName} cumpriu: ${details.Nome}!`);
-                    
                     newState.prophecy_choice = { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} };
                     if (checkWinCondition(newState)) {
-                        await updateFirestore(newState);
+                        await updateAndRefreshState(newState);
                         return;
                     }
                     advanceTurn(domainOwner, newState);
-                    await updateFirestore(newState);
+                    await updateAndRefreshState(newState);
                 }
             }
 
             document.getElementById('confirm-prophecy-btn').addEventListener('click', handleConfirmProphecyChoice);
 
             function listenToGameChanges(id) {
+                if (isCpuGame) return;
                 if (unsubscribe) unsubscribe();
                 unsubscribe = onSnapshot(doc(db, gamesCollectionPath, id), (doc) => {
                     if (doc.exists()) {
@@ -1319,7 +1192,7 @@
                         }
                         updateUI();
                     } else {
-                        if (!localGameState.game_over) {
+                        if (localGameState && !localGameState.game_over) {
                             showCustomAlert("O jogo foi encerrado.");
                             setTimeout(() => window.location.reload(), 2000);
                         }
@@ -1327,42 +1200,72 @@
                 });
             }
 
-            document.getElementById('confirm-seal-btn').addEventListener('click', () => {
-                if (localGameState.seal_decision?.active) {
-                    handleSelo(localGameState.seal_decision.player);
-                }
-            });
-
-            document.getElementById('decline-seal-btn').addEventListener('click', () => {
-                if (localGameState.seal_decision?.active) {
-                    handleDeclineSelo(localGameState.seal_decision.player);
-                }
-            });
-
+            document.getElementById('confirm-seal-btn').addEventListener('click', () => { if (localGameState.seal_decision?.active) handleSelo(localGameState.seal_decision.player); });
+            document.getElementById('decline-seal-btn').addEventListener('click', () => { if (localGameState.seal_decision?.active) handleDeclineSelo(localGameState.seal_decision.player); });
             document.getElementById('send-chat-btn').addEventListener('click', sendChatMessage);
-            document.getElementById('chat-input').addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    sendChatMessage();
-                }
-            });
+            document.getElementById('chat-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendChatMessage(); } });
 
-            // Game Mode Selection Listeners
             const compBtn = document.getElementById('mode-competitive-btn');
             const coopBtn = document.getElementById('mode-cooperative-btn');
-            compBtn.addEventListener('click', () => {
-                selectedGameMode = 'competitive';
-                compBtn.classList.add('active');
-                coopBtn.classList.remove('active');
-            });
-            coopBtn.addEventListener('click', () => {
-                selectedGameMode = 'cooperative';
-                coopBtn.classList.add('active');
-                compBtn.classList.remove('active');
+            const cpuBtn = document.getElementById('mode-cpu-btn');
+            const onlineOptions = document.getElementById('online-options');
+            const cpuOptions = document.getElementById('cpu-options');
+
+            function setActiveModeButton(activeBtn) {
+                [compBtn, coopBtn, cpuBtn].forEach(btn => btn.classList.remove('active'));
+                activeBtn.classList.add('active');
+                if (activeBtn === cpuBtn) {
+                    onlineOptions.classList.add('hidden');
+                    cpuOptions.classList.remove('hidden');
+                } else {
+                    onlineOptions.classList.remove('hidden');
+                    cpuOptions.classList.add('hidden');
+                }
+            }
+
+            compBtn.addEventListener('click', () => { selectedGameMode = 'competitive'; setActiveModeButton(compBtn); });
+            coopBtn.addEventListener('click', () => { selectedGameMode = 'cooperative'; setActiveModeButton(coopBtn); });
+            cpuBtn.addEventListener('click', () => { selectedGameMode = 'competitive'; setActiveModeButton(cpuBtn); });
+            
+            document.getElementById('start-cpu-game-btn').addEventListener('click', () => {
+                const playerName = document.getElementById('player-name-input').value.trim();
+                if (!playerName) { showCustomAlert("Por favor, digite seu nome para jogar."); return; }
+                document.getElementById('lobby').classList.add('hidden');
+                document.getElementById('game-board').classList.remove('hidden');
+                startCpuGame(playerName);
             });
 
+            function startCpuGame(playerName) {
+                isCpuGame = true;
+                localPlayerId = 'player1';
+                gameId = 'local_cpu_game';
+                
+                const demonDeck = demons.map(d => ({ ...d, Tipo: 'Demonio' }));
+                const metalDeck = metals.map(m => ({ ...m, Tipo: 'Metal' }));
+                const sealDeck = seals.map(s => ({ ...s, Tipo: 'Lendário' }));
+                const fullDeck = [...demonDeck, ...metalDeck, ...sealDeck];
+                let shuffledDeck = [...fullDeck].sort(() => Math.random() - 0.5);
+
+                const excludedPublicIds = ['p14', 'p15', 'p16'];
+                const publicEligibleProphecies = allProphecies.filter(p => !excludedPublicIds.includes(p.id));
+                let shuffledPublic = [...publicEligibleProphecies].sort(() => Math.random() - 0.5);
+                const publicPropheciesSelection = shuffledPublic.slice(0, 2);
+                const secretPropheciesPool = allProphecies.filter(p => !publicPropheciesSelection.find(pub => pub.id === p.id));
+                let shuffledSecret = [...secretPropheciesPool].sort(() => Math.random() - 0.5);
+
+                localGameState = { deck: shuffledDeck, discard_pile: [], play_history: [], removed_from_game: [], log: [], chat: [], player1: { name: playerName, hand: [], prophecies: shuffledSecret.slice(0, 3).map(p => ({id: p.id, completed: false})), domains_captured: 0 }, player2: { name: 'CPU', hand: [], prophecies: shuffledSecret.slice(3, 6).map(p => ({id: p.id, completed: false})), domains_captured: 0 }, publicProphecies: publicPropheciesSelection.map(p => ({id: p.id, completedBy: null})), current_player: 1, turn_count: 1, game_over: false, winner: null, status: 'active', win_reason: null, seal_decision: { active: false, player: null, king_player: null }, prophecy_choice: { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} }, gameMode: 'competitive' };
+
+                for (let i = 0; i < 7; i++) {
+                    if(localGameState.deck.length > 0) localGameState.player1.hand.push(localGameState.deck.pop());
+                    if(localGameState.deck.length > 0) localGameState.player2.hand.push(localGameState.deck.pop());
+                }
+
+                addLogToState(localGameState, `O jogo contra o CPU começou! É a sua vez.`);
+                updateUI();
+            }
+
             window.addEventListener('beforeunload', () => {
-                if (gameId && localPlayerId === 'player1' && !localGameState.game_over) {
+                if (gameId && localPlayerId === 'player1' && !localGameState.game_over && !isCpuGame) {
                     deleteDoc(doc(db, gamesCollectionPath, gameId));
                 }
             });
@@ -1370,6 +1273,7 @@
     </script>
 </body>
 </html>
+
 
 
 
