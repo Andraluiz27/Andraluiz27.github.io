@@ -943,8 +943,9 @@
                 const capturedDomain = [...state.discard_pile];
                 
                 let allFulfillable = [];
-                const fulfillableSecret = findFulfillableDomainProphecies(playerNumber, capturedDomain, state.play_history, state);
-                fulfillableSecret.forEach(id => allFulfillable.push({ id, type: 'secret' }));
+                // No modo cooperativo, a função já pega a lista correta (sharedProphecies)
+                const fulfillableSecretOrShared = findFulfillableDomainProphecies(playerNumber, capturedDomain, state.play_history, state);
+                fulfillableSecretOrShared.forEach(id => allFulfillable.push({ id, type: 'secret' })); // 'secret' aqui é um tipo genérico para profecias não-públicas
 
                 if (state.gameMode === 'competitive' && state.publicProphecies) {
                     state.publicProphecies.forEach(p => {
@@ -968,13 +969,21 @@
                 } else if (allFulfillable.length === 1) {
                     const prophecyToComplete = allFulfillable[0];
                     const details = getProphecyDetails(prophecyToComplete.id);
-                    if (prophecyToComplete.type === 'secret') {
+
+                    // ----- CORREÇÃO APLICADA AQUI -----
+                    if (state.gameMode === 'cooperative') {
+                        const prophecy = state.sharedProphecies.find(p => p.id === prophecyToComplete.id);
+                        if (prophecy) prophecy.completed = true;
+                    } 
+                    // ------------------------------------
+                    else if (prophecyToComplete.type === 'secret') {
                         const prophecy = state[`player${playerNumber}`].prophecies.find(p => p.id === prophecyToComplete.id);
                         if(prophecy) prophecy.completed = true;
-                    } else {
+                    } else { // 'public'
                         const prophecy = state.publicProphecies.find(p => p.id === prophecyToComplete.id);
                         if(prophecy) prophecy.completedBy = playerNumber;
                     }
+
                     addLogToState(state, `Profecia cumprida: ${details.Nome}!`);
                     if (checkWinCondition(state)) {
                         await updateAndRefreshState(state);
@@ -1107,23 +1116,40 @@
                 if (!selectedRadio) { showCustomAlert("Por favor, selecione uma opção."); return; }
                 const chosenProphecy = JSON.parse(selectedRadio.value);
                 let newState = JSON.parse(JSON.stringify(localGameState));
+                const domainOwner = newState.prophecy_choice.domain_owner;
+                const playerName = getPlayerName(domainOwner, newState);
+
+                // ----- CORREÇÃO APLICADA AQUI -----
                 if (newState.gameMode === 'cooperative') {
-                    // ... (lógica cooperativa)
+                    const details = getProphecyDetails(chosenProphecy.id);
+                    const prophecy = newState.sharedProphecies.find(p => p.id === chosenProphecy.id);
+                    if (prophecy) {
+                        prophecy.completed = true;
+                    }
+                    addLogToState(newState, `${playerName} registrou a profecia cooperativa: ${details.Nome}!`);
+                    newState.prophecy_choice = { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} };
+                    
+                    if (checkWinCondition(newState)) {
+                        await updateAndRefreshState(newState);
+                        return;
+                    }
+                    advanceTurn(domainOwner, newState);
                     await updateAndRefreshState(newState);
-                } else {
+                } 
+                // ------------------------------------
+                else { // Modo Competitivo
                     const playerNumber = newState.prophecy_choice.player;
-                    const domainOwner = newState.prophecy_choice.domain_owner;
-                    const playerName = getPlayerName(playerNumber, newState);
                     const details = getProphecyDetails(chosenProphecy.id);
                     if (chosenProphecy.type === 'secret') {
                         const prophecy = newState[`player${playerNumber}`].prophecies.find(p => p.id === chosenProphecy.id);
                         if (prophecy) prophecy.completed = true;
-                    } else {
+                    } else { // 'public'
                         const prophecy = newState.publicProphecies.find(p => p.id === chosenProphecy.id);
                         if (prophecy) prophecy.completedBy = playerNumber;
                     }
                     addLogToState(newState, `${playerName} cumpriu: ${details.Nome}!`);
                     newState.prophecy_choice = { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} };
+
                     if (checkWinCondition(newState)) {
                         await updateAndRefreshState(newState);
                         return;
@@ -1228,3 +1254,4 @@
     </script>
 </body>
 </html>
+
