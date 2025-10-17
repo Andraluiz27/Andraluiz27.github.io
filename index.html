@@ -285,6 +285,7 @@
             let gameId = null;
             let unsubscribe = null;
             let sacrificeSelection = [];
+            let sacrificeState = { active: false, stage: null };
             let selectedGameMode = 'competitive';
             let isCpuGame = false;
 
@@ -354,66 +355,45 @@
                 const state = localGameState;
                 const cpuHand = state.player2.hand;
                 const topCard = state.discard_pile.length > 0 ? state.discard_pile[state.discard_pile.length - 1] : null;
-
-                const winningKingPlay = cpuHand.findIndex(card => {
-                    if (card.Título !== 'Rei') return false;
-                    const hypotheticalDomain = [...state.discard_pile, card];
-                    const secretWin = state.player2.prophecies.some(p => !p.completed && getProphecyDetails(p.id).check(hypotheticalDomain, 2, state.play_history));
-                    const publicWin = state.publicProphecies.some(p => !p.completedBy && getProphecyDetails(p.id).check(hypotheticalDomain, 2, state.play_history));
-                    const currentScore = state.player2.prophecies.filter(p => p.completed).length + state.publicProphecies.filter(p => p.completedBy === 2).length;
-                    return currentScore + (secretWin || publicWin ? 1 : 0) >= 3;
-                });
-
-                if (winningKingPlay !== -1) return { action: 'play', cardIndex: winningKingPlay };
-                
-                const prophecyKingPlay = cpuHand.findIndex(card => {
-                    if (card.Título !== 'Rei') return false;
-                    const hypotheticalDomain = [...state.discard_pile, card];
-                    const secretWin = state.player2.prophecies.some(p => !p.completed && getProphecyDetails(p.id).check(hypotheticalDomain, 2, state.play_history));
-                    const publicWin = state.publicProphecies.some(p => !p.completedBy && getProphecyDetails(p.id).check(hypotheticalDomain, 2, state.play_history));
-                    return secretWin || publicWin;
-                });
-
-                if (prophecyKingPlay !== -1) return { action: 'play', cardIndex: prophecyKingPlay };
-
-                const allCpuProphecies = [ ...state.player2.prophecies.filter(p => !p.completed).map(p => getProphecyDetails(p.id)), ...state.publicProphecies.filter(p => !p.completedBy).map(p => getProphecyDetails(p.id)) ];
-                let bestStrategicMove = null;
-
-                for (const card of cpuHand) {
-                    const cardIndex = cpuHand.indexOf(card);
-                    if (isLegalMove(card, topCard)) {
-                        for (const prophecy of allCpuProphecies) {
-                            if (prophecy.Desc.includes(card.Afinidade) || prophecy.Desc.includes(card.Título)) {
-                                bestStrategicMove = { action: 'play', cardIndex: cardIndex };
-                                break;
-                            }
-                        }
-                    }
-                    if (bestStrategicMove) break;
-                }
-
-                if (bestStrategicMove) return bestStrategicMove;
-
+            
+                // --- LÓGICA DE JOGADA NORMAL ---
                 const legalMoves = [];
                 cpuHand.forEach((card, index) => {
                     if (isLegalMove(card, topCard)) {
                         legalMoves.push({ card, index });
                     }
                 });
-
+            
                 if (legalMoves.length > 0) {
+                    // A CPU tentará jogar a carta de menor valor para guardar as melhores
                     legalMoves.sort((a, b) => (titleHierarchy[a.card.Título] || 0) - (titleHierarchy[b.card.Título] || 0));
                     return { action: 'play', cardIndex: legalMoves[0].index };
                 }
-
-                if (cpuHand.length >= 3) {
-                    const sortedHand = [...cpuHand].map((card, index) => ({ card, originalIndex: index }))
-                        .sort((a, b) => (titleHierarchy[a.card.Título] || 0) - (titleHierarchy[b.card.Título] || 0));
-                    const indicesToSacrifice = [ sortedHand[0].originalIndex, sortedHand[1].originalIndex, sortedHand[2].originalIndex ];
-                    return { action: 'sacrifice', cardIndices: indicesToSacrifice };
+            
+                // --- NOVA LÓGICA DE SACRIFÍCIO DA CPU ---
+                // Se não há jogadas legais, a CPU deve sacrificar.
+            
+                // 1. Condição de Aniquilação
+                if (cpuHand.length < 3) {
+                    return { action: 'aniquilado' };
                 }
-                
-                return { action: 'pass' }; 
+            
+                // 2. Planejar o Sacrifício
+                // A CPU identificará as 3 cartas de menor valor na mão.
+                const sortedHand = [...cpuHand]
+                    .map((card, index) => ({ card, originalIndex: index }))
+                    .sort((a, b) => (titleHierarchy[a.card.Título] || 0) - (titleHierarchy[b.card.Título] || 0));
+            
+                // Ela vai descartar as 2 mais fracas e jogar a 3ª mais fraca.
+                const indicesToDiscard = [sortedHand[0].originalIndex, sortedHand[1].originalIndex];
+                const indexToPlay = sortedHand[2].originalIndex;
+            
+                // Retorna uma sequência de ações planejada
+                return {
+                    action: 'sacrifice_sequence',
+                    discardIndices: indicesToDiscard,
+                    playIndex: indexToPlay
+                };
             }
 
             // GAME LOGIC FUNCTIONS
@@ -585,7 +565,15 @@
                 if (localGameState.status === 'active' && !turnText) {
                     const isSealDecisionTime = localGameState.seal_decision?.active;
                     const isProphecyChoiceTime = localGameState.prophecy_choice?.active;
-                    if (isSealDecisionTime) {
+                    
+                    if (sacrificeState.active && localPlayerNumber === currentPlayerNumber) {
+                        if (sacrificeState.stage === 'discarding') {
+                            turnText = `SACRIFÍCIO: Escolha 2 cartas para DESCARTAR (${sacrificeSelection.length}/2)`;
+                        } else if (sacrificeState.stage === 'playing') {
+                            turnText = "SACRIFÍCIO: Agora, escolha 1 carta para JOGAR.";
+                        }
+                    } 
+                    else if (isSealDecisionTime) {
                         turnText = localGameState.seal_decision.player === localPlayerNumber ? 'Sua decisão: Usar o Selo?' : 'Aguardando decisão do oponente...';
                     } else if (isProphecyChoiceTime) {
                         turnText = 'Momento de Decisão da Profecia...';
@@ -751,16 +739,68 @@
                 const isCpuTurn = isCpuGame && localGameState.current_player === 2 && !localGameState.game_over && !localGameState.seal_decision.active && !localGameState.prophecy_choice.active;
                 if (isCpuTurn) {
                     document.getElementById('player1-hand').querySelectorAll('button').forEach(btn => btn.disabled = true);
+                    
                     setTimeout(async () => {
+                        const cpuHandBeforeMove = [...localGameState.player2.hand]; // Guarda o estado da mão antes da jogada
                         const cpuDecision = playCpuTurn();
                         let newState = JSON.parse(JSON.stringify(localGameState));
+                        const cpuPlayerId = 'player2';
+                        const cpuPlayerName = getPlayerName(2, newState);
+                
                         if (cpuDecision.action === 'play') {
                             await playCard(2, cpuDecision.cardIndex, newState);
-                        } else if (cpuDecision.action === 'sacrifice') {
-                            sacrificeSelection = cpuDecision.cardIndices;
-                            await performSacrifice(2, newState);
+                
+                        } else if (cpuDecision.action === 'aniquilado') {
+                            addLogToState(newState, `CPU não pode fazer um sacrifício e é aniquilada!`);
+                            newState.game_over = true;
+                            newState.winner = 1; // Jogador 1 vence
+                            newState.win_reason = 'Aniquilação';
+                            await updateAndRefreshState(newState);
+                
+                        } else if (cpuDecision.action === 'sacrifice_sequence') {
+                            addLogToState(newState, `CPU não tem jogadas e deve fazer um Sacrifício.`);
+                            
+                            // FASE 1: Descartar 2 cartas
+                            const sortedDiscardIndices = cpuDecision.discardIndices.sort((a, b) => b - a);
+                            const discardedCards = [];
+                            sortedDiscardIndices.forEach(index => {
+                                const discarded = newState[cpuPlayerId].hand.splice(index, 1)[0];
+                                discardedCards.push(discarded);
+                            });
+                            newState.removed_from_game.push(...discardedCards);
+                            addLogToState(newState, `CPU sacrifica e descarta 2 cartas.`);
+                            
+                            // Ajusta o índice da carta a ser jogada, pois a mão mudou.
+                            const cardToPlayObject = cpuHandBeforeMove[cpuDecision.playIndex];
+                            const finalPlayIndex = newState[cpuPlayerId].hand.findIndex(c => c.Nome === cardToPlayObject.Nome);
+                
+                            if (finalPlayIndex > -1) {
+                                // FASE 2: Jogar 1 carta
+                                const cardToPlay = newState[cpuPlayerId].hand.splice(finalPlayIndex, 1)[0];
+                                newState.discard_pile.push(cardToPlay);
+                                newState.play_history.push({ player: 2, card: cardToPlay });
+                                addLogToState(newState, `...e joga ${formatCardData(cardToPlay).displayText}.`);
+                
+                                checkEventProphecies('sacrifice_made', 2, newState);
+                
+                                // FASE 3: Comprar 1 carta
+                                if (newState.deck.length > 0) {
+                                    newState[cpuPlayerId].hand.push(newState.deck.pop());
+                                    addLogToState(newState, `CPU compra uma carta.`);
+                                }
+                
+                                // FINALIZAÇÃO: Passar o turno
+                                newState.turn_count++;
+                                newState.current_player = 1; // Passa o turno para o jogador 1
+                
+                                if (checkWinCondition(newState)) {
+                                    await updateAndRefreshState(newState);
+                                    return;
+                                }
+                                await updateAndRefreshState(newState);
+                            }
                         }
-                    }, 1500);
+                    }, 1500); // Delay para a jogada da CPU ser visível
                 }
 
                 const isCpuSealDecision = isCpuGame && localGameState.seal_decision.active && localGameState.seal_decision.player === 2;
@@ -820,13 +860,91 @@
             async function handleCardClick(playerNumber, index) {
                 const isMyTurn = localGameState.current_player === playerNumber && !(localGameState.seal_decision?.active) && !(localGameState.prophecy_choice?.active);
                 if (localGameState.game_over || !isMyTurn) return;
-
+            
                 const playerId = `player${playerNumber}`;
+                const playerName = getPlayerName(playerNumber, localGameState);
                 const hand = localGameState[playerId].hand;
-
+            
+                // --- LÓGICA DO SACRIFÍCIO MULTI-FASE ---
+                if (sacrificeState.active) {
+                    let newState = JSON.parse(JSON.stringify(localGameState));
+            
+                    // FASE 1: Escolhendo 2 cartas para DESCARTAR
+                    if (sacrificeState.stage === 'discarding') {
+                        if (sacrificeSelection.includes(index)) {
+                            sacrificeSelection = sacrificeSelection.filter(i => i !== index);
+                        } else if (sacrificeSelection.length < 2) {
+                            sacrificeSelection.push(index);
+                        }
+                        updateUI(); // Apenas atualiza a UI para mostrar a seleção
+            
+                        if (sacrificeSelection.length === 2) {
+                            // Processa o descarte
+                            const sortedIndices = sacrificeSelection.sort((a, b) => b - a);
+                            const discardedCards = [];
+                            sortedIndices.forEach(i => {
+                                const discarded = newState[playerId].hand.splice(i, 1)[0];
+                                discardedCards.push(discarded);
+                            });
+                            
+                            newState.removed_from_game.push(...discardedCards);
+                            addLogToState(newState, `${playerName} sacrifica e descarta 2 cartas.`);
+                            
+                            sacrificeSelection = []; // Limpa a seleção
+                            sacrificeState.stage = 'playing'; // Avança para a próxima fase
+                            await updateAndRefreshState(newState);
+                        }
+                    }
+                    // FASE 2: Escolhendo 1 carta para JOGAR
+                    else if (sacrificeState.stage === 'playing') {
+                        const cardToPlay = newState[playerId].hand[index];
+            
+                        // Valida se a carta jogada é o Selo
+                        if (cardToPlay.Nome === 'Selo de Salomão') {
+                            showCustomAlert("O Selo de Salomão não pode ser jogado durante um Sacrifício.");
+                            return;
+                        }
+                        
+                        // Remove a carta da mão e a joga no domínio
+                        newState[playerId].hand.splice(index, 1);
+                        newState.discard_pile.push(cardToPlay);
+                        newState.play_history.push({ player: playerNumber, card: cardToPlay });
+                        addLogToState(newState, `...e joga ${formatCardData(cardToPlay).displayText} para iniciar um novo Domínio.`);
+                        
+                        checkEventProphecies('sacrifice_made', playerNumber, newState);
+                        
+                        // FASE 3: O jogador COMPRA uma carta
+                        if (newState.deck.length > 0) {
+                            const drawnCard = newState.deck.pop();
+                            newState[playerId].hand.push(drawnCard);
+                            addLogToState(newState, `${playerName} compra uma carta.`);
+                            // Verifica se o baralho acabou aqui também
+                            if (newState.deck.length === 0) {
+                               addLogToState(newState, "O Grimório se esgotou! O jogo termina.");
+                               newState.game_over = true;
+                               newState.win_reason = 'Esgotamento';
+                               // Adicione a lógica de desempate aqui se necessário...
+                            }
+                        }
+                        
+                        // FINALIZAÇÃO: Passa o turno para o oponente
+                        sacrificeState = { active: false, stage: null };
+                        newState.turn_count++;
+                        newState.current_player = playerNumber === 1 ? 2 : 1;
+                        
+                        if (checkWinCondition(newState)) {
+                            await updateAndRefreshState(newState);
+                            return;
+                        }
+                        await updateAndRefreshState(newState);
+                    }
+                    return;
+                }
+                
+                // --- FLUXO DE JOGADA NORMAL (com gatilho para o sacrifício) ---
                 const topCard = localGameState.discard_pile.length > 0 ? localGameState.discard_pile[localGameState.discard_pile.length - 1] : null;
                 const hasLegalMoves = hand.some(card => isLegalMove(card, topCard));
-
+            
                 if (hasLegalMoves) {
                     const cardToPlay = hand[index];
                     if (isLegalMove(cardToPlay, topCard)) {
@@ -836,7 +954,9 @@
                         showCustomAlert("Jogada ilegal.");
                     }
                 } else {
+                    // CONDIÇÃO DE ANIQUILAÇÃO (gatilho do sacrifício)
                     if (hand.length < 3) {
+                        addLogToState(localGameState, `${playerName} não pode fazer um sacrifício (mão < 3 cartas) e é aniquilado!`);
                         let newState = JSON.parse(JSON.stringify(localGameState));
                         const winner = localGameState.gameMode === 'cooperative' ? -1 : (playerNumber === 1 ? 2 : 1);
                         newState.game_over = true;
@@ -845,37 +965,12 @@
                         await updateAndRefreshState(newState);
                         return;
                     }
-                    addLogToState(localGameState, `${getPlayerName(playerNumber, localGameState)} não tem jogadas legais e precisa sacrificar 3 cartas.`);
-                    if (!sacrificeSelection.includes(index)) {
-                        sacrificeSelection.push(index);
-                    } else {
-                        sacrificeSelection = sacrificeSelection.filter(i => i !== index);
-                    }
-                    if (sacrificeSelection.length === 3) {
-                        let newState = JSON.parse(JSON.stringify(localGameState));
-                        await performSacrifice(playerNumber, newState);
-                    } else {
-                        updateUI();
-                    }
+            
+                    // Ativa o estado de sacrifício
+                    sacrificeState = { active: true, stage: 'discarding' };
+                    addLogToState(localGameState, `${getPlayerName(playerNumber, localGameState)} não tem jogadas e deve fazer um Sacrifício.`);
+                    updateUI(); 
                 }
-            }
-
-            async function performSacrifice(playerNumber, state) {
-                const playerName = getPlayerName(playerNumber, state);
-                addLogToState(state, `${playerName} realiza um Sacrifício!`);
-                if(state.gameMode === 'competitive') checkEventProphecies('sacrifice_made', playerNumber, state);
-                const playerId = `player${playerNumber}`;
-                const hand = state[playerId].hand;
-                const sortedIndices = sacrificeSelection.sort((a, b) => b - a);
-                
-                const cardToPlay = hand[sortedIndices[2]]; 
-                sortedIndices.forEach(index => hand.splice(index, 1));
-
-                state.discard_pile.push(cardToPlay);
-                state.play_history.push({ player: playerNumber, card: cardToPlay });
-                addLogToState(state, `${playerName} joga (via Sacrifício): ${formatCardData(cardToPlay).displayText}`);
-                sacrificeSelection = [];
-                await handleEndOfTurn(playerNumber, cardToPlay, state);
             }
 
             async function playCard(playerNumber, index, state) {
@@ -1254,4 +1349,5 @@
     </script>
 </body>
 </html>
+
 
