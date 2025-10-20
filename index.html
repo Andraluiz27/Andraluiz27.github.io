@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Goetia</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles-slim@2.12.0/tsparticles.slim.bundle.min.js"></script>
     <style>
     /* ----- FONTES PERSONALIZADAS ----- */
     @font-face {
@@ -30,7 +31,15 @@
     h1, h2, h3, h4 {
         font-family: 'FonteDosTitulos', 'Times New Roman', serif;
     }
-
+    /* ----- ESTILOS DO JOGO ----- */
+    #tsparticles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1; /* Essencial para manter o efeito no fundo */
+    }
 
     /* ----- ESTILOS DO JOGO ----- */
     .card-button { border: 1px solid #4a4a4a; background-color: #2a2a2a; color: #c0c0c0; padding: 8px 12px; margin: 4px; border-radius: 6px; cursor: pointer; text-align: left; transition: all 0.2s ease-in-out; box-shadow: 0 2px 4px rgba(0,0,0,0.5); font-size: 0.9rem; }
@@ -79,6 +88,8 @@
     </style>
 </head>
 <body class="p-4 md:p-8">
+
+    <canvas id="tsparticles"></canvas>
 
     <div id="game-container" class="max-w-7xl mx-auto">
         <div class="text-center mb-6">
@@ -286,6 +297,7 @@
             let unsubscribe = null;
             let sacrificeSelection = [];
             let sacrificeState = { active: false, stage: null };
+            let initialDeckSize = 0; // <--- ADICIONE ESTA LINHA
             let selectedGameMode = 'competitive';
             let isCpuGame = false;
 
@@ -420,6 +432,40 @@
                 return false;
             }
 
+            function updateBackgroundEffect(state) {
+                const particlesInstance = tsParticles.domItem(0);
+                if (!particlesInstance) return;
+            
+                const options = particlesInstance.options;
+                let intensity = 0; // De 0.0 a 1.0
+            
+                if (state.gameMode === 'cooperative' && !state.game_over) {
+                    const deckUsedPercentage = 1 - (state.deck.length / initialDeckSize);
+                    const sacrificePercentage = (state.coop_sacrifice_count || 0) / 7; // 7 é o limite para derrota
+            
+                    // A intensidade será o maior valor entre os dois gatilhos
+                    intensity = Math.max(deckUsedPercentage, sacrificePercentage);
+            
+                    options.particles.number.value = 100 + (300 * intensity);
+                    options.particles.move.speed = 0.5 + (2.5 * intensity);
+            
+                    if (intensity > 0.8) {
+                        options.particles.color.value = ["#ef4444", "#dc2626", "#fee2e2"]; // Vermelho crítico
+                    } else if (intensity > 0.5) {
+                        options.particles.color.value = ["#f59e0b", "#ef4444", "#facc15"]; // Adiciona vermelho
+                    } else {
+                         options.particles.color.value = ["#f59e0b", "#eab308", "#facc15"]; // Padrão
+                    }
+                } else {
+                    // Configuração padrão para Competitivo, CPU, ou fim de jogo
+                    options.particles.number.value = 80;
+                    options.particles.move.speed = 0.5;
+                    options.particles.color.value = ["#f59e0b", "#eab308", "#facc15"];
+                }
+            
+                particlesInstance.refresh();
+            }
+
             function checkEventProphecies(eventName, playerNumber, state) {
                 const playerId = `player${playerNumber}`;
                 let fulfilled = false;
@@ -505,6 +551,8 @@
 
             function updateUI() {
                 if (!localGameState || !localGameState.deck || !localPlayerId) return;
+
+                updateBackgroundEffect(localGameState); // <--- ADICIONE ESTA LINHA AQUI
 
                 const currentPlayerNumber = localGameState.current_player;
                 const localPlayerNumber = localPlayerId === 'player1' ? 1 : 2;
@@ -782,6 +830,12 @@
                                 addLogToState(newState, `...e joga ${formatCardData(cardToPlay).displayText}.`);
                 
                                 checkEventProphecies('sacrifice_made', 2, newState);
+
+                                // ADICIONE O BLOCO ABAIXO
+                                if (newState.gameMode === 'cooperative') {
+                                    newState.coop_sacrifice_count = (newState.coop_sacrifice_count || 0) + 1;
+                                }
+                                // FIM DO BLOCO ADICIONADO
                 
                                 // FASE 3: Comprar 1 carta
                                 if (newState.deck.length > 0) {
@@ -912,6 +966,12 @@
                         addLogToState(newState, `...e joga ${formatCardData(cardToPlay).displayText} para iniciar um novo Domínio.`);
                         
                         checkEventProphecies('sacrifice_made', playerNumber, newState);
+
+                        // ADICIONE O BLOCO ABAIXO
+                        if (newState.gameMode === 'cooperative') {
+                            newState.coop_sacrifice_count = (newState.coop_sacrifice_count || 0) + 1;
+                        }
+                        // FIM DO BLOCO ADICIONADO
                         
                         // FASE 3: O jogador COMPRA uma carta
                         if (newState.deck.length > 0) {
@@ -1167,12 +1227,13 @@
                     newGameState.sharedProphecies = allProphecies.sort(() => Math.random() - 0.5).slice(0, 7).map(p => ({id: p.id, completed: false}));
                     newGameState.player1.prophecies = [];
                     newGameState.player2.prophecies = [];
+                    newGameState.coop_sacrifice_count = 0; // <--- ADICIONE ESTA LINHA
                 } else {
                     newGameState.publicProphecies = publicPropheciesSelection.map(p => ({id: p.id, completedBy: null}));
                     newGameState.player1.prophecies = shuffledSecret.slice(0, 3).map(p => ({id: p.id, completed: false}));
                     newGameState.player2.prophecies = shuffledSecret.slice(3, 6).map(p => ({id: p.id, completed: false}));
                 }
-
+                initialDeckSize = shuffledDeck.length; // <--- ADICIONE ESTA LINHA
                 newGameState.deck = shuffledDeck;
                 for (let i = 0; i < 7; i++) {
                     if(newGameState.deck.length > 0) newGameState.player1.hand.push(newGameState.deck.pop());
@@ -1329,6 +1390,8 @@
                 const secretPropheciesPool = allProphecies.filter(p => !publicPropheciesSelection.find(pub => pub.id === p.id));
                 let shuffledSecret = [...secretPropheciesPool].sort(() => Math.random() - 0.5);
 
+                initialDeckSize = shuffledDeck.length; // <--- ADICIONE ESTA LINHA
+
                 localGameState = { deck: shuffledDeck, discard_pile: [], play_history: [], removed_from_game: [], log: [], chat: [], player1: { name: playerName, hand: [], prophecies: shuffledSecret.slice(0, 3).map(p => ({id: p.id, completed: false})), domains_captured: 0 }, player2: { name: 'CPU', hand: [], prophecies: shuffledSecret.slice(3, 6).map(p => ({id: p.id, completed: false})), domains_captured: 0 }, publicProphecies: publicPropheciesSelection.map(p => ({id: p.id, completedBy: null})), current_player: 1, turn_count: 1, game_over: false, winner: null, status: 'active', win_reason: null, seal_decision: { active: false, player: null, king_player: null }, prophecy_choice: { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} }, gameMode: 'competitive' };
 
                 for (let i = 0; i < 7; i++) {
@@ -1347,7 +1410,40 @@
             });
         });
     </script>
+});
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        await tsParticles.load("tsparticles", {
+            preset: "firefly", 
+            particles: {
+                number: { value: 80 },
+                color: { value: ["#f59e0b", "#eab308", "#facc15"] },
+                opacity: { value: { min: 0.1, max: 0.7 } },
+                size: { value: { min: 1, max: 3 } },
+                move: {
+                    enable: true,
+                    speed: 0.5,
+                    direction: "top",
+                    straight: false,
+                    outModes: { default: "out", top: "destroy" }
+                }
+            },
+            interactivity: {
+                events: {
+                    onHover: { enable: false },
+                    onClick: { enable: false }
+                }
+            },
+            background: {
+                color: "#1a1a1a"
+            }
+        });
+    });
+</script>
 </body>
 </html>
+
 
 
