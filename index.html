@@ -304,7 +304,6 @@
             let unsubscribe = null;
             let sacrificeSelection = [];
             let sacrificeState = { active: false, stage: null };
-            let initialDeckSize = 0; // <--- ADICIONE ESTA LINHA
             let selectedGameMode = 'competitive';
             let isCpuGame = false;
 
@@ -439,35 +438,30 @@
                 return false;
             }
 
-            function updateBackgroundEffect(state) {
+           function updateBackgroundEffect(state) {
                 const particlesInstance = tsParticles.domItem(0);
-                if (!particlesInstance) return;
+                if (!particlesInstance || !state.initialDeckSize) return;
             
                 const options = particlesInstance.options;
-                let intensity = 0; // De 0.0 a 1.0
+                let intensity = 0; // De 0.0 (calmo) a 1.0 (máximo)
             
                 if (state.gameMode === 'cooperative' && !state.game_over) {
-                    const deckUsedPercentage = 1 - (state.deck.length / initialDeckSize);
-                    const sacrificePercentage = (state.coop_sacrifice_count || 0) / 7; // 7 é o limite para derrota
+                    // Usa o initialDeckSize que veio do estado do jogo (sincronizado)
+                    const deckUsedPercentage = 1 - (state.deck.length / state.initialDeckSize);
+                    const sacrificePercentage = (state.coop_sacrifice_count || 0) / 6; // 6 sacrifícios é o limite
             
-                    // A intensidade será o maior valor entre os dois gatilhos
                     intensity = Math.max(deckUsedPercentage, sacrificePercentage);
+                    intensity = Math.min(intensity, 1.0); // Garante que não passe de 1.0
             
-                    options.particles.number.value = 100 + (300 * intensity);
-                    options.particles.move.speed = 0.5 + (2.5 * intensity);
+                    options.particles.number.value = 40 + (160 * intensity); // Vai de 40 a 200 chamas
+                    options.particles.move.speed = 1 + (4 * intensity); // Velocidade aumenta
+                    options.particles.life.duration.value = 1.5 - (0.8 * intensity); // Chamas duram menos, efeito mais frenético
             
-                    if (intensity > 0.8) {
-                        options.particles.color.value = ["#ef4444", "#dc2626", "#fee2e2"]; // Vermelho crítico
-                    } else if (intensity > 0.5) {
-                        options.particles.color.value = ["#f59e0b", "#ef4444", "#facc15"]; // Adiciona vermelho
-                    } else {
-                         options.particles.color.value = ["#f59e0b", "#eab308", "#facc15"]; // Padrão
-                    }
                 } else {
-                    // Configuração padrão para Competitivo, CPU, ou fim de jogo
-                    options.particles.number.value = 80;
-                    options.particles.move.speed = 0.5;
-                    options.particles.color.value = ["#f59e0b", "#eab308", "#facc15"];
+                    // Configuração padrão para Competitivo e CPU
+                    options.particles.number.value = 40;
+                    options.particles.move.speed = 1;
+                    options.particles.life.duration.value = 1.5;
                 }
             
                 particlesInstance.refresh();
@@ -838,11 +832,11 @@
                 
                                 checkEventProphecies('sacrifice_made', 2, newState);
 
-                                // ADICIONE O BLOCO ABAIXO
+                                // SUBSTITUA a verificação antiga por este bloco:
                                 if (newState.gameMode === 'cooperative') {
                                     newState.coop_sacrifice_count = (newState.coop_sacrifice_count || 0) + 1;
+                                    // A lógica de derrota já será tratada pelo jogador humano, então não precisa aqui.
                                 }
-                                // FIM DO BLOCO ADICIONADO
                 
                                 // FASE 3: Comprar 1 carta
                                 if (newState.deck.length > 0) {
@@ -974,11 +968,17 @@
                         
                         checkEventProphecies('sacrifice_made', playerNumber, newState);
 
-                        // ADICIONE O BLOCO ABAIXO
+                        // SUBSTITUA a verificação antiga do modo cooperativo por este bloco completo:
                         if (newState.gameMode === 'cooperative') {
                             newState.coop_sacrifice_count = (newState.coop_sacrifice_count || 0) + 1;
+                            addLogToState(newState, `Sacrifícios cooperativos: ${newState.coop_sacrifice_count} / 6`);
+                            if (newState.coop_sacrifice_count > 6) {
+                                newState.game_over = true;
+                                newState.winner = -1; // Derrota
+                                newState.win_reason = 'Aniquilação por excesso de Sacrifícios.';
+                            }
                         }
-                        // FIM DO BLOCO ADICIONADO
+                        // FIM DO BLOCO MODIFICADO
                         
                         // FASE 3: O jogador COMPRA uma carta
                         if (newState.deck.length > 0) {
@@ -1220,9 +1220,32 @@
                 const sealDeck = seals.map(s => ({ ...s, Tipo: 'Lendário' }));
                 const fullDeck = [...demonDeck, ...metalDeck, ...sealDeck];
                 
-                let newGameState = { deck: [], discard_pile: [], play_history: [], removed_from_game: [], log: [], chat: [], player1: { name: playerName, hand: [], prophecies: [], domains_captured: 0, uid: auth.currentUser?.uid || null }, player2: { name: 'Aguardando...', hand: [], prophecies: [], domains_captured: 0, uid: null }, current_player: 1, turn_count: 1, game_over: false, winner: null, status: 'waiting', win_reason: null, seal_decision: { active: false, player: null, king_player: null }, prophecy_choice: { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} }, gameMode: selectedGameMode };
+                let newGameState = { 
+                    deck: [], 
+                    discard_pile: [], 
+                    play_history: [], 
+                    removed_from_game: [], 
+                    log: [], 
+                    chat: [], 
+                    player1: { name: playerName, hand: [], prophecies: [], domains_captured: 0, uid: auth.currentUser?.uid || null }, 
+                    player2: { name: 'Aguardando...', hand: [], prophecies: [], domains_captured: 0, uid: null }, 
+                    current_player: 1, 
+                    turn_count: 1, 
+                    game_over: false, 
+                    winner: null, 
+                    status: 'waiting', 
+                    win_reason: null, 
+                    seal_decision: { active: false, player: null, king_player: null }, 
+                    prophecy_choice: { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} }, 
+                    gameMode: selectedGameMode,
+                    initialDeckSize: 0, // <--- ADICIONE ESTA LINHA
+                    coop_sacrifice_count: 0 // <--- ADICIONE ESTA LINHA
+                };
                 
                 let shuffledDeck = [...fullDeck].sort(() => Math.random() - 0.5);
+                
+                newGameState.initialDeckSize = shuffledDeck.length;
+                
                 const excludedPublicIds = ['p14', 'p15', 'p16'];
                 const publicEligibleProphecies = allProphecies.filter(p => !excludedPublicIds.includes(p.id));
                 let shuffledPublic = [...publicEligibleProphecies].sort(() => Math.random() - 0.5);
@@ -1397,10 +1420,33 @@
                 const secretPropheciesPool = allProphecies.filter(p => !publicPropheciesSelection.find(pub => pub.id === p.id));
                 let shuffledSecret = [...secretPropheciesPool].sort(() => Math.random() - 0.5);
 
+                // ADICIONE A LINHA ABAIXO
+                const initialSize = shuffledDeck.length;
+
                 initialDeckSize = shuffledDeck.length; // <--- ADICIONE ESTA LINHA
 
-                localGameState = { deck: shuffledDeck, discard_pile: [], play_history: [], removed_from_game: [], log: [], chat: [], player1: { name: playerName, hand: [], prophecies: shuffledSecret.slice(0, 3).map(p => ({id: p.id, completed: false})), domains_captured: 0 }, player2: { name: 'CPU', hand: [], prophecies: shuffledSecret.slice(3, 6).map(p => ({id: p.id, completed: false})), domains_captured: 0 }, publicProphecies: publicPropheciesSelection.map(p => ({id: p.id, completedBy: null})), current_player: 1, turn_count: 1, game_over: false, winner: null, status: 'active', win_reason: null, seal_decision: { active: false, player: null, king_player: null }, prophecy_choice: { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} }, gameMode: 'competitive' };
-
+                localGameState = { 
+                    deck: shuffledDeck, 
+                    discard_pile: [], 
+                    play_history: [], 
+                    removed_from_game: [], 
+                    log: [], 
+                    chat: [], 
+                    player1: { name: playerName, hand: [], prophecies: shuffledSecret.slice(0, 3).map(p => ({id: p.id, completed: false})), domains_captured: 0 }, 
+                    player2: { name: 'CPU', hand: [], prophecies: shuffledSecret.slice(3, 6).map(p => ({id: p.id, completed: false})), domains_captured: 0 }, 
+                    publicProphecies: publicPropheciesSelection.map(p => ({id: p.id, completedBy: null})), 
+                    current_player: 1, 
+                    turn_count: 1, 
+                    game_over: false, 
+                    winner: null, 
+                    status: 'active', 
+                    win_reason: null, 
+                    seal_decision: { active: false, player: null, king_player: null }, 
+                    prophecy_choice: { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} }, 
+                    gameMode: 'competitive',
+                    initialDeckSize: initialSize, // <--- ADICIONE ESTA LINHA (usando a constante que criamos)
+                    coop_sacrifice_count: 0 // <--- ADICIONE ESTA LINHA
+                };
                 for (let i = 0; i < 7; i++) {
                     if(localGameState.deck.length > 0) localGameState.player1.hand.push(localGameState.deck.pop());
                     if(localGameState.deck.length > 0) localGameState.player2.hand.push(localGameState.deck.pop());
@@ -1423,18 +1469,55 @@
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
         await tsParticles.load("tsparticles", {
-            preset: "firefly", 
             particles: {
-                number: { value: 80 },
-                color: { value: ["#f59e0b", "#eab308", "#facc15"] },
-                opacity: { value: { min: 0.1, max: 0.7 } },
-                size: { value: { min: 1, max: 3 } },
+                number: {
+                    value: 40, // Começa com 40 chamas
+                },
+                color: {
+                    value: ["#ff5900", "#ff9a00", "#ffc800", "#ffde00"] // Cores de fogo
+                },
+                shape: {
+                    type: "polygon", // Usar polígonos para formas irregulares
+                    options: {
+                        polygon: {
+                            sides: 5 // Formas de 5 lados parecem chamas
+                        }
+                    }
+                },
+                opacity: {
+                    value: { min: 0.1, max: 0.8 },
+                    animation: {
+                        enable: true,
+                        speed: 0.8,
+                        sync: false,
+                        startValue: "max",
+                        destroy: "min"
+                    }
+                },
+                size: {
+                    value: { min: 10, max: 20 },
+                    animation: {
+                        enable: true,
+                        speed: 4,
+                        sync: false,
+                        startValue: "min",
+                        destroy: "none"
+                    }
+                },
+                life: {
+                    duration: {
+                        value: 1.5 // Quanto tempo uma chama vive (em segundos)
+                    },
+                    count: 1
+                },
                 move: {
                     enable: true,
-                    speed: 0.5,
+                    speed: 1, // Velocidade inicial
                     direction: "top",
-                    straight: false,
-                    outModes: { default: "out", top: "destroy" }
+                    drift: { min: -1, max: 1 }, // Movimento lateral aleatório
+                    outModes: {
+                        default: "destroy" // Chamas desaparecem quando saem da tela
+                    }
                 }
             },
             interactivity: {
@@ -1451,6 +1534,7 @@
 </script>
 </body>
 </html>
+
 
 
 
