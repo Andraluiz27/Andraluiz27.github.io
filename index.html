@@ -440,35 +440,40 @@
             }
 
             // ===================================================================
-            // AQUI COMEÇA A ALTERAÇÃO DO EFEITO DE FUNDO
+            // AQUI COMEÇA A NOVA LÓGICA DO EFEITO DE FOGO
             // ===================================================================
             function updateBackgroundEffect(state) {
                 const particlesInstance = tsParticles.domItem(0);
-                if (!particlesInstance || !initialDeckSize) return;
+                // Adicionada uma verificação para a existência de emissores
+                if (!particlesInstance || !initialDeckSize || !particlesInstance.options.emitters?.length) return;
             
                 const options = particlesInstance.options;
                 let intensity = 0; // De 0.0 a 1.0
             
-                // O efeito se aplica a todos os modos de jogo, baseado no grimório
                 if (state.deck && !state.game_over) {
-                    // A intensidade aumenta conforme o grimório diminui
                     const deckUsedPercentage = 1 - (state.deck.length / initialDeckSize);
                     intensity = deckUsedPercentage;
                 }
             
-                // Ajusta as propriedades das partículas baseado na intensidade
-                // O número de partículas aumenta de 100 para 500
-                options.particles.number.value = 100 + (400 * intensity);
+                // Controla a taxa do emissor com base na intensidade
+                // O número de partículas emitidas aumenta de 5 para 30
+                options.emitters[0].rate.quantity = 5 + (25 * intensity);
             
-                // A velocidade aumenta de uma faixa de {1, 3} para {4, 8}
-                options.particles.move.speed.min = 1 + (3 * intensity);
-                options.particles.move.speed.max = 3 + (5 * intensity);
+                // Controla a velocidade das partículas com base na intensidade
+                // A velocidade aumenta de um intervalo de {3, 7} para {8, 15}
+                options.particles.move.speed.min = 3 + (5 * intensity);
+                options.particles.move.speed.max = 7 + (8 * intensity);
+
+                // Controla o tamanho das partículas com base na intensidade
+                // O tamanho máximo das partículas aumenta de 30 para 50
+                options.particles.size.value.min = 10 + (10 * intensity);
+                options.particles.size.value.max = 30 + (20 * intensity);
             
                 // A cor muda para um vermelho mais intenso em alta intensidade
                 if (intensity > 0.8) {
-                    options.particles.color.value = ["#ff0000", "#dc2626", "#ff5900"]; // Vermelho crítico
+                    options.particles.color.value = ["#ff0000", "#dc2626", "#b91c1c"]; // Vermelho crítico
                 } else if (intensity > 0.5) {
-                    options.particles.color.value = ["#ff5900", "#ff8c00", "#ef4444"]; // Laranja/vermelho intenso
+                    options.particles.color.value = ["#ff5900", "#ef4444", "#ff8c00"]; // Laranja/vermelho intenso
                 } else {
                     options.particles.color.value = ["#ff5900", "#ff8c00", "#ffb347"]; // Cores de fogo padrão
                 }
@@ -477,7 +482,7 @@
                 particlesInstance.refresh();
             }
             // ===================================================================
-            // AQUI TERMINA A ALTERAÇÃO DO EFEITO DE FUNDO
+            // AQUI TERMINA A NOVA LÓGICA DO EFEITO DE FOGO
             // ===================================================================
 
 
@@ -1424,61 +1429,70 @@
     // ===================================================================
     document.addEventListener('DOMContentLoaded', async () => {
         await tsParticles.load("tsparticles", {
+            fullScreen: {
+                enable: true,
+                zIndex: -1
+            },
             particles: {
                 number: {
-                    value: 100, // Número inicial de partículas
+                    value: 0 // Partículas são geradas pelo emissor
                 },
                 color: {
-                    value: ["#ff5900", "#ff8c00", "#ffb347"] // Cores de fogo
+                    value: ["#ff5900", "#ff8c00", "#ffb347"] // Cores iniciais do fogo
                 },
                 shape: {
-                    type: "circle"
+                    type: "polygon",
+                    options: {
+                        sides: 6 // Formato mais irregular para parecer chama
+                    }
                 },
                 opacity: {
-                    value: { min: 0.1, max: 0.9 },
+                    value: { min: 0.1, max: 0.8 },
                     animation: {
                         enable: true,
-                        speed: 0.8,
+                        speed: 0.7,
                         sync: false
                     }
                 },
                 size: {
-                    value: { min: 1, max: 4 },
-                     animation: {
+                    value: { min: 10, max: 30 },
+                    animation: {
                         enable: true,
-                        speed: 3,
-                        sync: false
+                        speed: 8,
+                        sync: false,
+                        startValue: "min",
+                        destroy: "max"
                     }
                 },
                 move: {
                     enable: true,
-                    speed: { min: 1, max: 3 }, // Velocidade inicial
+                    speed: { min: 3, max: 7 }, // Velocidade inicial
                     direction: "top",
                     straight: false,
                     outModes: {
-                        default: "destroy",
-                        top: "destroy"
+                        default: "destroy" // Partículas somem ao sair da tela
                     },
-                },
-                 life: {
-                    duration: {
-                        sync: false,
-                        value: 2
-                    },
-                    count: 1
                 },
             },
-            interactivity: {
-                events: {
-                    onHover: { enable: false },
-                    onClick: { enable: false }
+            // O emissor cria um fluxo contínuo de partículas da base
+            emitters: [{
+                direction: "top",
+                position: {
+                    x: 50,
+                    y: 100 // Emissor na parte inferior
+                },
+                rate: {
+                    delay: 0,
+                    quantity: 5 // Taxa de emissão inicial
+                },
+                size: {
+                    width: 100, // Ocupa toda a largura
+                    height: 0
                 }
-            },
-            background: {
-                color: "#1a1a1a"
-            }
+            }]
         });
     });
 </script>
 </body>
 </html>
+
