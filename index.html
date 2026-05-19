@@ -2,258 +2,215 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>GOETIA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
     /* ----- FONTES PERSONALIZADAS ----- */
-    @font-face {
-        /* Fonte para Títulos */
-        font-family: 'FonteDosTitulos'; 
-        src: url('fonts/HellsCemetery-Regular.ttf') format('truetype');
-    }
+    @font-face { font-family: 'FonteDosTitulos'; src: url('fonts/HellsCemetery-Regular.ttf') format('truetype'); }
+    @font-face { font-family: 'FonteDosTextos'; src: url('fonts/Remnant-Regular.ttf') format('truetype'); }
 
-    @font-face {
-        /* Fonte para Textos */
-        font-family: 'FonteDosTextos'; 
-        src: url('fonts/Remnant-Regular.ttf') format('truetype');
-    }
-
-
-    /* ----- APLICAÇÃO DAS FONTES ----- */
     body { 
         font-family: 'FonteDosTextos', 'Times New Roman', serif;
-        background-color: #000; /* Fundo preto para o fogo destacar */
-        color: #d1d1d1; 
+        background-color: #000; 
+        color: #d1d1d1;
+        overflow: hidden; 
     }
 
-    #game-container {
+    h1, h2, h3, h4, .font-title { font-family: 'FonteDosTitulos', 'Times New Roman', serif; }
+    
+    #fire-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+
+    /* ----- ESTILOS DO JOGO E WEB APP ----- */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    .domain-card-wrapper {
+        margin-left: -2.5rem; 
+        transition: transform 0.3s ease;
         position: relative;
-        z-index: 1;
     }
-    
-    h1, h2, h3, h4 {
-        font-family: 'FonteDosTitulos', 'Times New Roman', serif;
-    }
-    
-    #fire-canvas {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1; 
-    }
+    .domain-card-wrapper:first-child { margin-left: 0; }
+    .domain-card-wrapper:hover { transform: translateY(-15px); z-index: 20; }
+    @media (min-width: 768px) { .domain-card-wrapper { margin-left: -4rem; } }
 
-    /* ----- ESTILOS DO JOGO ----- */
-    .card-button { border: 1px solid #4a4a4a; background-color: #2a2a2a; color: #c0c0c0; padding: 8px 12px; margin: 4px; border-radius: 6px; cursor: pointer; text-align: left; transition: all 0.2s ease-in-out; box-shadow: 0 2px 4px rgba(0,0,0,0.5); font-size: 0.9rem; }
-    .card-button:hover:not(:disabled) { background-color: #3a3a3a; border-color: #888; }
-    .card-button:disabled { cursor: not-allowed; opacity: 0.5; }
-    .sacrificing { border-color: #ef4444 !important; box-shadow: 0 0 8px #ef4444; }
-    .game-board-element { border: 2px solid #5a3a1a; background-color: #3a2a1a; }
-    .prophecy-list li { font-size: 0.85rem; margin-bottom: 4px; cursor: help; position: relative; }
-    .prophecy-list li .tooltip { visibility: hidden; width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; margin-left: -125px; opacity: 0; transition: opacity 0.3s; }
-    .prophecy-list li:hover .tooltip { visibility: visible; opacity: 1; }
-    .prophecy-completed { text-decoration: line-through; color: #4ade80; }
-    .turn-indicator { transition: all 0.3s ease; }
-    .opponent-card { background-color: #1e1e1e; border: 1px dashed #4a4a4a; color: #666; }
-    #game-id-display { user-select: all; }
-    .prophecy-choice-label { display: block; padding: 12px; border: 1px solid #4a4a4a; border-radius: 6px; background-color: #2a2a2a; cursor: pointer; transition: background-color 0.2s; }
-    .prophecy-choice-label:hover { background-color: #3a3a3a; }
-    input[type="radio"]:checked + .prophecy-choice-label { background-color: #4c1d95; border-color: #8b5cf6; }
-    input[type="radio"] { opacity: 0; position: fixed; width: 0; }
-    .domain-card-item { background-color: #2a2a2a; color: #c0c0c0; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; border: 1px solid #4a4a4a; }
-    .log-area, .chat-area { background-color: rgba(10, 5, 5, 0.7); border: 1px solid #4a4a4a; height: 180px; overflow-y: auto; padding: 10px; font-family: monospace; font-size: 0.85rem; backdrop-filter: blur(2px); }
-    .log-area { display: flex; flex-direction: column-reverse; }
-    .log-area strong { color: #f59e0b; }
-    .chat-area { display: flex; flex-direction: column; }
-    .chat-message { padding: 6px 10px; border-radius: 12px; margin-bottom: 6px; max-width: 85%; word-wrap: break-word; }
-    .chat-message.player1 { background-color: #1e40af; color: #eff6ff; align-self: flex-start; border-bottom-left-radius: 2px; }
-    .chat-message.player2 { background-color: #15803d; color: #f0fdf4; align-self: flex-end; border-bottom-right-radius: 2px; }
-    .chat-message .sender { font-weight: bold; font-size: 0.75rem; display: block; margin-bottom: 2px; opacity: 0.9; }
-    .game-mode-selector { display: flex; justify-content: center; gap: 1rem; margin-bottom: 1.5rem; }
-    .mode-btn { padding: 10px 20px; border: 2px solid #4a4a4a; background-color: #2a2a2a; color: #c0c0c0; font-weight: bold; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
-    .mode-btn.active { background-color: #a16207; border-color: #f59e0b; color: white; }
-    .coop-prophecy { position: relative; cursor: help; }
-    .coop-prophecy .tooltip { visibility: hidden; width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 10; bottom: 125%; left: 50%; margin-left: -125px; opacity: 0; transition: opacity 0.3s; text-decoration: none; }
-    .coop-prophecy:hover:not(.prophecy-completed) .tooltip { visibility: visible; opacity: 1; }
-    #help-icon { position: fixed; bottom: 20px; right: 20px; width: 40px; height: 40px; background-color: #4a4a4a; color: #d1d1d1; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; cursor: help; z-index: 1000; border: 2px solid #6a6a6a; user-select: none; }
-    #help-icon .help-tooltip { visibility: hidden; opacity: 0; width: 300px; background-color: #1f1f1f; color: #d1d1d1; text-align: left; border-radius: 8px; padding: 12px; position: absolute; z-index: 1; bottom: 120%; right: 0;  transition: opacity 0.3s ease-in-out; border: 1px solid #5a5a5a; box-shadow: 0 4px 12px rgba(0,0,0,0.7); }
-    #help-icon:hover .help-tooltip { visibility: visible; opacity: 1; }
-    .help-tooltip .tooltip-section { margin-bottom: 10px; }
-    .help-tooltip .tooltip-section:last-child { margin-bottom: 0; }
-    .help-tooltip p, .help-tooltip ul { font-size: 0.85rem; color: #c0c0c0; }
-    .help-tooltip strong { font-size: 0.70rem; }
-    .prophecy-public-item { padding: 8px 12px; border-radius: 6px; border: 1px solid #6b7280; background-color: #374151; cursor: help; position: relative; }
-    .prophecy-public-item .tooltip { visibility: hidden; width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; margin-left: -125px; opacity: 0; transition: opacity 0.3s; }
-    .prophecy-public-item:hover .tooltip { visibility: visible; opacity: 1; }
-    .prophecy-completed-by-p1 { border-color: #60a5fa; background-color: #1e3a8a; color: #eff6ff; }
-    .prophecy-completed-by-p2 { border-color: #4ade80; background-color: #166534; color: #f0fdf4; }
+    .prophecy-list-btn {
+        width: 100%; text-align: left; padding: 10px; margin-bottom: 6px;
+        background-color: rgba(31, 41, 55, 0.8); border: 1px solid #4b5563; border-radius: 6px;
+        transition: all 0.2s; cursor: pointer; color: #d1d5db; font-size: 0.85rem;
+    }
+    .prophecy-list-btn:hover, .prophecy-list-btn.active {
+        background-color: rgba(76, 29, 149, 0.6); border-color: #8b5cf6; color: #fff;
+    }
+    .prophecy-list-btn.completed { border-left: 4px solid #10b981; } 
+    .prophecy-list-btn.completed-opponent { border-left: 4px solid #ef4444; } 
+
+    .sacrificing-fx { box-shadow: 0 0 20px #ef4444; border-color: #ef4444 !important; }
+    .fade-enter { opacity: 0; transition: opacity 0.3s; }
+    .fade-enter-active { opacity: 1; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="w-screen h-screen flex flex-col">
 
     <canvas id="fire-canvas"></canvas>
 
-    <div id="game-container" class="max-w-7xl mx-auto">
-        <div class="text-center mb-6">
-            <h1 class="text-7xl font-bold text-amber-300">Goetia</h1>
-        </div>
-
-        <div id="lobby" class="text-center bg-gray-900 p-8 rounded-lg max-w-lg mx-auto">
-             <h2 class="text-3xl font-bold text-amber-300 mb-4">Modo de Jogo</h2>
-             <div class="game-mode-selector">
-                <button id="mode-competitive-btn" class="mode-btn active">Competitivo</button>
-                <button id="mode-cooperative-btn" class="mode-btn">Cooperativo</button>
-                <button id="mode-cpu-btn" class="mode-btn">VS CPU</button>
+    <div id="lobby-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm overflow-y-auto p-4">
+        <div class="bg-gray-900 border border-gray-700 p-8 rounded-lg max-w-lg w-full text-center shadow-2xl">
+            <h1 class="text-7xl font-bold text-amber-500 mb-6 font-title tracking-wider drop-shadow-lg">Goetia</h1>
+             
+             <h2 class="text-2xl font-bold text-amber-300 mb-4">Modo de Jogo</h2>
+             <div class="flex justify-center gap-4 mb-6">
+                <button id="mode-competitive-btn" class="px-4 py-2 border-2 border-amber-600 bg-amber-900/50 text-white font-bold rounded-lg transition-colors">Competitivo</button>
+                <button id="mode-cooperative-btn" class="px-4 py-2 border-2 border-gray-600 bg-gray-800 text-gray-400 font-bold rounded-lg transition-colors">Cooperativo</button>
+                <button id="mode-cpu-btn" class="px-4 py-2 border-2 border-gray-600 bg-gray-800 text-gray-400 font-bold rounded-lg transition-colors">VS CPU</button>
              </div>
              <hr class="border-gray-700 my-6">
-              <h2 class="text-3xl font-bold text-amber-300 mb-4">Seu Nome</h2>
-              <input type="text" id="player-name-input" placeholder="Digite seu nome aqui" class="w-full bg-gray-800 border border-gray-600 text-white p-2 rounded mb-6" maxlength="20">
+              
+              <h2 class="text-2xl font-bold text-amber-300 mb-4">Seu Nome</h2>
+              <input type="text" id="player-name-input" placeholder="Digite seu nome" class="w-full bg-gray-800 border border-gray-600 text-white p-3 rounded mb-6 text-center focus:outline-none focus:border-amber-500" maxlength="20">
+             
              <div id="online-options">
-                <h2 class="text-3xl font-bold text-amber-300 mb-4">Sala de Jogo</h2>
-                <button id="create-game-btn" class="w-full mb-4 px-6 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded-lg shadow-lg">Criar Novo Jogo</button>
-                <div id="game-id-section" class="hidden mb-4">
-                    <p class="text-gray-300">Compartilhe este ID com seu oponente:</p>
-                    <p id="game-id-display" class="bg-gray-800 text-amber-200 font-mono p-2 rounded mt-2"></p>
+                <button id="create-game-btn" class="w-full mb-4 px-6 py-3 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded-lg shadow-lg uppercase tracking-wide">Criar Novo Jogo</button>
+                <div id="game-id-section" class="hidden mb-4 p-4 bg-black/40 rounded border border-gray-700">
+                    <p class="text-gray-300 mb-2 text-sm">Compartilhe este ID com seu oponente:</p>
+                    <p id="game-id-display" class="text-2xl text-amber-300 font-mono font-bold select-all cursor-pointer tracking-widest"></p>
                 </div>
-                <hr class="border-gray-700 my-6">
-                <input type="text" id="join-game-input" placeholder="Cole o ID do Jogo aqui" class="w-full bg-gray-800 border border-gray-600 text-white p-2 rounded mb-4">
-                <button id="join-game-btn" class="w-full px-6 py-2 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-lg shadow-lg">Entrar no Jogo</button>
+                <div class="flex items-center gap-4 my-6">
+                    <div class="h-px bg-gray-700 flex-grow"></div>
+                    <span class="text-gray-500 text-sm">OU</span>
+                    <div class="h-px bg-gray-700 flex-grow"></div>
+                </div>
+                <input type="text" id="join-game-input" placeholder="Cole o ID do Jogo" class="w-full bg-gray-800 border border-gray-600 text-white p-3 rounded mb-4 text-center focus:outline-none focus:border-blue-500 uppercase font-mono">
+                <button id="join-game-btn" class="w-full px-6 py-3 bg-blue-800 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg uppercase tracking-wide">Entrar no Jogo</button>
              </div>
+             
              <div id="cpu-options" class="hidden">
-                <button id="start-cpu-game-btn" class="w-full px-6 py-2 bg-purple-700 hover:bg-purple-600 text-white font-bold rounded-lg shadow-lg">Iniciar Jogo vs CPU</button>
+                <button id="start-cpu-game-btn" class="w-full px-6 py-3 bg-purple-800 hover:bg-purple-700 text-white font-bold rounded-lg shadow-lg uppercase tracking-wide">Iniciar Jogo vs CPU</button>
              </div>
         </div>
+    </div>
 
-        <div id="game-board" class="hidden">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div class="flex flex-col items-center justify-center game-board-element p-4 rounded-lg">
-                    <h3 class="text-xl font-bold text-amber-300 mb-2">Grimório</h3>
-                    <p id="deck-count" class="text-2xl font-mono">0</p>
-                </div>
-                <div id="turn-display" class="flex flex-col items-center justify-center bg-gray-800 p-4 rounded-lg">
-                     <h2 id="turn-indicator" class="text-2xl font-bold text-center text-amber-400">Turno 1</h2>
-                     <p id="player-turn" class="text-gray-300">Aguardando Oponente...</p>
-                </div>
-                <div class="flex flex-col items-center justify-center game-board-element p-4 rounded-lg">
-                    <h3 class="text-xl font-bold text-amber-300 mb-2">Domínio</h3>
-                    <div id="discard-pile-card" class="card-button text-center min-h-[50px] flex items-center justify-center"></div>
-                </div>
-            </div>
-
-            <div id="coop-board-container" class="hidden bg-gray-800 p-4 rounded-lg mb-6">
-                <h3 class="text-xl font-bold text-center text-amber-300 mb-2">Profecias Compartilhadas</h3>
-                <p class="text-center text-lg mb-4">Progresso: <span id="coop-prophecy-progress" class="font-bold text-green-400">0 / 7</span></p>
-                <div id="coop-prophecies" class="flex flex-wrap justify-center gap-2"></div>
-            </div>
-            
-            <div id="domain-board-container" class="bg-gray-800 p-4 rounded-lg mb-6">
-                <h3 class="text-xl font-bold text-center text-amber-300 mb-2">Cartas no Domínio</h3>
-                <div id="domain-board-cards" class="flex flex-wrap justify-center gap-2 min-h-[30px]"></div>
-            </div>
-
-            <div id="public-prophecy-container" class="hidden bg-gray-800 p-4 rounded-lg mb-6">
-                <h3 class="text-xl font-bold text-center text-amber-300 mb-2">Profecias Públicas</h3>
-                <div id="public-prophecies" class="flex flex-wrap justify-center gap-2 min-h-[30px]"></div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div id="player1-area" class="bg-gray-900 p-6 rounded-lg border-2 border-transparent turn-indicator">
-                    <h2 class="text-2xl font-bold mb-3 text-blue-300">Jogador 1</h2>
-                    <div id="player1-hand" class="mb-4 min-h-[100px] flex flex-wrap"></div>
-                    <div id="player1-prophecy-area" class="bg-gray-800 p-3 rounded">
-                        <h4 class="font-bold mb-2 text-blue-200">Profecias Secretas:</h4>
-                        <ul id="player1-prophecies" class="list-disc list-inside prophecy-list"></ul>
-                    </div>
-                     <div class="mt-4">
-                         <h4 class="font-bold text-blue-200">Domínios Capturados: <span id="player1-dominions">0</span></h4>
-                     </div>
-                </div>
-                <div id="player2-area" class="bg-gray-900 p-6 rounded-lg border-2 border-transparent turn-indicator">
-                    <h2 class="text-2xl font-bold mb-3 text-green-300">Jogador 2</h2>
-                    <div id="player2-hand" class="mb-4 min-h-[100px] flex flex-wrap"></div>
-                    <div id="player2-prophecy-area" class="bg-gray-800 p-3 rounded">
-                        <h4 class="font-bold mb-2 text-green-200">Profecias Secretas:</h4>
-                        <ul id="player2-prophecies" class="list-disc list-inside prophecy-list"></ul>
-                    </div>
-                     <div class="mt-4">
-                         <h4 class="font-bold text-green-200">Domínios Capturados: <span id="player2-dominions">0</span></h4>
-                     </div>
-                </div>
-            </div>
-
-            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <h3 class="text-xl font-bold mb-2 text-amber-300">Log da Partida</h3>
-                    <div id="log-area" class="log-area rounded-lg"></div>
-                </div>
-                <div>
-                    <h3 class="text-xl font-bold mb-2 text-amber-300">Chat</h3>
-                    <div id="chat-area" class="chat-area rounded-t-lg"></div>
-                    <div class="flex">
-                        <input type="text" id="chat-input" placeholder="Digite sua mensagem..." class="text-sm flex-grow bg-gray-800 border border-gray-600 text-white p-2 focus:outline-none focus:border-amber-500 rounded-bl-lg">
-                        <button id="send-chat-btn" class="px-4 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded-br-lg">Enviar</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div id="game-ui" class="hidden flex flex-col w-full h-full relative z-10">
         
-        <div id="end-game-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-            <div class="bg-gray-900 p-8 rounded-lg shadow-2xl text-center border-2 border-amber-500">
-                <h2 id="winner-text" class="text-3xl font-bold text-amber-300 mb-4"></h2>
-                <p id="win-reason-text" class="text-gray-300 mb-6"></p>
-                <button onclick="window.location.reload()" class="px-6 py-2 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded-lg">Jogar Novamente</button>
+        <header class="shrink-0 flex justify-between items-center p-2 md:p-4 bg-gray-900/90 border-b border-gray-700 backdrop-blur-md shadow-md">
+            <div class="w-1/4 flex flex-col items-center justify-center bg-black/40 p-1 rounded border border-gray-800">
+                <span class="text-[0.65rem] md:text-xs text-gray-400 uppercase tracking-widest font-bold">Grimório</span>
+                <span id="deck-count" class="text-2xl md:text-3xl font-bold text-amber-400 font-mono">0</span>
             </div>
+            
+            <div class="w-2/4 flex justify-center items-center gap-2 md:gap-8 px-2">
+                <div class="text-center bg-gray-800/50 px-2 py-1 md:px-4 md:py-2 rounded border border-blue-900/50">
+                    <div id="p1-name" class="font-bold text-blue-300 text-sm md:text-base truncate max-w-[100px] md:max-w-[150px]">Jog 1</div>
+                    <div class="text-[0.65rem] md:text-xs text-gray-300 mt-1">Domínios: <span id="p1-domains" class="font-bold text-white">0</span></div>
+                    <div class="text-[0.65rem] md:text-xs text-gray-300">Mão: <span id="p1-hand-count" class="font-bold text-white">0</span></div>
+                </div>
+                <div class="text-center bg-gray-800/50 px-2 py-1 md:px-4 md:py-2 rounded border border-green-900/50">
+                    <div id="p2-name" class="font-bold text-green-300 text-sm md:text-base truncate max-w-[100px] md:max-w-[150px]">Jog 2</div>
+                    <div class="text-[0.65rem] md:text-xs text-gray-300 mt-1">Domínios: <span id="p2-domains" class="font-bold text-white">0</span></div>
+                    <div class="text-[0.65rem] md:text-xs text-gray-300">Mão: <span id="p2-hand-count" class="font-bold text-white">0</span></div>
+                </div>
+            </div>
+
+            <div class="w-1/4 flex justify-end">
+                <button id="open-menu-btn" class="px-3 py-2 md:px-6 md:py-3 bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm md:text-base font-bold rounded shadow border border-gray-600 transition-colors uppercase tracking-wider">Menu</button>
+            </div>
+        </header>
+
+        <main class="flex-grow flex flex-col items-center justify-center relative p-4 overflow-hidden">
+            <div id="turn-display" class="absolute top-4 bg-black/80 px-6 py-2 rounded-full border border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)] z-30 transition-all text-center backdrop-blur-sm">
+                <span id="turn-indicator" class="font-bold text-amber-400 mr-2 uppercase tracking-wide">Turno 1</span>
+                <span id="player-turn" class="text-sm text-gray-200">Aguardando Oponente...</span>
+            </div>
+
+            <div id="domain-board-cards" class="flex justify-center items-center h-48 md:h-64 w-full px-8"></div>
+        </main>
+
+        <div class="shrink-0 w-full bg-gradient-to-t from-gray-900/95 to-transparent pt-4 pb-2 px-2 flex justify-center gap-2 md:gap-6 z-20">
+            <button id="btn-secret-prophecies" class="flex-1 max-w-[200px] py-2 bg-purple-900/80 hover:bg-purple-800 border border-purple-500 text-purple-100 font-bold text-xs md:text-sm rounded shadow-lg backdrop-blur-sm transition-all uppercase tracking-wide">Profecias Secretas</button>
+            <button id="btn-public-prophecies" class="flex-1 max-w-[200px] py-2 bg-purple-900/80 hover:bg-purple-800 border border-purple-500 text-purple-100 font-bold text-xs md:text-sm rounded shadow-lg backdrop-blur-sm transition-all uppercase tracking-wide">Profecias Públicas</button>
+            <button id="btn-shared-prophecies" class="hidden flex-1 max-w-[300px] py-2 bg-amber-900/80 hover:bg-amber-800 border border-amber-500 text-amber-100 font-bold text-xs md:text-sm rounded shadow-lg backdrop-blur-sm transition-all uppercase tracking-wide">Profecias Compartilhadas</button>
         </div>
 
-        <div id="seal-decision-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-            <div class="bg-gray-800 p-8 rounded-lg shadow-2xl text-center border-2 border-yellow-500">
-                <h2 class="text-2xl font-bold text-yellow-300 mb-4">Oponente jogou um Rei!</h2>
-                <p id="seal-modal-text" class="text-gray-300 mb-6">Você deseja usar o seu Selo de Salomão para roubar este Domínio?</p>
-                <div class="flex justify-center space-x-4">
-                    <button id="confirm-seal-btn" class="px-6 py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg">Sim, Usar Selo</button>
-                    <button id="decline-seal-btn" class="px-6 py-2 bg-red-700 hover:bg-red-600 text-white font-bold rounded-lg">Não, Passar</button>
+        <footer class="shrink-0 h-[160px] md:h-[220px] bg-gray-900/95 border-t border-gray-700 backdrop-blur-md pb-2 pt-4 px-2">
+            <div id="player-hand" class="flex items-center gap-2 md:gap-4 overflow-x-auto h-full px-4 no-scrollbar snap-x"></div>
+        </footer>
+    </div>
+
+    <div id="prophecy-log-modal" class="hidden fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 md:p-6 fade-enter">
+        <div class="bg-gray-800 w-full max-w-4xl h-[85vh] md:h-[70vh] rounded-lg border border-purple-600 flex flex-col shadow-[0_0_30px_rgba(107,33,168,0.5)] overflow-hidden">
+            <div class="bg-gray-900 p-4 border-b border-gray-700 flex justify-between items-center shrink-0">
+                <h2 id="prophecy-log-title" class="text-xl md:text-2xl font-bold text-purple-300 font-title tracking-wide">Profecias</h2>
+                <button id="close-prophecy-log-btn" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+            </div>
+            
+            <div class="flex flex-col md:flex-row flex-grow overflow-hidden">
+                <div class="w-full md:w-1/3 h-1/3 md:h-full bg-gray-900/60 border-b md:border-b-0 md:border-r border-gray-700 overflow-y-auto p-3 no-scrollbar" id="prophecy-log-list"></div>
+                
+                <div class="w-full md:w-2/3 h-2/3 md:h-full bg-gray-800/90 p-6 flex flex-col justify-center items-center text-center relative overflow-y-auto">
+                    <div id="prophecy-detail-status" class="md:absolute top-4 right-4 mb-4 md:mb-0 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider"></div>
+                    <h3 id="prophecy-detail-title" class="text-2xl md:text-3xl font-bold text-amber-400 mb-4 font-title">Selecione uma Profecia</h3>
+                    <p id="prophecy-detail-desc" class="text-base md:text-lg text-gray-300 max-w-md leading-relaxed"></p>
                 </div>
             </div>
         </div>
-
-        <div id="prophecy-choice-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-            <div class="bg-gray-800 p-8 rounded-lg shadow-2xl text-center border-2 border-purple-500 max-w-lg">
-                <h2 id="prophecy-modal-title" class="text-2xl font-bold text-purple-300 mb-4">Múltiplas Profecias Cumpridas!</h2>
-                <p id="prophecy-modal-text" class="text-gray-300 mb-6">Escolha qual profecia deseja registrar:</p>
-                <div id="prophecy-options" class="space-y-3 mb-6 text-left"></div>
-                <p id="prophecy-vote-status" class="text-gray-400 text-sm mb-4 hidden"></p>
-                <button id="confirm-prophecy-btn" class="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg w-full">Confirmar</button>
-            </div>
-        </div>
     </div>
 
-    <div id="help-icon">
-        ?
-        <div class="help-tooltip">
-            <h4 class="font-bold text-amber-300 mb-2 text-center">Hierarquias do Jogo</h4>
+    <div id="menu-modal" class="hidden fixed inset-0 z-[90] bg-black/70 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-4 fade-enter">
+        <div class="bg-gray-900 w-full md:w-[450px] max-h-[85vh] rounded-t-xl md:rounded-xl border border-gray-600 flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800">
+                <h2 class="text-xl font-bold text-amber-300">Menu da Partida</h2>
+                <button id="close-menu-btn" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+            </div>
             
-            <div class="tooltip-section">
-                <strong>Hierarquia dos Títulos:</strong>
-                <p>Presidente &lt; Conde &lt; Marquês &lt; Duque &lt; Rei</p>
-            </div>
+            <div class="p-4 overflow-y-auto flex flex-col gap-6 flex-grow">
+                <div class="flex flex-col">
+                    <h3 class="text-xs font-bold text-gray-400 mb-2 uppercase tracking-widest">Log do Sistema</h3>
+                    <div id="log-area" class="bg-black/60 border border-gray-700 h-32 rounded p-3 overflow-y-auto text-[0.75rem] font-mono flex flex-col-reverse text-gray-300"></div>
+                </div>
+                
+                <div class="flex flex-col flex-grow">
+                    <h3 class="text-xs font-bold text-gray-400 mb-2 uppercase tracking-widest">Chat</h3>
+                    <div id="chat-area" class="bg-black/60 border border-gray-700 h-40 rounded p-3 overflow-y-auto text-sm flex flex-col gap-2 mb-2"></div>
+                    <div class="flex">
+                        <input type="text" id="chat-input" class="flex-grow bg-gray-800 border border-gray-600 rounded-l px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500 placeholder-gray-500" placeholder="Digite uma mensagem...">
+                        <button id="send-chat-btn" class="bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-r font-bold text-sm text-white transition-colors">Enviar</button>
+                    </div>
+                </div>
 
-            <div class="tooltip-section">
-                <strong>Hierarquia dos Metais:</strong>
-                <p>Mercúrio &lt; Estanho &lt; Prata &lt; Cobre</p>
-            </div>
-
-            <div class="tooltip-section">
-                <strong>Níveis de Hierarquia:</strong>
-                <ul class="list-disc list-inside text-left">
-                    <li><b>Baixa:</b> Presidente, Conde, Marquês</li>
-                    <li><b>Média:</b> Duque</li>
-                    <li><b>Alta:</b> Rei</li>
-                </ul>
+                <hr class="border-gray-700">
+                <button onclick="window.location.reload()" class="w-full py-3 border border-red-600 text-red-500 hover:bg-red-900/30 rounded font-bold uppercase tracking-wide transition-colors">Abandonar Partida</button>
             </div>
         </div>
     </div>
+
+    <div id="end-game-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-[110] backdrop-blur-md">
+        <div class="bg-gray-900 p-8 md:p-12 rounded-lg shadow-2xl text-center border-4 border-amber-600 max-w-md w-full">
+            <h2 id="winner-text" class="text-4xl font-bold text-amber-400 mb-4 font-title drop-shadow-md"></h2>
+            <p id="win-reason-text" class="text-gray-300 mb-8 text-lg"></p>
+            <button onclick="window.location.reload()" class="px-8 py-3 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded shadow-lg uppercase tracking-widest w-full transition-colors">Jogar Novamente</button>
+        </div>
+    </div>
+
+    <div id="seal-decision-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-[105] backdrop-blur-sm p-4">
+        <div class="bg-gray-900 p-8 rounded-lg shadow-2xl text-center border-2 border-yellow-500 max-w-sm w-full">
+            <h2 class="text-2xl font-bold text-yellow-300 mb-4 font-title">Oponente jogou um Rei!</h2>
+            <p id="seal-modal-text" class="text-gray-300 mb-8 text-sm md:text-base">Você deseja usar o seu Selo de Salomão para roubar este Domínio?</p>
+            <div class="flex flex-col gap-3">
+                <button id="confirm-seal-btn" class="w-full py-3 bg-green-700 hover:bg-green-600 text-white font-bold rounded shadow uppercase tracking-wide transition-colors">Sim, Usar Selo</button>
+                <button id="decline-seal-btn" class="w-full py-3 bg-red-800 hover:bg-red-700 text-white font-bold rounded shadow uppercase tracking-wide transition-colors">Não, Passar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="prophecy-choice-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-[105] backdrop-blur-sm p-4">
+        <div class="bg-gray-900 p-8 rounded-lg shadow-2xl text-center border-2 border-purple-500 max-w-md w-full">
+            <h2 id="prophecy-modal-title" class="text-2xl font-bold text-purple-300 mb-4 font-title">Múltiplas Profecias Cumpridas!</h2>
+            <p id="prophecy-modal-text" class="text-gray-300 mb-6 text-sm">Escolha qual profecia deseja registrar:</p>
+            <div id="prophecy-options" class="flex flex-col gap-3 mb-8 text-left"></div>
+            <button id="confirm-prophecy-btn" class="w-full py-3 bg-purple-700 hover:bg-purple-600 text-white font-bold rounded shadow uppercase tracking-wide transition-colors">Confirmar Escolha</button>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -281,20 +238,18 @@
                 }
             } catch (error) {
                 console.error("Authentication failed:", error);
-                document.body.innerHTML = `<div class="text-center text-red-500 p-8">Erro de Autenticação.</div>`;
+                document.body.innerHTML = `<div class="text-center text-red-500 p-8 pt-20">Erro de Autenticação com Servidor.</div>`;
                 return;
             }
 
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'ars-goetia-default';
             const gamesCollectionPath = `/artifacts/${appId}/public/data/ars_goetia_games`;
             
-            // DATA (Completo)
             const demons = [ {Nome:"Bael", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"}, {Nome:"Paimon", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"}, {Nome:"Beleth", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"}, {Nome:"Purson", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"}, {Nome:"Asmoday", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"}, {Nome:"Vine", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"}, {Nome:"Balam", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"}, {Nome:"Zagan", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"}, {Nome:"Belial", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"}, {Nome:"Vassago", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"}, {Nome:"Ipos", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"}, {Nome:"Stolas", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"}, {Nome:"Orobas", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"}, {Nome:"Agares", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Conhecimento"}, {Nome:"Valefor", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Barbatos", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Bathin", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"}, {Nome:"Saleos", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Berith", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Astaroth", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Conhecimento"}, {Nome:"Vepar", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"}, {Nome:"Vual", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Murmur", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Conhecimento"}, {Nome:"Gremory", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Haures", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"}, {Nome:"Amduscias", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"}, {Nome:"Dantalion", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Aim", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"}, {Nome:"Amon", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Riqueza"}, {Nome:"Naberius", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"}, {Nome:"Forneus", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Riqueza"}, {Nome:"Phenex", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"}, {Nome:"Orias", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"}, {Nome:"Andras", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Guerra"}, {Nome:"Andrealphus", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"}, {Nome:"Cimeies", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Guerra"}, {Nome:"Decarabia", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Guerra"}, {Nome:"Botis", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Riqueza"}, {Nome:"Glasya-Labolas", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Conhecimento"}, {Nome:"Ronove", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Guerra"}, {Nome:"Furfur", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Guerra"}, {Nome:"Halphas", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Guerra"}, {Nome:"Andromalius", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Riqueza"}, {Nome:"Furcas", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Conhecimento"}, {Nome:"Leraje", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Guerra"}, {Nome:"Foras", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Riqueza"}, {Nome:"Gaap", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Conhecimento"}, {Nome:"Malphas", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Guerra"}, {Nome:"Ose", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Conhecimento"}, {Nome:"Amy", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Riqueza"}, {Nome:"Valac", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Riqueza"} ];
             const metals = [...Array(4).fill({Nome: "Cobre", Título: "Duque"}), ...Array(6).fill({Nome: "Prata", Título: "Marquês"}), ...Array(4).fill({Nome: "Mercúrio", Título: "Presidente"}), ...Array(5).fill({Nome: "Estanho", Título: "Conde"})];
             const seals = Array(1).fill({Nome: "Selo de Salomão"});
             const allProphecies = [ { id: 'p1', Nome: 'A Aristocracia Perversa', Desc: 'Capture um domínio com ao menos 4 demônios da afinidade Riqueza.', check: (domain) => domain.filter(c => c.Tipo === 'Demonio' && c.Afinidade === 'Riqueza').length >= 4 }, { id: 'p2', Nome: 'O Monólito Vermelho', Desc: 'Capture um Domínio onde TODOS os demônios são da afinidade Guerra, incluindo o rei.', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio'); return demons.length > 0 && demons.every(d => d.Afinidade === 'Guerra'); } }, { id: 'p3', Nome: 'A Insurreição dos Iguais', Desc: 'Capture um Domínio com 6 cartas ou mais, onde TODOS os demônios (exceto Reis) são da mesma Hierarquia (Baixa ou Média).', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta'); return domain.length >= 6 && (demons.length > 0 && (demons.every(d => d.Hierarquia === 'Baixa') || demons.every(d => d.Hierarquia === 'Média')) ); } }, { id: 'p4', Nome: 'A Pirâmide Perfeita', Desc: 'Capture um Domínio que contenha a sequência exata de demônios: Presidente -> Conde -> Marquês.', check: (domain) => { if (domain.length < 3) return false; for (let i = 0; i <= domain.length - 3; i++) { const c1 = domain[i]; const c2 = domain[i+1]; const c3 = domain[i+2]; if (c1.Tipo === 'Demonio' && c1.Título === 'Presidente' && c2.Tipo === 'Demonio' && c2.Título === 'Conde' && c3.Tipo === 'Demonio' && c3.Título === 'Marquês') return true; } return false; } }, { id: 'p5', Nome: 'O Tesouro Profano', Desc: 'Capture um Domínio onde mais da metade das cartas são Metais.', check: (domain) => domain.filter(c => c.Tipo === 'Metal').length > domain.length / 2 }, { id: 'p6', Nome: 'O Mosaico do Caos', Desc: 'Capture um Domínio com 5 ou mais demônios (ignorando o Rei), sem que nenhuma Afinidade apareça mais do que duas vezes.', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta'); const counts = demons.reduce((acc, d) => { acc[d.Afinidade] = (acc[d.Afinidade] || 0) + 1; return acc; }, {}); return demons.length >= 5 && Object.values(counts).every(v => v <= 2); } }, { id: 'p7', Nome: 'A Trindade Completa', Desc: 'Capture um Domínio que contenha EXATAMENTE um demônio de cada Afinidade (ignorando o Rei).', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta'); const affinities = new Set(demons.map(d => d.Afinidade)); return demons.length === 3 && affinities.size === 3; } }, { id: 'p8', Nome: 'O Salto da Fé', Desc: 'Capture um Domínio com um Duque, onde TODOS os outros demônios são de Baixa Hierarquia e tenha ao menos 4 demônios.', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta'); return demons.length >= 4 && demons.some(d => d.Hierarquia === 'Média') && demons.filter(d => d.Hierarquia === 'Baixa').length === (demons.length - 1); } }, { id: 'p9', Nome: 'A Prata Romana', Desc: 'Capture um domínio que tenha ao menos 3 cartas de Prata.', check: (domain) => domain.filter(c => c.Tipo === 'Metal' && c.Nome === 'Prata').length >= 3 }, { id: 'p10', Nome: 'A Liga Infernal', Desc: 'Capture um Domínio que contenha pelo menos um de cada um dos 4 tipos de Metal.', check: (domain) => { const metalTypes = new Set(domain.filter(c => c.Tipo === 'Metal').map(m => m.Nome)); return metalTypes.size === 4; } }, { id: 'p11', Nome: 'A Legião Pura', Desc: 'Capture um Domínio que não contenha NENHUMA carta de Metal.', check: (domain) => domain.filter(c => c.Tipo === 'Metal').length === 0 }, { id: 'p12', Nome: 'O Segredo de Astaroth', Desc: 'Capture um Domínio que contenha o Duque Astaroth e 2 ou mais outros demônios de Conhecimento.', check: (domain) => domain.some(c => c.Nome === 'Astaroth') && domain.filter(c => c.Tipo === 'Demonio' && c.Afinidade === 'Conhecimento').length >= 3 }, { id: 'p13', Nome: 'A Orquestra de Amduscias', Desc: 'Capture um Domínio que contenha o Duque Amduscias e possua pelo menos 3 Títulos de demônios diferentes no total (ignorando o Rei).', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta'); const titles = new Set(demons.map(d => d.Título)); return domain.some(c => c.Nome === 'Amduscias') && titles.size >= 3; } }, { id: 'p14', Nome: 'A Corrupção do Sábio', Desc: 'Cumprida se o Selo de Salomão for utilizado na jogada, seja por você ou pelo seu oponente.', check: () => false, event: 'selo_played' }, { id: 'p15', Nome: 'O Servo de Bael', Desc: 'Cumprida se você ou seu oponente capturar um Domínio com o Rei Bael (a captura não pode ser roubada por um Selo).', check: () => false, event: 'bael_played' }, { id: 'p16', Nome: 'O Grito do Abismo', Desc: 'Cumprida se você for forçado a fazer um Sacrifício.', check: () => false, event: 'sacrifice_made' }, { id: 'p17', Nome: 'A Escala da Loucura', Desc: 'Capture um domínio que tenha uma sequência exata de três demônios da mesma Afinidade.', check: (domain) => { if (domain.length < 3) return false; for (let i = 0; i <= domain.length - 3; i++) { const card1 = domain[i]; const card2 = domain[i+1]; const card3 = domain[i+2]; if (card1.Tipo === 'Demonio' && card2.Tipo === 'Demonio' && card3.Tipo === 'Demonio') { if (card1.Afinidade === card2.Afinidade && card1.Afinidade === card3.Afinidade) return true; } } return false; } }, { id: 'p18', Nome: 'O Mestre dos Marionetes', Desc: 'Capture um Domínio onde a primeira carta jogada foi um Duque.', check: (domain) => domain.length > 0 && domain[0].Título === 'Duque' }, ];
 
-            // GLOBAL VARS
             let localGameState = {};
             let localPlayerId = null;
             let gameId = null;
@@ -305,11 +260,9 @@
             let selectedGameMode = 'competitive';
             let isCpuGame = false;
 
-            // HIERARCHY MAPS
             const titleHierarchy = { 'Presidente': 1, 'Conde': 2, 'Marquês': 3, 'Duque': 4 };
             const metalHierarchy = { 'Mercúrio': 1, 'Estanho': 2, 'Prata': 3, 'Cobre': 4 };
 
-            // UTILITY FUNCTIONS
             function getPlayerName(playerNumber, state) {
                 return state[`player${playerNumber}`]?.name || `Jogador ${playerNumber}`;
             }
@@ -318,15 +271,45 @@
                 return allProphecies.find(p => p.id === id);
             }
 
-            function formatCardData(card) {
-                if (!card) return { displayText: 'Monte Vazio' };
-                let text = card.Nome;
-                if (card.Tipo === 'Demonio') {
-                    text = `${card.Nome} (${card.Título}, ${card.Afinidade}${card.Metal ? ', ' + card.Metal : ''})`;
-                } else if (card.Tipo === 'Metal') {
-                    text = `Metal: ${card.Nome}`;
-                }
-                return { ...card, displayText: text };
+            function getCardImagePath(card) {
+                if (!card) return 'cartas/VERSO.png';
+                let baseName = card.Nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+                if (baseName === 'SELO DE SALOMAO') baseName = 'SELO';
+                if (baseName === 'GLASYA-LABOLAS') baseName = 'GLASYA';
+                if (baseName === 'BERITH') baseName = 'BERTIH'; 
+                return `cartas/${baseName}.png`; 
+            }
+
+            function createCardElement(card, index, isPlayable, isSacrificing) {
+                const wrapper = document.createElement('div');
+                wrapper.className = `relative flex-shrink-0 snap-center ${isPlayable ? 'cursor-pointer hover:-translate-y-4 hover:scale-105' : 'opacity-70 cursor-not-allowed filter grayscale-[30%]'} transition-all duration-300 rounded-lg`;
+                if (isSacrificing) wrapper.classList.add('sacrificing-fx');
+
+                const img = document.createElement('img');
+                img.src = getCardImagePath(card);
+                img.alt = card.Nome;
+                img.className = 'w-24 md:w-32 h-auto rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.8)] border border-gray-700 object-cover pointer-events-none select-none';
+                
+                img.onerror = () => {
+                    img.style.display = 'none';
+                    const fallback = document.createElement('div');
+                    fallback.className = 'w-24 md:w-32 h-[134px] md:h-[180px] bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-600 rounded-lg flex flex-col items-center justify-center text-center p-2 shadow-lg';
+                    fallback.innerHTML = `<span class="font-title text-amber-500 text-sm leading-tight">${card.Nome}</span>
+                                          <span class="text-[0.6rem] text-gray-400 mt-2">${card.Tipo === 'Demonio' ? card.Título : card.Tipo}</span>`;
+                    wrapper.insertBefore(fallback, img);
+                };
+
+                wrapper.appendChild(img);
+                if (isPlayable) wrapper.onclick = () => handleCardClick(localPlayerId === 'player1' ? 1 : 2, index);
+                return wrapper;
+            }
+
+            function showCustomAlert(message) {
+                const alertBox = document.createElement('div');
+                alertBox.className = 'fixed top-16 left-1/2 transform -translate-x-1/2 bg-red-900/90 text-white border border-red-500 px-6 py-3 rounded shadow-2xl z-[200] font-bold text-sm tracking-wide fade-enter fade-enter-active';
+                alertBox.textContent = message;
+                document.body.appendChild(alertBox);
+                setTimeout(() => alertBox.remove(), 3000);
             }
 
             async function updateAndRefreshState(state) {
@@ -357,22 +340,11 @@
                 if (state.log.length > 30) state.log.pop();
             }
 
-            function showCustomAlert(message) {
-                const alertBox = document.createElement('div');
-                alertBox.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background-color:#f8d7da; color:#721c24; padding:1rem; border:1px solid #f5c6cb; border-radius:0.25rem; z-index:1000;';
-                alertBox.textContent = message;
-                document.body.appendChild(alertBox);
-                setTimeout(() => {
-                    alertBox.remove();
-                }, 3000);
-            }
-
             function playCpuTurn() {
                 const state = localGameState;
                 const cpuHand = state.player2.hand;
                 const topCard = state.discard_pile.length > 0 ? state.discard_pile[state.discard_pile.length - 1] : null;
             
-                // --- LÓGICA DE JOGADA NORMAL ---
                 const legalMoves = [];
                 cpuHand.forEach((card, index) => {
                     if (isLegalMove(card, topCard)) {
@@ -381,30 +353,21 @@
                 });
             
                 if (legalMoves.length > 0) {
-                    // A CPU tentará jogar a carta de menor valor para guardar as melhores
                     legalMoves.sort((a, b) => (titleHierarchy[a.card.Título] || 0) - (titleHierarchy[b.card.Título] || 0));
                     return { action: 'play', cardIndex: legalMoves[0].index };
                 }
             
-                // --- NOVA LÓGICA DE SACRIFÍCIO DA CPU ---
-                // Se não há jogadas legais, a CPU deve sacrificar.
-            
-                // 1. Condição de Aniquilação
                 if (cpuHand.length < 3) {
                     return { action: 'aniquilado' };
                 }
             
-                // 2. Planejar o Sacrifício
-                // A CPU identificará as 3 cartas de menor valor na mão.
                 const sortedHand = [...cpuHand]
                     .map((card, index) => ({ card, originalIndex: index }))
                     .sort((a, b) => (titleHierarchy[a.card.Título] || 0) - (titleHierarchy[b.card.Título] || 0));
             
-                // Ela vai descartar as 2 mais fracas e jogar a 3ª mais fraca.
                 const indicesToDiscard = [sortedHand[0].originalIndex, sortedHand[1].originalIndex];
                 const indexToPlay = sortedHand[2].originalIndex;
             
-                // Retorna uma sequência de ações planejada
                 return {
                     action: 'sacrifice_sequence',
                     discardIndices: indicesToDiscard,
@@ -412,7 +375,6 @@
                 };
             }
 
-            // GAME LOGIC FUNCTIONS
             function isLegalMove(cardToPlay, topCard) {
                 if (!topCard) {
                     return cardToPlay.Título !== 'Rei' && cardToPlay.Tipo !== 'Lendário';
@@ -522,7 +484,6 @@
             function updateUI() {
                 if (!localGameState || !localGameState.deck || !localPlayerId) return;
 
-                // CHAMA A FUNÇÃO GLOBAL DO SHADER PARA ATUALIZAR A INTENSIDADE DO FOGO
                 if (initialDeckSize > 0) {
                     const intensity = 1.0 - (localGameState.deck.length / initialDeckSize);
                     if (typeof window.updateFireIntensity === 'function') {
@@ -535,57 +496,35 @@
                 const isMyTurn = currentPlayerNumber === localPlayerNumber && !(localGameState.seal_decision?.active) && !(localGameState.prophecy_choice?.active);
                 
                 const isCoop = localGameState.gameMode === 'cooperative';
-                document.getElementById('coop-board-container').classList.toggle('hidden', !isCoop);
-                document.getElementById('player1-prophecy-area').classList.toggle('hidden', isCoop);
-                document.getElementById('player2-prophecy-area').classList.toggle('hidden', isCoop);
 
+                // --- HEADER ---
+                document.getElementById('deck-count').textContent = localGameState.deck.length;
+                
+                document.getElementById('p1-name').textContent = localGameState.player1.name;
+                document.getElementById('p1-domains').textContent = localGameState.player1.domains_captured;
+                document.getElementById('p1-hand-count').textContent = localGameState.player1.hand.length;
+                
+                document.getElementById('p2-name').textContent = localGameState.player2.name;
+                document.getElementById('p2-domains').textContent = localGameState.player2.domains_captured;
+                document.getElementById('p2-hand-count').textContent = localGameState.player2.hand.length;
+
+                document.getElementById('p1-name').parentElement.style.borderColor = currentPlayerNumber === 1 ? '#f59e0b' : 'rgba(30,58,138,0.5)';
+                document.getElementById('p2-name').parentElement.style.borderColor = currentPlayerNumber === 2 ? '#f59e0b' : 'rgba(20,83,45,0.5)';
+
+                // --- BOTÕES PROFECIA ---
+                const btnSec = document.getElementById('btn-secret-prophecies');
+                const btnPub = document.getElementById('btn-public-prophecies');
+                const btnSha = document.getElementById('btn-shared-prophecies');
                 if (isCoop) {
-                    const completedCount = (localGameState.sharedProphecies || []).filter(p => p.completed).length;
-                    document.getElementById('coop-prophecy-progress').textContent = `${completedCount} / 7`;
-                    const coopPropheciesContainer = document.getElementById('coop-prophecies');
-                    coopPropheciesContainer.innerHTML = '';
-                    (localGameState.sharedProphecies || []).forEach(p => {
-                        const details = getProphecyDetails(p.id);
-                        const pElem = document.createElement('div');
-                        pElem.className = `coop-prophecy p-2 rounded border ${p.completed ? 'bg-green-900 border-green-500' : 'bg-gray-700 border-gray-500'}`;
-                        pElem.innerHTML = `<span class="font-bold">${details.Nome}</span><span class="tooltip">${details.Desc}</span>`;
-                        if (p.completed) {
-                            pElem.classList.add('prophecy-completed');
-                            pElem.style.cursor = 'default';
-                        }
-                        coopPropheciesContainer.appendChild(pElem);
-                    });
-                }
-                
-                const publicProphecyContainer = document.getElementById('public-prophecy-container');
-                if (localGameState.gameMode === 'competitive' && localGameState.publicProphecies) {
-                    publicProphecyContainer.classList.remove('hidden');
-                    const publicPropheciesDiv = document.getElementById('public-prophecies');
-                    publicPropheciesDiv.innerHTML = '';
-                    (localGameState.publicProphecies || []).forEach(p => {
-                        const details = getProphecyDetails(p.id);
-                        const pElem = document.createElement('div');
-                        pElem.className = 'prophecy-public-item';
-                        let completedByText = '';
-                        if (p.completedBy) {
-                            const winnerName = getPlayerName(p.completedBy, localGameState);
-                            completedByText = ` <small class="opacity-80">(Por ${winnerName})</small>`;
-                            pElem.classList.add(`prophecy-completed-by-p${p.completedBy}`);
-                        }
-                        pElem.innerHTML = `<span>${details.Nome}</span>${completedByText}<span class="tooltip">${details.Desc}</span>`;
-                        publicPropheciesDiv.appendChild(pElem);
-                    });
+                    btnSec.classList.add('hidden'); btnPub.classList.add('hidden'); btnSha.classList.remove('hidden');
                 } else {
-                    publicProphecyContainer.classList.add('hidden');
+                    btnSec.classList.remove('hidden'); btnPub.classList.remove('hidden'); btnSha.classList.add('hidden');
                 }
 
-                const p1Name = localGameState.player1.name;
-                const p2Name = localGameState.player2.name;
-                document.getElementById('player1-area').querySelector('h2').textContent = `${p1Name} ${localPlayerId === 'player1' ? '(Você)' : ''}`;
-                document.getElementById('player2-area').querySelector('h2').textContent = p2Name;
+                // --- INDICADOR DE TURNO ---
                 document.getElementById('turn-indicator').textContent = `Turno ${localGameState.turn_count}`;
-                
                 let turnText = localGameState.status === 'waiting' ? 'Aguardando oponente...' : '';
+                
                 if (localGameState.status === 'active' && !turnText) {
                     const isSealDecisionTime = localGameState.seal_decision?.active;
                     const isProphecyChoiceTime = localGameState.prophecy_choice?.active;
@@ -610,12 +549,44 @@
                 }
                 document.getElementById('player-turn').textContent = turnText;
 
-                document.getElementById('player1-area').style.borderColor = currentPlayerNumber === 1 ? '#f59e0b' : 'transparent';
-                document.getElementById('player2-area').style.borderColor = currentPlayerNumber === 2 ? '#f59e0b' : 'transparent';
-                document.getElementById('deck-count').textContent = localGameState.deck.length;
-                const topCard = localGameState.discard_pile.length > 0 ? localGameState.discard_pile[localGameState.discard_pile.length - 1] : null;
-                document.getElementById('discard-pile-card').textContent = topCard ? formatCardData(topCard).displayText : 'Domínio Vazio';
-                
+                // --- DOMÍNIO BOARD ---
+                const domainBoard = document.getElementById('domain-board-cards');
+                domainBoard.innerHTML = '';
+                if (localGameState.discard_pile && localGameState.discard_pile.length > 0) {
+                    localGameState.discard_pile.forEach(card => {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'domain-card-wrapper shrink-0';
+                        const img = document.createElement('img');
+                        img.src = getCardImagePath(card);
+                        img.className = 'w-24 md:w-32 h-auto rounded-lg shadow-xl border border-gray-600 object-cover';
+                        img.onerror = () => {
+                            img.style.display = 'none';
+                            const fallback = document.createElement('div');
+                            fallback.className = 'w-24 md:w-32 h-[134px] md:h-[180px] bg-gray-800 border border-gray-500 rounded-lg flex items-center justify-center text-center p-1';
+                            fallback.innerHTML = `<span class="text-xs font-bold text-gray-300">${card.Nome}</span>`;
+                            wrapper.appendChild(fallback);
+                        };
+                        wrapper.appendChild(img);
+                        domainBoard.appendChild(wrapper);
+                    });
+                } else {
+                    const empty = document.createElement('div');
+                    empty.className = 'w-24 md:w-32 h-[134px] md:h-[180px] border-2 border-dashed border-gray-700 rounded-lg flex items-center justify-center opacity-50';
+                    empty.innerHTML = `<span class="text-xs text-gray-500 uppercase tracking-widest font-bold">Vazio</span>`;
+                    domainBoard.appendChild(empty);
+                }
+
+                // --- MÃO DO JOGADOR ---
+                const handContainer = document.getElementById('player-hand');
+                handContainer.innerHTML = '';
+                const myHandData = localGameState[localPlayerId].hand;
+                myHandData.forEach((card, index) => {
+                    const isSacrificing = sacrificeSelection.includes(index) && isMyTurn;
+                    const el = createCardElement(card, index, isMyTurn || isSacrificing, isSacrificing);
+                    handContainer.appendChild(el);
+                });
+
+                // --- MENU LOGS ---
                 const logArea = document.getElementById('log-area');
                 logArea.innerHTML = '';
                 (localGameState.log || []).forEach(logEntry => {
@@ -623,17 +594,6 @@
                     p.innerHTML = logEntry.type === 'capture' ? `> <strong>${logEntry.text}</strong>` : `> ${logEntry.text}`;
                     logArea.appendChild(p);
                 });
-
-                const domainBoard = document.getElementById('domain-board-cards');
-                domainBoard.innerHTML = '';
-                if (localGameState.discard_pile && localGameState.discard_pile.length > 0) {
-                    localGameState.discard_pile.forEach(card => {
-                        const cardElement = document.createElement('div');
-                        cardElement.className = 'domain-card-item';
-                        cardElement.textContent = formatCardData(card).displayText;
-                        domainBoard.appendChild(cardElement);
-                    });
-                }
 
                 const chatInput = document.getElementById('chat-input');
                 const sendChatBtn = document.getElementById('send-chat-btn');
@@ -644,60 +604,14 @@
                 const chatArea = document.getElementById('chat-area');
                 chatArea.innerHTML = '';
                 (localGameState.chat || []).forEach(msg => {
-                    const msgDiv = document.createElement('div');
-                    msgDiv.className = `chat-message ${msg.senderId}`;
-                    msgDiv.innerHTML = `<span class="sender">${msg.sender}</span>${msg.text}`;
-                    chatArea.appendChild(msgDiv);
+                    const d = document.createElement('div');
+                    d.className = `p-2 rounded ${msg.senderId === localPlayerId ? 'bg-blue-900/40 text-right ml-4' : 'bg-green-900/40 text-left mr-4'}`;
+                    d.innerHTML = `<span class="block text-[0.65rem] font-bold opacity-70">${msg.sender}</span><span>${msg.text}</span>`;
+                    chatArea.appendChild(d);
                 });
                 chatArea.scrollTop = chatArea.scrollHeight;
 
-                ['player1', 'player2'].forEach(pid => {
-                    const handContainer = document.getElementById(`${pid}-hand`);
-                    handContainer.innerHTML = '';
-                    const handData = localGameState[pid].hand;
-                    if (localPlayerId === pid) {
-                        handData.forEach((card, index) => {
-                            const btn = document.createElement('button');
-                            btn.className = 'card-button';
-                            if (sacrificeSelection.includes(index) && isMyTurn) btn.classList.add('sacrificing');
-                            btn.textContent = formatCardData(card).displayText;
-                            btn.onclick = () => handleCardClick(localPlayerNumber, index);
-                            btn.disabled = !isMyTurn;
-                            handContainer.appendChild(btn);
-                        });
-                    } else {
-                        // Esconde a mão do oponente, mas mostra placeholders
-                        for(let i=0; i < handData.length; i++) {
-                            const cardPlaceholder = document.createElement('div');
-                            cardPlaceholder.className = 'card-button opponent-card flex items-center justify-center';
-                            cardPlaceholder.textContent = `Oculta`;
-                            handContainer.appendChild(cardPlaceholder);
-                        }
-                    }
-                    
-                    if (!isCoop) {
-                        const propheciesContainer = document.getElementById(`${pid}-prophecies`);
-                        propheciesContainer.innerHTML = '';
-                        (localGameState[pid].prophecies || []).forEach(p => {
-                            const details = getProphecyDetails(p.id);
-                            if (!details) return;
-                            const li = document.createElement('li');
-                            if (localPlayerId === pid) {
-                                li.textContent = details.Nome;
-                                const tooltip = document.createElement('span');
-                                tooltip.className = 'tooltip';
-                                tooltip.textContent = details.Desc;
-                                li.appendChild(tooltip);
-                            } else {
-                                li.textContent = "Profecia Oculta";
-                            }
-                            if (p.completed) li.classList.add('prophecy-completed');
-                            propheciesContainer.appendChild(li);
-                        });
-                    }
-                    document.getElementById(`${pid}-dominions`).textContent = localGameState[pid].domains_captured;
-                });
-
+                // --- MODAIS ---
                 const sealModal = document.getElementById('seal-decision-modal');
                 const isSealDecisionTime = localGameState.seal_decision?.active;
                 const amITheSealDecider = isSealDecisionTime && localGameState.seal_decision.player === localPlayerNumber;
@@ -736,36 +650,40 @@
                         radio.name = 'prophecy-selection';
                         radio.value = JSON.stringify(prophecyChoice); 
                         if (index === 0) radio.checked = true;
+                        
+                        // Nova interface da Label Radio
                         const label = document.createElement('label');
                         label.htmlFor = radioId;
-                        label.className = 'prophecy-choice-label';
+                        label.className = 'flex items-center gap-3 p-3 bg-gray-800 border border-gray-600 rounded cursor-pointer hover:bg-gray-700 w-full';
                         const typeText = prophecyChoice.type === 'public' ? ' (Pública)' : '';
-                        label.innerHTML = `<strong class="text-purple-300">${details.Nome}${typeText}</strong><br><small class="text-gray-400">${details.Desc}</small>`;
+                        label.innerHTML = `<div><strong class="text-purple-300 block">${details.Nome}${typeText}</strong><span class="text-xs text-gray-400 block">${details.Desc}</span></div>`;
+                        wrapper.className = 'flex items-center w-full gap-2';
                         wrapper.appendChild(radio);
                         wrapper.appendChild(label);
                         optionsContainer.appendChild(wrapper);
                     });
                     
                     if (isCoop) {
-                        // ... (lógica cooperativa)
+                        document.getElementById('prophecy-modal-title').textContent = "Múltiplas Profecias Compartilhadas Cumpridas!";
                     } else {
                         document.getElementById('prophecy-modal-title').textContent = "Múltiplas Profecias Cumpridas!";
-                        document.getElementById('prophecy-modal-text').textContent = "Escolha qual profecia deseja registrar:";
-                        document.getElementById('confirm-prophecy-btn').textContent = 'Confirmar';
-                        document.getElementById('prophecy-vote-status').classList.add('hidden');
                     }
-                    
                     prophecyModal.classList.remove('hidden');
                 } else {
                     prophecyModal.classList.add('hidden');
                 }
 
+                if (localGameState.game_over) {
+                    endGameUI(localGameState.winner, localGameState.win_reason, localGameState.gameMode, localGameState);
+                    if(unsubscribe) unsubscribe();
+                }
+
+                // --- LÓGICA E GATILHOS DA CPU ---
                 const isCpuTurn = isCpuGame && localGameState.current_player === 2 && !localGameState.game_over && !localGameState.seal_decision.active && !localGameState.prophecy_choice.active;
                 if (isCpuTurn) {
-                    document.getElementById('player1-hand').querySelectorAll('button').forEach(btn => btn.disabled = true);
-                    
+                    // Desabilita interações para o jogador (No novo layout, ele já checa isMyTurn internamente, mas mantemos o timeout para fluidez)
                     setTimeout(async () => {
-                        const cpuHandBeforeMove = [...localGameState.player2.hand]; // Guarda o estado da mão antes da jogada
+                        const cpuHandBeforeMove = [...localGameState.player2.hand]; 
                         const cpuDecision = playCpuTurn();
                         let newState = JSON.parse(JSON.stringify(localGameState));
                         const cpuPlayerId = 'player2';
@@ -777,14 +695,13 @@
                         } else if (cpuDecision.action === 'aniquilado') {
                             addLogToState(newState, `CPU não pode fazer um sacrifício e é aniquilada!`);
                             newState.game_over = true;
-                            newState.winner = 1; // Jogador 1 vence
+                            newState.winner = 1; 
                             newState.win_reason = 'Aniquilação';
                             await updateAndRefreshState(newState);
                 
                         } else if (cpuDecision.action === 'sacrifice_sequence') {
                             addLogToState(newState, `CPU não tem jogadas e deve fazer um Sacrifício.`);
                             
-                            // FASE 1: Descartar 2 cartas
                             const sortedDiscardIndices = cpuDecision.discardIndices.sort((a, b) => b - a);
                             const discardedCards = [];
                             sortedDiscardIndices.forEach(index => {
@@ -794,12 +711,10 @@
                             newState.removed_from_game.push(...discardedCards);
                             addLogToState(newState, `CPU sacrifica e descarta 2 cartas.`);
                             
-                            // Ajusta o índice da carta a ser jogada, pois a mão mudou.
                             const cardToPlayObject = cpuHandBeforeMove[cpuDecision.playIndex];
                             const finalPlayIndex = newState[cpuPlayerId].hand.findIndex(c => c.Nome === cardToPlayObject.Nome);
                 
                             if (finalPlayIndex > -1) {
-                                // FASE 2: Jogar 1 carta
                                 const cardToPlay = newState[cpuPlayerId].hand.splice(finalPlayIndex, 1)[0];
                                 newState.discard_pile.push(cardToPlay);
                                 newState.play_history.push({ player: 2, card: cardToPlay });
@@ -811,15 +726,13 @@
                                     newState.coop_sacrifice_count = (newState.coop_sacrifice_count || 0) + 1;
                                 }
                 
-                                // FASE 3: Comprar 1 carta
                                 if (newState.deck.length > 0) {
                                     newState[cpuPlayerId].hand.push(newState.deck.pop());
                                     addLogToState(newState, `CPU compra uma carta.`);
                                 }
                 
-                                // FINALIZAÇÃO: Passar o turno
                                 newState.turn_count++;
-                                newState.current_player = 1; // Passa o turno para o jogador 1
+                                newState.current_player = 1; 
                 
                                 if (checkWinCondition(newState)) {
                                     await updateAndRefreshState(newState);
@@ -828,7 +741,7 @@
                                 await updateAndRefreshState(newState);
                             }
                         }
-                    }, 1500); // Delay para a jogada da CPU ser visível
+                    }, 1500); 
                 }
 
                 const isCpuSealDecision = isCpuGame && localGameState.seal_decision.active && localGameState.seal_decision.player === 2;
@@ -877,12 +790,6 @@
                         await updateAndRefreshState(newState);
                     }, 1500);
                 }
-
-
-                if (localGameState.game_over) {
-                    endGameUI(localGameState.winner, localGameState.win_reason, localGameState.gameMode, localGameState);
-                    if(unsubscribe) unsubscribe();
-                }
             }
             
             async function handleCardClick(playerNumber, index) {
@@ -897,17 +804,15 @@
                 if (sacrificeState.active) {
                     let newState = JSON.parse(JSON.stringify(localGameState));
             
-                    // FASE 1: Escolhendo 2 cartas para DESCARTAR
                     if (sacrificeState.stage === 'discarding') {
                         if (sacrificeSelection.includes(index)) {
                             sacrificeSelection = sacrificeSelection.filter(i => i !== index);
                         } else if (sacrificeSelection.length < 2) {
                             sacrificeSelection.push(index);
                         }
-                        updateUI(); // Apenas atualiza a UI para mostrar a seleção
+                        updateUI(); 
             
                         if (sacrificeSelection.length === 2) {
-                            // Processa o descarte
                             const sortedIndices = sacrificeSelection.sort((a, b) => b - a);
                             const discardedCards = [];
                             sortedIndices.forEach(i => {
@@ -918,22 +823,19 @@
                             newState.removed_from_game.push(...discardedCards);
                             addLogToState(newState, `${playerName} sacrifica e descarta 2 cartas.`);
                             
-                            sacrificeSelection = []; // Limpa a seleção
-                            sacrificeState.stage = 'playing'; // Avança para a próxima fase
+                            sacrificeSelection = []; 
+                            sacrificeState.stage = 'playing'; 
                             await updateAndRefreshState(newState);
                         }
                     }
-                    // FASE 2: Escolhendo 1 carta para JOGAR
                     else if (sacrificeState.stage === 'playing') {
                         const cardToPlay = newState[playerId].hand[index];
             
-                        // Valida se a carta jogada é o Selo
                         if (cardToPlay.Nome === 'Selo de Salomão') {
                             showCustomAlert("O Selo de Salomão não pode ser jogado durante um Sacrifício.");
                             return;
                         }
                         
-                        // Remove a carta da mão e a joga no domínio
                         newState[playerId].hand.splice(index, 1);
                         newState.discard_pile.push(cardToPlay);
                         newState.play_history.push({ player: playerNumber, card: cardToPlay });
@@ -945,21 +847,17 @@
                             newState.coop_sacrifice_count = (newState.coop_sacrifice_count || 0) + 1;
                         }
                         
-                        // FASE 3: O jogador COMPRA uma carta
                         if (newState.deck.length > 0) {
                             const drawnCard = newState.deck.pop();
                             newState[playerId].hand.push(drawnCard);
                             addLogToState(newState, `${playerName} compra uma carta.`);
-                            // Verifica se o baralho acabou aqui também
                             if (newState.deck.length === 0) {
                                addLogToState(newState, "O Grimório se esgotou! O jogo termina.");
                                newState.game_over = true;
                                newState.win_reason = 'Esgotamento';
-                               // Adicione a lógica de desempate aqui se necessário...
                             }
                         }
                         
-                        // FINALIZAÇÃO: Passa o turno para o oponente
                         sacrificeState = { active: false, stage: null };
                         newState.turn_count++;
                         newState.current_player = playerNumber === 1 ? 2 : 1;
@@ -973,7 +871,7 @@
                     return;
                 }
                 
-                // --- FLUXO DE JOGADA NORMAL (com gatilho para o sacrifício) ---
+                // --- FLUXO DE JOGADA NORMAL ---
                 const topCard = localGameState.discard_pile.length > 0 ? localGameState.discard_pile[localGameState.discard_pile.length - 1] : null;
                 const hasLegalMoves = hand.some(card => isLegalMove(card, topCard));
             
@@ -986,7 +884,6 @@
                         showCustomAlert("Jogada ilegal.");
                     }
                 } else {
-                    // CONDIÇÃO DE ANIQUILAÇÃO (gatilho do sacrifício)
                     if (hand.length < 3) {
                         addLogToState(localGameState, `${playerName} não pode fazer um sacrifício (mão < 3 cartas) e é aniquilado!`);
                         let newState = JSON.parse(JSON.stringify(localGameState));
@@ -998,7 +895,6 @@
                         return;
                     }
             
-                    // Ativa o estado de sacrifício
                     sacrificeState = { active: true, stage: 'discarding' };
                     addLogToState(localGameState, `${getPlayerName(playerNumber, localGameState)} não tem jogadas e deve fazer um Sacrifício.`);
                     updateUI(); 
@@ -1070,9 +966,8 @@
                 const capturedDomain = [...state.discard_pile];
                 
                 let allFulfillable = [];
-                // No modo cooperativo, a função já pega a lista correta (sharedProphecies)
                 const fulfillableSecretOrShared = findFulfillableDomainProphecies(playerNumber, capturedDomain, state.play_history, state);
-                fulfillableSecretOrShared.forEach(id => allFulfillable.push({ id, type: 'secret' })); // 'secret' aqui é um tipo genérico para profecias não-públicas
+                fulfillableSecretOrShared.forEach(id => allFulfillable.push({ id, type: 'secret' })); 
 
                 if (state.gameMode === 'competitive' && state.publicProphecies) {
                     state.publicProphecies.forEach(p => {
@@ -1104,7 +999,7 @@
                     else if (prophecyToComplete.type === 'secret') {
                         const prophecy = state[`player${playerNumber}`].prophecies.find(p => p.id === prophecyToComplete.id);
                         if(prophecy) prophecy.completed = true;
-                    } else { // 'public'
+                    } else { 
                         const prophecy = state.publicProphecies.find(p => p.id === prophecyToComplete.id);
                         if(prophecy) prophecy.completedBy = playerNumber;
                     }
@@ -1169,6 +1064,71 @@
                 chatInput.value = '';
                 chatInput.focus();
             }
+
+            // ================= LÓGICA DE INTERFACE MODAL LOG DE PROFECIAS =================
+            function openProphecyLog(type) {
+                const listContainer = document.getElementById('prophecy-log-list');
+                const title = document.getElementById('prophecy-log-title');
+                listContainer.innerHTML = '';
+                
+                let propheciesToDisplay = [];
+                if (type === 'secret') {
+                    title.textContent = 'Suas Profecias Secretas';
+                    propheciesToDisplay = localGameState[localPlayerId].prophecies;
+                } else if (type === 'public') {
+                    title.textContent = 'Profecias Públicas';
+                    propheciesToDisplay = localGameState.publicProphecies;
+                } else if (type === 'shared') {
+                    title.textContent = 'Profecias Compartilhadas';
+                    propheciesToDisplay = localGameState.sharedProphecies;
+                }
+
+                propheciesToDisplay.forEach((p, idx) => {
+                    const details = getProphecyDetails(p.id);
+                    const btn = document.createElement('button');
+                    btn.className = 'prophecy-list-btn truncate';
+                    btn.textContent = details.Nome;
+                    
+                    let isDone = false, doneByMe = false;
+                    if (type === 'secret' || type === 'shared') {
+                        if (p.completed) { btn.classList.add('completed'); isDone = true; doneByMe = true; }
+                    } else if (type === 'public') {
+                        if (p.completedBy) {
+                            isDone = true;
+                            if (`player${p.completedBy}` === localPlayerId) { btn.classList.add('completed'); doneByMe = true; }
+                            else btn.classList.add('completed-opponent');
+                        }
+                    }
+
+                    btn.onclick = () => {
+                        document.querySelectorAll('.prophecy-list-btn').forEach(b=>b.classList.remove('active'));
+                        btn.classList.add('active');
+                        document.getElementById('prophecy-detail-title').textContent = details.Nome;
+                        document.getElementById('prophecy-detail-desc').textContent = details.Desc;
+                        
+                        const statusBadge = document.getElementById('prophecy-detail-status');
+                        if (!isDone) {
+                            statusBadge.textContent = 'Em Andamento';
+                            statusBadge.className = 'md:absolute top-4 right-4 mb-4 md:mb-0 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider bg-gray-700 text-gray-300';
+                        } else {
+                            statusBadge.textContent = doneByMe ? 'Cumprida' : 'Cumprida pelo Oponente';
+                            statusBadge.className = `md:absolute top-4 right-4 mb-4 md:mb-0 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider ${doneByMe ? 'bg-green-900/80 text-green-300 border border-green-500' : 'bg-red-900/80 text-red-300 border border-red-500'}`;
+                        }
+                    };
+                    listContainer.appendChild(btn);
+                    if (idx === 0) btn.click(); 
+                });
+
+                document.getElementById('prophecy-log-modal').classList.remove('hidden');
+            }
+
+            document.getElementById('btn-secret-prophecies').onclick = () => openProphecyLog('secret');
+            document.getElementById('btn-public-prophecies').onclick = () => openProphecyLog('public');
+            document.getElementById('btn-shared-prophecies').onclick = () => openProphecyLog('shared');
+            document.getElementById('close-prophecy-log-btn').onclick = () => document.getElementById('prophecy-log-modal').classList.add('hidden');
+            
+            document.getElementById('open-menu-btn').onclick = () => document.getElementById('menu-modal').classList.remove('hidden');
+            document.getElementById('close-menu-btn').onclick = () => document.getElementById('menu-modal').classList.add('hidden');
 
             document.getElementById('create-game-btn').addEventListener('click', async () => {
                 const playerName = document.getElementById('player-name-input').value.trim();
@@ -1261,13 +1221,13 @@
                     advanceTurn(domainOwner, newState);
                     await updateAndRefreshState(newState);
                 } 
-                else { // Modo Competitivo
+                else { 
                     const playerNumber = newState.prophecy_choice.player;
                     const details = getProphecyDetails(chosenProphecy.id);
                     if (chosenProphecy.type === 'secret') {
                         const prophecy = newState[`player${playerNumber}`].prophecies.find(p => p.id === chosenProphecy.id);
                         if (prophecy) prophecy.completed = true;
-                    } else { // 'public'
+                    } else { 
                         const prophecy = newState.publicProphecies.find(p => p.id === chosenProphecy.id);
                         if (prophecy) prophecy.completedBy = playerNumber;
                     }
@@ -1292,8 +1252,8 @@
                     if (doc.exists()) {
                         localGameState = doc.data();
                         if (localGameState.status === 'active') {
-                            document.getElementById('lobby').classList.add('hidden');
-                            document.getElementById('game-board').classList.remove('hidden');
+                            document.getElementById('lobby-screen').classList.add('hidden');
+                            document.getElementById('game-ui').classList.remove('hidden');
                         }
                         updateUI();
                     } else {
@@ -1317,8 +1277,9 @@
             const cpuOptions = document.getElementById('cpu-options');
 
             function setActiveModeButton(activeBtn) {
-                [compBtn, coopBtn, cpuBtn].forEach(btn => btn.classList.remove('active'));
-                activeBtn.classList.add('active');
+                [compBtn, coopBtn, cpuBtn].forEach(btn => btn.className = 'px-4 py-2 border-2 border-gray-600 bg-gray-800 text-gray-400 font-bold rounded-lg transition-colors');
+                activeBtn.className = 'px-4 py-2 border-2 border-amber-600 bg-amber-900/50 text-white font-bold rounded-lg transition-colors';
+                
                 if (activeBtn === cpuBtn) {
                     onlineOptions.classList.add('hidden');
                     cpuOptions.classList.remove('hidden');
@@ -1335,8 +1296,8 @@
             document.getElementById('start-cpu-game-btn').addEventListener('click', () => {
                 const playerName = document.getElementById('player-name-input').value.trim();
                 if (!playerName) { showCustomAlert("Por favor, digite seu nome para jogar."); return; }
-                document.getElementById('lobby').classList.add('hidden');
-                document.getElementById('game-board').classList.remove('hidden');
+                document.getElementById('lobby-screen').classList.add('hidden');
+                document.getElementById('game-ui').classList.remove('hidden');
                 startCpuGame(playerName);
             });
 
@@ -1380,18 +1341,15 @@
     </script>
 
 <script type="x-shader/x-fragment" id="fire-shader">
-    // Código do Shader (GLSL) que desenha o fogo
     precision highp float;
     uniform vec2 u_resolution;
     uniform float u_time;
-    uniform float u_intensity; // Nossa variável para controlar a força do fogo
+    uniform float u_intensity; 
 
-    // Função de ruído 2D, a base para efeitos orgânicos
     float random(vec2 st) {
         return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
     }
 
-    // Função de ruído mais suave
     float noise(vec2 st) {
         vec2 i = floor(st);
         vec2 f = fract(st);
@@ -1403,7 +1361,6 @@
         return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.y * u.x;
     }
 
-    // Função que cria as formas das chamas usando múltiplas camadas de ruído
     float fbm(vec2 st) {
         float value = 0.0;
         float amplitude = 0.5;
@@ -1418,42 +1375,32 @@
 
     void main() {
         vec2 st = gl_FragCoord.xy / u_resolution.xy;
-        st.x *= u_resolution.x / u_resolution.y; // Ajusta a proporção
+        st.x *= u_resolution.x / u_resolution.y; 
         
-        // Movimento ascendente das chamas
         vec2 q = vec2(fbm(st + 0.0 * u_time), fbm(st + vec2(1.0)));
         
-        // Perturbação para dar o efeito de turbulência do fogo
         vec2 r = vec2(fbm(st + q + vec2(1.7, 9.2) + 0.15 * u_time),
                       fbm(st + q + vec2(8.3, 2.8) + 0.126 * u_time));
                       
         float f = fbm(st + r);
         
-        // Define a cor base do fogo
-        vec3 color = mix(vec3(0.1, 0.0, 0.0), // Base escura/vermelha
-                         vec3(0.9, 0.5, 0.0), // Meio tom laranja
-                         pow(f, 2.0)); // Aumenta o contraste
+        vec3 color = mix(vec3(0.1, 0.0, 0.0), 
+                         vec3(0.9, 0.5, 0.0), 
+                         pow(f, 2.0)); 
 
         color = mix(color,
-                    vec3(1.0, 0.9, 0.3), // Amarelo/branco no núcleo
+                    vec3(1.0, 0.9, 0.3), 
                     pow(f, 4.0));
 
-        // Aumenta o brilho geral com base na intensidade do jogo
         color *= (1.0 + u_intensity * 1.5);
 
-        // Define a forma do fogo, fazendo ele subir da base da tela
-        // A intensidade controla a altura das chamas
         float fireShape = smoothstep(0.1, 0.8, 1.0 - st.y) * (1.0 + u_intensity);
         
         gl_FragColor = vec4(color * fireShape, 1.0);
     }
 </script>
 
-
 <script>
-// ===================================================================
-// NOVO SCRIPT PARA RENDERIZAR O SHADER DE FOGO
-// ===================================================================
 document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('fire-canvas');
     const gl = canvas.getContext('webgl');
@@ -1464,7 +1411,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const fragmentShaderSource = document.getElementById('fire-shader').textContent;
     
-    // Shader de Vértice (padrão, apenas para posicionar o plano de desenho)
     const vertexShaderSource = `
         attribute vec2 a_position;
         void main() {
@@ -1514,7 +1460,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentIntensity = 0.0;
 
     function render() {
-        // Redimensionar canvas
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -1524,7 +1469,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         gl.useProgram(program);
         
-        // Passa as variáveis (uniforms) para o shader
         gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
         gl.uniform1f(timeUniformLocation, (Date.now() - startTime) * 0.001);
         gl.uniform1f(intensityUniformLocation, currentIntensity);
@@ -1534,9 +1478,7 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(render);
     }
 
-    // Função global para ser chamada pelo jogo
     window.updateFireIntensity = (newIntensity) => {
-        // Suaviza a transição da intensidade
         currentIntensity += (newIntensity - currentIntensity) * 0.05;
     };
 
@@ -1545,5 +1487,3 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
-
-
