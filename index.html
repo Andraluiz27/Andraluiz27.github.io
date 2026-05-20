@@ -100,11 +100,11 @@
 
     <div id="game-ui" class="hidden flex flex-col w-full h-full relative z-10">
     <div id="prophecy-alert-overlay" class="fixed inset-0 z-[150] flex items-center justify-center pointer-events-none hidden">
-            <div class="bg-purple-900/90 border-4 border-amber-500 p-6 md:p-10 rounded-2xl shadow-[0_0_50px_rgba(245,158,11,0.6)] text-center transform scale-0 text-white backdrop-blur-md">
-                <h2 class="text-3xl md:text-5xl font-bold text-amber-400 mb-2 font-title drop-shadow-lg uppercase tracking-widest">Profecia Cumprida!</h2>
-                <p id="prophecy-alert-text" class="text-lg md:text-2xl font-bold text-gray-200"></p>
-            </div>
+        <div class="bg-black/95 border-4 border-amber-500 p-6 md:p-10 rounded-2xl shadow-[0_0_50px_rgba(245,158,11,0.6)] text-center transform scale-0 text-white backdrop-blur-md">
+            <h2 class="text-3xl md:text-5xl font-bold text-amber-400 mb-2 font-title drop-shadow-lg uppercase tracking-widest">Profecia Cumprida!</h2>
+            <p id="prophecy-alert-text" class="text-lg md:text-2xl font-bold text-gray-200"></p>
         </div>
+    </div>
         
         <header class="shrink-0 flex items-center justify-between p-2 md:p-4 bg-gray-900/90 border-b border-gray-700 shadow-md z-30">
     
@@ -588,25 +588,26 @@
                 const logArea = document.getElementById('log-area');
                 logArea.innerHTML = '';
 
-                // Procura nos logs recentes se tem alguma mensagem de profecia
+                
+                // Procura nos logs se tem alguma mensagem de "cumpriu a profecia"
                 const prophecyLog = (localGameState.log || []).find(l => 
-                    l.text.includes("cumpriu") || l.text.includes("registrou") || l.text.includes("Profecia cumprida")
+                    l.text.toLowerCase().includes("cumpriu") && l.text.toLowerCase().includes("profecia")
                 );
 
                 if (prophecyLog) {
                     if (isFirstUIUpdate) {
-                        // Na primeira vez que carrega a página, só salva qual foi a última profecia pra não piscar na tela ao dar F5
                         lastAnimatedLog = prophecyLog.text;
                     } else if (prophecyLog.text !== lastAnimatedLog) {
-                        // Achou uma profecia NOVA! Dispara a animação
                         const alertOverlay = document.getElementById('prophecy-alert-overlay');
                         const alertBox = alertOverlay.querySelector('div');
                         
+                        // Garante que o texto que aparece na tela é exatamente o do log
+                        // Isso vai exibir: "NOME DO JOGADOR cumpriu a profecia TAL"
                         document.getElementById('prophecy-alert-text').textContent = prophecyLog.text;
                         
                         alertOverlay.classList.remove('hidden');
                         alertBox.classList.remove('animate-alert');
-                        void alertBox.offsetWidth; // Reinicia a animação CSS
+                        void alertBox.offsetWidth; 
                         alertBox.classList.add('animate-alert');
                         
                         setTimeout(() => { alertOverlay.classList.add('hidden'); }, 4000);
@@ -614,7 +615,7 @@
                         lastAnimatedLog = prophecyLog.text;
                     }
                 }
-                isFirstUIUpdate = false; // A partir de agora, qualquer profecia nova vai aparecer
+                isFirstUIUpdate = false;
 
                 (localGameState.log || []).forEach(logEntry => {
                     const p = document.createElement('p');
