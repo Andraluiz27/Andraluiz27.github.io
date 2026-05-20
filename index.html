@@ -491,11 +491,12 @@
                 const isCoop = localGameState.gameMode === 'cooperative';
 
                 // --- HEADER NOVO LAYOUT ---
-                // --- HEADER NOVO LAYOUT ---
                 document.getElementById('deck-count').textContent = localGameState.deck.length;
                 
-                let p1Score = 0, p2Score = 0;
-                if (localGameState.gameMode === 'cooperative') {
+                let p1Score = 0;
+                let p2Score = 0;
+
+                if (isCoop) {
                     p1Score = (localGameState.sharedProphecies || []).filter(p => p.completed).length;
                     p2Score = p1Score; // No cooperativo, a pontuação é compartilhada
                 } else {
@@ -513,9 +514,9 @@
                 document.getElementById('p2-prophecies-count').textContent = p2Score;
                 document.getElementById('p2-hand-count').textContent = localGameState.player2.hand.length;
 
-                // Modificando os bordes dinâmicos apontando para as novas DIVs
-                document.getElementById('p1-header-box').style.borderColor = currentPlayerNumber === 1 ? '#f59e0b' : 'rgba(30,58,138,0.5)';
-                document.getElementById('p2-header-box').style.borderColor = currentPlayerNumber === 2 ? '#f59e0b' : 'rgba(20,83,45,0.5)';
+                // Destaca com a borda laranja o jogador da vez, transparente se não for
+                document.getElementById('p1-header-box').style.borderColor = currentPlayerNumber === 1 ? '#f59e0b' : 'transparent';
+                document.getElementById('p2-header-box').style.borderColor = currentPlayerNumber === 2 ? '#f59e0b' : 'transparent';
 
                 // --- BOTÕES PROFECIA ---
                 const btnSec = document.getElementById('btn-secret-prophecies');
@@ -526,26 +527,6 @@
                 } else {
                     btnSec.classList.remove('hidden'); btnPub.classList.remove('hidden'); btnSha.classList.add('hidden');
                 }
-
-                // --- ATUALIZAÇÃO DO HEADER ---
-                document.getElementById('deck-count').textContent = localGameState.deck.length;
-                
-                let p1Score = (localGameState.player1.prophecies || []).filter(p => p.completed).length + 
-                              (localGameState.publicProphecies || []).filter(p => p.completedBy === 1).length;
-                let p2Score = (localGameState.player2.prophecies || []).filter(p => p.completed).length + 
-                              (localGameState.publicProphecies || []).filter(p => p.completedBy === 2).length;
-                
-                document.getElementById('p1-name').textContent = localGameState.player1.name;
-                document.getElementById('p1-hand-count').textContent = localGameState.player1.hand.length;
-                document.getElementById('p1-prophecies-count').textContent = p1Score;
-                
-                document.getElementById('p2-name').textContent = localGameState.player2.name;
-                document.getElementById('p2-hand-count').textContent = localGameState.player2.hand.length;
-                document.getElementById('p2-prophecies-count').textContent = p2Score;
-                
-                // Destaca com a borda laranja
-                document.getElementById('p1-header-box').style.borderColor = (localGameState.current_player === 1) ? '#f59e0b' : 'transparent';
-                document.getElementById('p2-header-box').style.borderColor = (localGameState.current_player === 2) ? '#f59e0b' : 'transparent';
 
                 // --- DOMÍNIO BOARD ---
                 const domainBoard = document.getElementById('domain-board-cards');
