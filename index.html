@@ -150,7 +150,7 @@
         </footer>
     </div>
 
-    <div id="prophecy-log-modal" class="hidden fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 md:p-6">
+    <div id="prophecy-log-modal" class="hidden fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 md:p-6">
         <div class="bg-gray-800 w-full max-w-4xl h-[85vh] md:h-[70vh] rounded-lg border border-purple-600 flex flex-col shadow-[0_0_30px_rgba(107,33,168,0.5)] overflow-hidden">
             <div class="bg-gray-900 p-4 border-b border-gray-700 flex justify-between items-center shrink-0">
                 <h2 id="prophecy-log-title" class="text-xl md:text-2xl font-bold text-purple-300 font-title tracking-wide">Profecias</h2>
@@ -205,7 +205,7 @@
         </div>
     </div>
 
-    <div id="seal-decision-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-[105] backdrop-blur-sm p-4 transition-colors duration-300">
+    <div id="seal-decision-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-[95] backdrop-blur-sm p-4 transition-colors duration-300">
         <div id="seal-modal-box" class="bg-gray-900 p-8 rounded-lg shadow-2xl text-center border-2 border-yellow-500 max-w-sm w-full transition-all">
             <h2 class="text-2xl font-bold text-yellow-300 mb-4 font-title">Oponente jogou um Rei!</h2>
             <p id="seal-modal-text" class="text-gray-300 mb-8 text-sm md:text-base">Você deseja usar o seu Selo de Salomão para roubar este Domínio?</p>
@@ -213,6 +213,7 @@
                 <button id="confirm-seal-btn" class="w-full py-3 bg-green-700 hover:bg-green-600 text-white font-bold rounded shadow uppercase tracking-wide transition-colors">Sim, Usar Selo</button>
                 <button id="decline-seal-btn" class="w-full py-3 bg-red-800 hover:bg-red-700 text-white font-bold rounded shadow uppercase tracking-wide transition-colors">Não, Passar</button>
                 <button id="peek-board-btn" class="w-full py-2 mt-2 bg-gray-700 hover:bg-gray-600 text-gray-200 font-bold rounded shadow uppercase tracking-wide transition-colors text-sm">Verificar o Domínio</button>
+                <button id="check-prophecies-btn" class="w-full py-2 mt-2 bg-purple-900 hover:bg-purple-800 text-purple-100 font-bold rounded shadow uppercase tracking-wide transition-colors text-sm">Verificar Profecias</button>
             </div>
         </div>
         <button id="return-seal-btn" class="hidden absolute bottom-12 px-8 py-3 bg-yellow-600 hover:bg-yellow-500 text-white font-bold rounded-full shadow-[0_0_20px_rgba(202,138,4,0.6)] uppercase tracking-wide transition-all z-[110]">Voltar para a Decisão</button>
@@ -1324,6 +1325,30 @@
             }
 
             document.getElementById('confirm-seal-btn').addEventListener('click', () => { if (localGameState.seal_decision?.active) handleSelo(localGameState.seal_decision.player); });
+            // --- COLE O PASSO 4 AQUI ---
+            document.getElementById('confirm-sacrifice-btn').addEventListener('click', async () => {
+                if (sacrificeSelection.length !== 2) return;
+                
+                let newState = JSON.parse(JSON.stringify(localGameState));
+                const playerNumber = localPlayerId === 'player1' ? 1 : 2;
+                const playerId = `player${playerNumber}`;
+                const playerName = getPlayerName(playerNumber, newState);
+                
+                const sortedIndices = sacrificeSelection.sort((a, b) => b - a);
+                const discardedCards = [];
+                sortedIndices.forEach(i => {
+                    const discarded = newState[playerId].hand.splice(i, 1)[0];
+                    discardedCards.push(discarded);
+                });
+                
+                newState.removed_from_game.push(...discardedCards);
+                addLogToState(newState, `🚨 SACRIFÍCIO: ${playerName} não tinha jogadas e foi forçado a descartar 2 cartas!`);
+                
+                sacrificeSelection = []; 
+                sacrificeState.stage = 'playing'; 
+                await updateAndRefreshState(newState);
+            });
+            // FIM DO BLOCO DO PASSO 4
             document.getElementById('decline-seal-btn').addEventListener('click', () => { if (localGameState.seal_decision?.active) handleDeclineSelo(localGameState.seal_decision.player); });
             // --- LÓGICA PARA ESPIAR A MESA ---
             document.getElementById('peek-board-btn').addEventListener('click', () => {
@@ -1555,6 +1580,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     render();
+    document.getElementById('check-prophecies-btn').addEventListener('click', () => {
+        const type = localGameState.gameMode === 'cooperative' ? 'shared' : 'secret';
+        openProphecyLog(type);
+    });
 });
 </script>
 </body>
