@@ -46,8 +46,6 @@
     .prophecy-list-btn.completed-opponent { border-left: 4px solid #ef4444; } 
 
     .sacrificing-fx { box-shadow: 0 0 20px #ef4444; border-color: #ef4444 !important; }
-    .fade-enter { opacity: 0; transition: opacity 0.3s; }
-    .fade-enter-active { opacity: 1; }
     </style>
 </head>
 <body class="w-screen h-screen flex flex-col">
@@ -92,19 +90,19 @@
 
     <div id="game-ui" class="hidden flex flex-col w-full h-full relative z-10">
         
-        <header class="shrink-0 flex justify-between items-center p-2 md:p-4 bg-gray-900/90 border-b border-gray-700 backdrop-blur-md shadow-md">
+        <header class="shrink-0 flex justify-between items-center p-2 md:p-4 bg-gray-900/90 border-b border-gray-700 backdrop-blur-md shadow-md z-30">
             <div class="w-1/4 flex flex-col items-center justify-center bg-black/40 p-1 rounded border border-gray-800">
                 <span class="text-[0.65rem] md:text-xs text-gray-400 uppercase tracking-widest font-bold">Grimório</span>
                 <span id="deck-count" class="text-2xl md:text-3xl font-bold text-amber-400 font-mono">0</span>
             </div>
             
             <div class="w-2/4 flex justify-center items-center gap-2 md:gap-8 px-2">
-                <div class="text-center bg-gray-800/50 px-2 py-1 md:px-4 md:py-2 rounded border border-blue-900/50">
+                <div id="p1-header-box" class="text-center bg-gray-800/50 px-2 py-1 md:px-4 md:py-2 rounded border border-blue-900/50 transition-colors">
                     <div id="p1-name" class="font-bold text-blue-300 text-sm md:text-base truncate max-w-[100px] md:max-w-[150px]">Jog 1</div>
                     <div class="text-[0.65rem] md:text-xs text-gray-300 mt-1">Domínios: <span id="p1-domains" class="font-bold text-white">0</span></div>
                     <div class="text-[0.65rem] md:text-xs text-gray-300">Mão: <span id="p1-hand-count" class="font-bold text-white">0</span></div>
                 </div>
-                <div class="text-center bg-gray-800/50 px-2 py-1 md:px-4 md:py-2 rounded border border-green-900/50">
+                <div id="p2-header-box" class="text-center bg-gray-800/50 px-2 py-1 md:px-4 md:py-2 rounded border border-green-900/50 transition-colors">
                     <div id="p2-name" class="font-bold text-green-300 text-sm md:text-base truncate max-w-[100px] md:max-w-[150px]">Jog 2</div>
                     <div class="text-[0.65rem] md:text-xs text-gray-300 mt-1">Domínios: <span id="p2-domains" class="font-bold text-white">0</span></div>
                     <div class="text-[0.65rem] md:text-xs text-gray-300">Mão: <span id="p2-hand-count" class="font-bold text-white">0</span></div>
@@ -116,7 +114,7 @@
             </div>
         </header>
 
-        <main class="flex-grow flex flex-col items-center justify-center relative p-4 overflow-hidden">
+        <main class="flex-grow flex flex-col items-center justify-center relative p-4 overflow-hidden z-10">
             <div id="turn-display" class="absolute top-4 bg-black/80 px-6 py-2 rounded-full border border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)] z-30 transition-all text-center backdrop-blur-sm">
                 <span id="turn-indicator" class="font-bold text-amber-400 mr-2 uppercase tracking-wide">Turno 1</span>
                 <span id="player-turn" class="text-sm text-gray-200">Aguardando Oponente...</span>
@@ -131,16 +129,16 @@
             <button id="btn-shared-prophecies" class="hidden flex-1 max-w-[300px] py-2 bg-amber-900/80 hover:bg-amber-800 border border-amber-500 text-amber-100 font-bold text-xs md:text-sm rounded shadow-lg backdrop-blur-sm transition-all uppercase tracking-wide">Profecias Compartilhadas</button>
         </div>
 
-        <footer class="shrink-0 h-[160px] md:h-[220px] bg-gray-900/95 border-t border-gray-700 backdrop-blur-md pb-2 pt-4 px-2">
+        <footer class="shrink-0 h-[160px] md:h-[220px] bg-gray-900/95 border-t border-gray-700 backdrop-blur-md pb-2 pt-4 px-2 z-30">
             <div id="player-hand" class="flex items-center gap-2 md:gap-4 overflow-x-auto h-full px-4 no-scrollbar snap-x"></div>
         </footer>
     </div>
 
-    <div id="prophecy-log-modal" class="hidden fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 md:p-6 fade-enter">
+    <div id="prophecy-log-modal" class="hidden fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 md:p-6">
         <div class="bg-gray-800 w-full max-w-4xl h-[85vh] md:h-[70vh] rounded-lg border border-purple-600 flex flex-col shadow-[0_0_30px_rgba(107,33,168,0.5)] overflow-hidden">
             <div class="bg-gray-900 p-4 border-b border-gray-700 flex justify-between items-center shrink-0">
                 <h2 id="prophecy-log-title" class="text-xl md:text-2xl font-bold text-purple-300 font-title tracking-wide">Profecias</h2>
-                <button id="close-prophecy-log-btn" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+                <button id="close-prophecy-log-btn" class="text-gray-400 hover:text-white text-4xl leading-none">&times;</button>
             </div>
             
             <div class="flex flex-col md:flex-row flex-grow overflow-hidden">
@@ -155,11 +153,11 @@
         </div>
     </div>
 
-    <div id="menu-modal" class="hidden fixed inset-0 z-[90] bg-black/70 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-4 fade-enter">
+    <div id="menu-modal" class="hidden fixed inset-0 z-[90] bg-black/70 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-4">
         <div class="bg-gray-900 w-full md:w-[450px] max-h-[85vh] rounded-t-xl md:rounded-xl border border-gray-600 flex flex-col shadow-2xl overflow-hidden">
             <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800">
                 <h2 class="text-xl font-bold text-amber-300">Menu da Partida</h2>
-                <button id="close-menu-btn" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+                <button id="close-menu-btn" class="text-gray-400 hover:text-white text-4xl leading-none">&times;</button>
             </div>
             
             <div class="p-4 overflow-y-auto flex flex-col gap-6 flex-grow">
@@ -288,12 +286,12 @@
                 const img = document.createElement('img');
                 img.src = getCardImagePath(card);
                 img.alt = card.Nome;
-                img.className = 'w-24 md:w-32 h-auto rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.8)] border border-gray-700 object-cover pointer-events-none select-none';
+                img.className = 'w-24 md:w-32 h-auto rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.8)] border border-gray-700 object-cover select-none';
                 
                 img.onerror = () => {
                     img.style.display = 'none';
                     const fallback = document.createElement('div');
-                    fallback.className = 'w-24 md:w-32 h-[134px] md:h-[180px] bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-600 rounded-lg flex flex-col items-center justify-center text-center p-2 shadow-lg';
+                    fallback.className = 'w-24 md:w-32 h-[134px] md:h-[180px] bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-600 rounded-lg flex flex-col items-center justify-center text-center p-2 shadow-lg select-none';
                     fallback.innerHTML = `<span class="font-title text-amber-500 text-sm leading-tight">${card.Nome}</span>
                                           <span class="text-[0.6rem] text-gray-400 mt-2">${card.Tipo === 'Demonio' ? card.Título : card.Tipo}</span>`;
                     wrapper.insertBefore(fallback, img);
@@ -306,7 +304,7 @@
 
             function showCustomAlert(message) {
                 const alertBox = document.createElement('div');
-                alertBox.className = 'fixed top-16 left-1/2 transform -translate-x-1/2 bg-red-900/90 text-white border border-red-500 px-6 py-3 rounded shadow-2xl z-[200] font-bold text-sm tracking-wide fade-enter fade-enter-active';
+                alertBox.className = 'fixed top-16 left-1/2 transform -translate-x-1/2 bg-red-900/90 text-white border border-red-500 px-6 py-3 rounded shadow-2xl z-[200] font-bold text-sm tracking-wide';
                 alertBox.textContent = message;
                 document.body.appendChild(alertBox);
                 setTimeout(() => alertBox.remove(), 3000);
@@ -481,6 +479,7 @@
                 document.getElementById('end-game-modal').classList.remove('hidden');
             }
 
+            // CORREÇÃO CRÍTICA DO UPDATE UI PARA O NOVO LAYOUT WEB APP
             function updateUI() {
                 if (!localGameState || !localGameState.deck || !localPlayerId) return;
 
@@ -497,7 +496,7 @@
                 
                 const isCoop = localGameState.gameMode === 'cooperative';
 
-                // --- HEADER ---
+                // --- HEADER NOVO LAYOUT ---
                 document.getElementById('deck-count').textContent = localGameState.deck.length;
                 
                 document.getElementById('p1-name').textContent = localGameState.player1.name;
@@ -508,8 +507,9 @@
                 document.getElementById('p2-domains').textContent = localGameState.player2.domains_captured;
                 document.getElementById('p2-hand-count').textContent = localGameState.player2.hand.length;
 
-                document.getElementById('p1-name').parentElement.style.borderColor = currentPlayerNumber === 1 ? '#f59e0b' : 'rgba(30,58,138,0.5)';
-                document.getElementById('p2-name').parentElement.style.borderColor = currentPlayerNumber === 2 ? '#f59e0b' : 'rgba(20,83,45,0.5)';
+                // Modificando os bordes dinâmicos apontando para as novas DIVs
+                document.getElementById('p1-header-box').style.borderColor = currentPlayerNumber === 1 ? '#f59e0b' : 'rgba(30,58,138,0.5)';
+                document.getElementById('p2-header-box').style.borderColor = currentPlayerNumber === 2 ? '#f59e0b' : 'rgba(20,83,45,0.5)';
 
                 // --- BOTÕES PROFECIA ---
                 const btnSec = document.getElementById('btn-secret-prophecies');
@@ -586,7 +586,7 @@
                     handContainer.appendChild(el);
                 });
 
-                // --- MENU LOGS ---
+                // --- MENU LOGS E CHAT ---
                 const logArea = document.getElementById('log-area');
                 logArea.innerHTML = '';
                 (localGameState.log || []).forEach(logEntry => {
@@ -651,7 +651,6 @@
                         radio.value = JSON.stringify(prophecyChoice); 
                         if (index === 0) radio.checked = true;
                         
-                        // Nova interface da Label Radio
                         const label = document.createElement('label');
                         label.htmlFor = radioId;
                         label.className = 'flex items-center gap-3 p-3 bg-gray-800 border border-gray-600 rounded cursor-pointer hover:bg-gray-700 w-full';
@@ -681,7 +680,6 @@
                 // --- LÓGICA E GATILHOS DA CPU ---
                 const isCpuTurn = isCpuGame && localGameState.current_player === 2 && !localGameState.game_over && !localGameState.seal_decision.active && !localGameState.prophecy_choice.active;
                 if (isCpuTurn) {
-                    // Desabilita interações para o jogador (No novo layout, ele já checa isMyTurn internamente, mas mantemos o timeout para fluidez)
                     setTimeout(async () => {
                         const cpuHandBeforeMove = [...localGameState.player2.hand]; 
                         const cpuDecision = playCpuTurn();
@@ -718,7 +716,7 @@
                                 const cardToPlay = newState[cpuPlayerId].hand.splice(finalPlayIndex, 1)[0];
                                 newState.discard_pile.push(cardToPlay);
                                 newState.play_history.push({ player: 2, card: cardToPlay });
-                                addLogToState(newState, `...e joga ${formatCardData(cardToPlay).displayText}.`);
+                                addLogToState(newState, `...e joga ${cardToPlay.Nome}.`);
                 
                                 checkEventProphecies('sacrifice_made', 2, newState);
 
@@ -800,7 +798,6 @@
                 const playerName = getPlayerName(playerNumber, localGameState);
                 const hand = localGameState[playerId].hand;
             
-                // --- LÓGICA DO SACRIFÍCIO MULTI-FASE ---
                 if (sacrificeState.active) {
                     let newState = JSON.parse(JSON.stringify(localGameState));
             
@@ -839,7 +836,7 @@
                         newState[playerId].hand.splice(index, 1);
                         newState.discard_pile.push(cardToPlay);
                         newState.play_history.push({ player: playerNumber, card: cardToPlay });
-                        addLogToState(newState, `...e joga ${formatCardData(cardToPlay).displayText} para iniciar um novo Domínio.`);
+                        addLogToState(newState, `...e joga ${cardToPlay.Nome} para iniciar um novo Domínio.`);
                         
                         checkEventProphecies('sacrifice_made', playerNumber, newState);
 
@@ -871,7 +868,6 @@
                     return;
                 }
                 
-                // --- FLUXO DE JOGADA NORMAL ---
                 const topCard = localGameState.discard_pile.length > 0 ? localGameState.discard_pile[localGameState.discard_pile.length - 1] : null;
                 const hasLegalMoves = hand.some(card => isLegalMove(card, topCard));
             
@@ -907,7 +903,7 @@
                 const cardToPlay = state[playerId].hand.splice(index, 1)[0];
                 state.discard_pile.push(cardToPlay);
                 state.play_history.push({ player: playerNumber, card: cardToPlay });
-                addLogToState(state, `${playerName} joga: ${formatCardData(cardToPlay).displayText}`);
+                addLogToState(state, `${playerName} joga: ${cardToPlay.Nome}`);
                 await handleEndOfTurn(playerNumber, cardToPlay, state);
             }
 
@@ -1065,7 +1061,7 @@
                 chatInput.focus();
             }
 
-            // ================= LÓGICA DE INTERFACE MODAL LOG DE PROFECIAS =================
+            // ================= LOGICA DO MODAL LOG PROFECIAS CORRIGIDA =================
             function openProphecyLog(type) {
                 const listContainer = document.getElementById('prophecy-log-list');
                 const title = document.getElementById('prophecy-log-title');
@@ -1083,8 +1079,11 @@
                     propheciesToDisplay = localGameState.sharedProphecies;
                 }
 
+                if (!propheciesToDisplay) return; // Segurança extra
+
                 propheciesToDisplay.forEach((p, idx) => {
                     const details = getProphecyDetails(p.id);
+                    if(!details) return; // Segurança caso ID não seja achada
                     const btn = document.createElement('button');
                     btn.className = 'prophecy-list-btn truncate';
                     btn.textContent = details.Nome;
