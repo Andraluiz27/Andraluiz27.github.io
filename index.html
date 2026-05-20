@@ -91,35 +91,36 @@
     <div id="game-ui" class="hidden flex flex-col w-full h-full relative z-10">
         
         <header class="shrink-0 flex justify-between items-center p-2 md:p-4 bg-gray-900/90 border-b border-gray-700 backdrop-blur-md shadow-md z-30">
-            <div class="w-1/4 flex flex-col items-center justify-center bg-black/40 p-1 rounded border border-gray-800">
-                <span class="text-[0.65rem] md:text-xs text-gray-400 uppercase tracking-widest font-bold">Grimório</span>
-                <span id="deck-count" class="text-2xl md:text-3xl font-bold text-amber-400 font-mono">0</span>
+            <div class="w-1/4 flex flex-col items-start justify-center">
+                <div id="turn-display" class="text-left">
+                    <span id="turn-indicator" class="block font-bold text-amber-400 text-[0.7rem] md:text-sm uppercase tracking-wide">Turno 1</span>
+                    <span id="player-turn" class="block text-[0.6rem] md:text-xs text-gray-300 leading-tight">Aguardando...</span>
+                </div>
             </div>
             
-            <div class="w-2/4 flex justify-center items-center gap-2 md:gap-8 px-2">
+            <div class="w-2/4 flex justify-center items-center gap-1 md:gap-8 px-1">
                 <div id="p1-header-box" class="text-center bg-gray-800/50 px-2 py-1 md:px-4 md:py-2 rounded border border-blue-900/50 transition-colors">
-                    <div id="p1-name" class="font-bold text-blue-300 text-sm md:text-base truncate max-w-[100px] md:max-w-[150px]">Jog 1</div>
-                    <div class="text-[0.65rem] md:text-xs text-gray-300 mt-1">Profecias: <span id="p1-prophecies-count" class="font-bold text-amber-400">0</span></div>
-                    <div class="text-[0.65rem] md:text-xs text-gray-300">Mão: <span id="p1-hand-count" class="font-bold text-white">0</span></div>
+                    <div id="p1-name" class="font-bold text-blue-300 text-[0.8rem] md:text-base truncate max-w-[70px] md:max-w-[150px]">Jog 1</div>
+                    <div class="text-[0.6rem] md:text-xs text-gray-300 mt-1">Profecias: <span id="p1-prophecies-count" class="font-bold text-amber-400">0</span></div>
+                    <div class="text-[0.6rem] md:text-xs text-gray-300">Mão: <span id="p1-hand-count" class="font-bold text-white">0</span></div>
                 </div>
                 <div id="p2-header-box" class="text-center bg-gray-800/50 px-2 py-1 md:px-4 md:py-2 rounded border border-green-900/50 transition-colors">
-                    <div id="p2-name" class="font-bold text-green-300 text-sm md:text-base truncate max-w-[100px] md:max-w-[150px]">Jog 2</div>
-                    <div class="text-[0.65rem] md:text-xs text-gray-300 mt-1">Profecias: <span id="p2-prophecies-count" class="font-bold text-amber-400">0</span></div>
-                    <div class="text-[0.65rem] md:text-xs text-gray-300">Mão: <span id="p2-hand-count" class="font-bold text-white">0</span></div>
+                    <div id="p2-name" class="font-bold text-green-300 text-[0.8rem] md:text-base truncate max-w-[70px] md:max-w-[150px]">Jog 2</div>
+                    <div class="text-[0.6rem] md:text-xs text-gray-300 mt-1">Profecias: <span id="p2-prophecies-count" class="font-bold text-amber-400">0</span></div>
+                    <div class="text-[0.6rem] md:text-xs text-gray-300">Mão: <span id="p2-hand-count" class="font-bold text-white">0</span></div>
                 </div>
             </div>
 
-            <div class="w-1/4 flex justify-end">
-                <button id="open-menu-btn" class="px-3 py-2 md:px-6 md:py-3 bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm md:text-base font-bold rounded shadow border border-gray-600 transition-colors uppercase tracking-wider">Menu</button>
+            <div class="w-1/4 flex flex-col items-end justify-center gap-1">
+                <button id="open-menu-btn" class="px-2 py-1 md:px-4 md:py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 text-[0.65rem] md:text-sm font-bold rounded shadow border border-gray-600 transition-colors uppercase tracking-wider w-full max-w-[80px]">Menu</button>
+                <div class="flex justify-between items-center bg-black/40 px-1 md:px-2 py-0.5 rounded border border-gray-800 w-full max-w-[80px]">
+                    <span class="text-[0.55rem] md:text-xs text-gray-400 uppercase tracking-widest font-bold">Grim:</span>
+                    <span id="deck-count" class="text-[0.75rem] md:text-sm font-bold text-amber-400 font-mono">0</span>
+                </div>
             </div>
         </header>
 
         <main class="flex-grow flex flex-col items-center justify-center relative p-4 overflow-hidden z-10">
-            <div id="turn-display" class="absolute top-4 bg-black/80 px-6 py-2 rounded-full border border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)] z-30 transition-all text-center backdrop-blur-sm">
-                <span id="turn-indicator" class="font-bold text-amber-400 mr-2 uppercase tracking-wide">Turno 1</span>
-                <span id="player-turn" class="text-sm text-gray-200">Aguardando Oponente...</span>
-            </div>
-
             <div id="domain-board-cards" class="flex justify-center items-center h-48 md:h-64 w-full px-8"></div>
         </main>
 
@@ -129,7 +130,7 @@
             <button id="btn-shared-prophecies" class="hidden flex-1 max-w-[300px] py-2 bg-amber-900/80 hover:bg-amber-800 border border-amber-500 text-amber-100 font-bold text-xs md:text-sm rounded shadow-lg backdrop-blur-sm transition-all uppercase tracking-wide">Profecias Compartilhadas</button>
         </div>
 
-        <footer class="shrink-0 h-[200px] md:h-[240px] bg-gray-900/95 border-t border-gray-700 backdrop-blur-md pb-8 pt-2 px-2 z-30">
+        <footer class="shrink-0 h-[220px] md:h-[260px] bg-gray-900/95 border-t border-gray-700 backdrop-blur-md pb-12 pt-4 px-2 z-30">
             <div id="player-hand" class="flex items-center gap-2 md:gap-4 overflow-x-auto h-full px-4 no-scrollbar snap-x"></div>
         </footer>
     </div>
