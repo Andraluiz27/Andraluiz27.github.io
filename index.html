@@ -99,12 +99,12 @@
             <div class="w-2/4 flex justify-center items-center gap-2 md:gap-8 px-2">
                 <div id="p1-header-box" class="text-center bg-gray-800/50 px-2 py-1 md:px-4 md:py-2 rounded border border-blue-900/50 transition-colors">
                     <div id="p1-name" class="font-bold text-blue-300 text-sm md:text-base truncate max-w-[100px] md:max-w-[150px]">Jog 1</div>
-                    <div class="text-[0.65rem] md:text-xs text-gray-300 mt-1">Domínios: <span id="p1-domains" class="font-bold text-white">0</span></div>
+                    <div class="text-[0.65rem] md:text-xs text-gray-300 mt-1">Profecias: <span id="p1-prophecies-count" class="font-bold text-amber-400">0</span></div>
                     <div class="text-[0.65rem] md:text-xs text-gray-300">Mão: <span id="p1-hand-count" class="font-bold text-white">0</span></div>
                 </div>
                 <div id="p2-header-box" class="text-center bg-gray-800/50 px-2 py-1 md:px-4 md:py-2 rounded border border-green-900/50 transition-colors">
                     <div id="p2-name" class="font-bold text-green-300 text-sm md:text-base truncate max-w-[100px] md:max-w-[150px]">Jog 2</div>
-                    <div class="text-[0.65rem] md:text-xs text-gray-300 mt-1">Domínios: <span id="p2-domains" class="font-bold text-white">0</span></div>
+                    <div class="text-[0.65rem] md:text-xs text-gray-300 mt-1">Profecias: <span id="p2-prophecies-count" class="font-bold text-amber-400">0</span></div>
                     <div class="text-[0.65rem] md:text-xs text-gray-300">Mão: <span id="p2-hand-count" class="font-bold text-white">0</span></div>
                 </div>
             </div>
@@ -129,7 +129,7 @@
             <button id="btn-shared-prophecies" class="hidden flex-1 max-w-[300px] py-2 bg-amber-900/80 hover:bg-amber-800 border border-amber-500 text-amber-100 font-bold text-xs md:text-sm rounded shadow-lg backdrop-blur-sm transition-all uppercase tracking-wide">Profecias Compartilhadas</button>
         </div>
 
-        <footer class="shrink-0 h-[160px] md:h-[220px] bg-gray-900/95 border-t border-gray-700 backdrop-blur-md pb-2 pt-4 px-2 z-30">
+        <footer class="shrink-0 h-[200px] md:h-[240px] bg-gray-900/95 border-t border-gray-700 backdrop-blur-md pb-8 pt-2 px-2 z-30">
             <div id="player-hand" class="flex items-center gap-2 md:gap-4 overflow-x-auto h-full px-4 no-scrollbar snap-x"></div>
         </footer>
     </div>
@@ -497,14 +497,26 @@
                 const isCoop = localGameState.gameMode === 'cooperative';
 
                 // --- HEADER NOVO LAYOUT ---
+                // --- HEADER NOVO LAYOUT ---
                 document.getElementById('deck-count').textContent = localGameState.deck.length;
                 
+                let p1Score = 0, p2Score = 0;
+                if (localGameState.gameMode === 'cooperative') {
+                    p1Score = (localGameState.sharedProphecies || []).filter(p => p.completed).length;
+                    p2Score = p1Score; // No cooperativo, a pontuação é compartilhada
+                } else {
+                    p1Score = (localGameState.player1.prophecies || []).filter(p => p.completed).length + 
+                              (localGameState.publicProphecies || []).filter(p => p.completedBy === 1).length;
+                    p2Score = (localGameState.player2.prophecies || []).filter(p => p.completed).length + 
+                              (localGameState.publicProphecies || []).filter(p => p.completedBy === 2).length;
+                }
+                
                 document.getElementById('p1-name').textContent = localGameState.player1.name;
-                document.getElementById('p1-domains').textContent = localGameState.player1.domains_captured;
+                document.getElementById('p1-prophecies-count').textContent = p1Score;
                 document.getElementById('p1-hand-count').textContent = localGameState.player1.hand.length;
                 
                 document.getElementById('p2-name').textContent = localGameState.player2.name;
-                document.getElementById('p2-domains').textContent = localGameState.player2.domains_captured;
+                document.getElementById('p2-prophecies-count').textContent = p2Score;
                 document.getElementById('p2-hand-count').textContent = localGameState.player2.hand.length;
 
                 // Modificando os bordes dinâmicos apontando para as novas DIVs
