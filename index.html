@@ -238,17 +238,8 @@
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
             const auth = getAuth(app);
-            // --- RECUPERAÇÃO AUTOMÁTICA ---
-            const savedGameId = localStorage.getItem('goetia_gameId');
-            const savedPlayerId = localStorage.getItem('goetia_playerId');
+        
 
-            if (savedGameId && savedPlayerId) {
-                gameId = savedGameId;
-                localPlayerId = savedPlayerId;
-                document.getElementById('lobby-screen').classList.add('hidden');
-                document.getElementById('game-ui').classList.remove('hidden');
-                listenToGameChanges(gameId);
-            }
             
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -1174,8 +1165,6 @@
                 const newGameId = Math.random().toString(36).substr(2, 4).toUpperCase();
                 gameId = newGameId;
                 localPlayerId = 'player1';
-                localStorage.setItem('goetia_gameId', gameId);
-                localStorage.setItem('goetia_playerId', localPlayerId);
                 isCpuGame = false;
                 
                 const demonDeck = demons.map(d => ({ ...d, Tipo: 'Demonio' }));
@@ -1225,8 +1214,6 @@
                 if (gameSnap.exists() && !gameSnap.data().player2.uid) {
                     gameId = joinId;
                     localPlayerId = 'player2';
-                    localStorage.setItem('goetia_gameId', gameId);
-                    localStorage.setItem('goetia_playerId', localPlayerId);
                     let gameData = gameSnap.data();
                     gameData.player2.uid = auth.currentUser?.uid || null;
                     gameData.player2.name = playerName;
