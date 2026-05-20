@@ -45,6 +45,17 @@
     .prophecy-list-btn.completed-opponent { border-left: 4px solid #ef4444; } 
 
     .sacrificing-fx { box-shadow: 0 0 20px #ef4444; border-color: #ef4444 !important; }
+    /* Efeito de Pop-up da Profecia */
+    @keyframes alert-pop {
+        0% { transform: scale(0.5); opacity: 0; }
+        10% { transform: scale(1.1); opacity: 1; }
+        20% { transform: scale(1); opacity: 1; }
+        80% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(0.8); opacity: 0; }
+    }
+    .animate-alert {
+        animation: alert-pop 4s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
     </style>
 </head>
 <body class="w-screen h-screen flex flex-col">
@@ -88,6 +99,12 @@
     </div>
 
     <div id="game-ui" class="hidden flex flex-col w-full h-full relative z-10">
+    <div id="prophecy-alert-overlay" class="fixed inset-0 z-[150] flex items-center justify-center pointer-events-none hidden">
+            <div class="bg-purple-900/90 border-4 border-amber-500 p-6 md:p-10 rounded-2xl shadow-[0_0_50px_rgba(245,158,11,0.6)] text-center transform scale-0 text-white backdrop-blur-md">
+                <h2 class="text-3xl md:text-5xl font-bold text-amber-400 mb-2 font-title drop-shadow-lg uppercase tracking-widest">Profecia Cumprida!</h2>
+                <p id="prophecy-alert-text" class="text-lg md:text-2xl font-bold text-gray-200"></p>
+            </div>
+        </div>
         
         <header class="shrink-0 flex items-center justify-between p-2 md:p-4 bg-gray-900/90 border-b border-gray-700 shadow-md z-30">
     
@@ -98,14 +115,14 @@
             
             <div id="p1-header-box" class="flex-1 text-center bg-gray-800/50 py-2 px-2 rounded border-2 border-transparent transition-all mx-1 md:mx-4 max-w-[200px]">
                 <div id="p1-name" class="font-bold text-blue-300 text-xs md:text-sm truncate">Jog 1</div>
-                <div class="text-[0.6rem] md:text-xs text-gray-300 mt-1">Cartas na mão: <span id="p1-hand-count" class="font-bold text-white">0</span></div>
-                <div class="text-[0.6rem] md:text-xs text-gray-300">Profecias Cumpridas: <span id="p1-prophecies-count" class="font-bold text-amber-400">0</span></div>
+                <div class="text-[0.6rem] md:text-xs text-gray-300 mt-1">Cartas: <span id="p1-hand-count" class="font-bold text-white">0</span></div>
+                <div class="text-[0.6rem] md:text-xs text-gray-300">Profecias: <span id="p1-prophecies-count" class="font-bold text-amber-400">0</span></div>
             </div>
         
             <div id="p2-header-box" class="flex-1 text-center bg-gray-800/50 py-2 px-2 rounded border-2 border-transparent transition-all mx-1 md:mx-4 max-w-[200px]">
                 <div id="p2-name" class="font-bold text-green-300 text-xs md:text-sm truncate">Jog 2</div>
-                <div class="text-[0.6rem] md:text-xs text-gray-300 mt-1">Cartas na mão: <span id="p2-hand-count" class="font-bold text-white">0</span></div>
-                <div class="text-[0.6rem] md:text-xs text-gray-300">Profecias Cumpridas: <span id="p2-prophecies-count" class="font-bold text-amber-400">0</span></div>
+                <div class="text-[0.6rem] md:text-xs text-gray-300 mt-1">Cartas: <span id="p2-hand-count" class="font-bold text-white">0</span></div>
+                <div class="text-[0.6rem] md:text-xs text-gray-300">Profecias: <span id="p2-prophecies-count" class="font-bold text-amber-400">0</span></div>
             </div>
         
             <div class="w-[20%] max-w-[100px] flex justify-end">
@@ -251,6 +268,7 @@
             let initialDeckSize = 0; 
             let selectedGameMode = 'competitive';
             let isCpuGame = false;
+            let lastSeenLogText = ""; // NOVA VARIÁVEL PARA O ALERTA
 
             const titleHierarchy = { 'Presidente': 1, 'Conde': 2, 'Marquês': 3, 'Duque': 4 };
             const metalHierarchy = { 'Mercúrio': 1, 'Estanho': 2, 'Prata': 3, 'Cobre': 4 };
@@ -565,9 +583,37 @@
                     handContainer.appendChild(el);
                 });
 
-                // --- MENU LOGS E CHAT ---
+                // 5. Logs, Chat e Gatilho de Animação
                 const logArea = document.getElementById('log-area');
                 logArea.innerHTML = '';
+                
+                if (localGameState.log && localGameState.log.length > 0) {
+                    const latestLog = localGameState.log[0].text;
+                    
+                    // Verifica se o log mudou e se não é a primeira vez que a página carrega
+                    if (latestLog !== lastSeenLogText) {
+                        if (lastSeenLogText !== "") { 
+                            // Se a mensagem do sistema contiver a palavra cumpriu ou registrou
+                            if (latestLog.includes("cumpriu") || latestLog.includes("registrou") || latestLog.includes("Profecia cumprida")) {
+                                const alertOverlay = document.getElementById('prophecy-alert-overlay');
+                                const alertBox = alertOverlay.querySelector('div');
+                                
+                                // Coloca o texto do log na tela (ex: "Luiz cumpriu a profecia: X!")
+                                document.getElementById('prophecy-alert-text').textContent = latestLog;
+                                
+                                alertOverlay.classList.remove('hidden');
+                                alertBox.classList.remove('animate-alert');
+                                void alertBox.offsetWidth; // Reinicia a animação CSS
+                                alertBox.classList.add('animate-alert');
+                                
+                                // Esconde de novo depois de 4 segundos
+                                setTimeout(() => { alertOverlay.classList.add('hidden'); }, 4000);
+                            }
+                        }
+                        lastSeenLogText = latestLog;
+                    }
+                }
+
                 (localGameState.log || []).forEach(logEntry => {
                     const p = document.createElement('p');
                     p.innerHTML = logEntry.type === 'capture' ? `> <strong>${logEntry.text}</strong>` : `> ${logEntry.text}`;
