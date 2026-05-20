@@ -268,7 +268,8 @@
             let initialDeckSize = 0; 
             let selectedGameMode = 'competitive';
             let isCpuGame = false;
-            let lastSeenLogText = ""; // NOVA VARIÁVEL PARA O ALERTA
+            let isFirstUIUpdate = true;
+            let lastAnimatedLog = "";
 
             const titleHierarchy = { 'Presidente': 1, 'Conde': 2, 'Marquês': 3, 'Duque': 4 };
             const metalHierarchy = { 'Mercúrio': 1, 'Estanho': 2, 'Prata': 3, 'Cobre': 4 };
@@ -583,36 +584,37 @@
                     handContainer.appendChild(el);
                 });
 
-                // 5. Logs, Chat e Gatilho de Animação
+               // 5. Logs, Chat e Gatilho de Animação
                 const logArea = document.getElementById('log-area');
                 logArea.innerHTML = '';
-                
-                if (localGameState.log && localGameState.log.length > 0) {
-                    const latestLog = localGameState.log[0].text;
-                    
-                    // Verifica se o log mudou e se não é a primeira vez que a página carrega
-                    if (latestLog !== lastSeenLogText) {
-                        if (lastSeenLogText !== "") { 
-                            // Se a mensagem do sistema contiver a palavra cumpriu ou registrou
-                            if (latestLog.includes("cumpriu") || latestLog.includes("registrou") || latestLog.includes("Profecia cumprida")) {
-                                const alertOverlay = document.getElementById('prophecy-alert-overlay');
-                                const alertBox = alertOverlay.querySelector('div');
-                                
-                                // Coloca o texto do log na tela (ex: "Luiz cumpriu a profecia: X!")
-                                document.getElementById('prophecy-alert-text').textContent = latestLog;
-                                
-                                alertOverlay.classList.remove('hidden');
-                                alertBox.classList.remove('animate-alert');
-                                void alertBox.offsetWidth; // Reinicia a animação CSS
-                                alertBox.classList.add('animate-alert');
-                                
-                                // Esconde de novo depois de 4 segundos
-                                setTimeout(() => { alertOverlay.classList.add('hidden'); }, 4000);
-                            }
-                        }
-                        lastSeenLogText = latestLog;
+
+                // Procura nos logs recentes se tem alguma mensagem de profecia
+                const prophecyLog = (localGameState.log || []).find(l => 
+                    l.text.includes("cumpriu") || l.text.includes("registrou") || l.text.includes("Profecia cumprida")
+                );
+
+                if (prophecyLog) {
+                    if (isFirstUIUpdate) {
+                        // Na primeira vez que carrega a página, só salva qual foi a última profecia pra não piscar na tela ao dar F5
+                        lastAnimatedLog = prophecyLog.text;
+                    } else if (prophecyLog.text !== lastAnimatedLog) {
+                        // Achou uma profecia NOVA! Dispara a animação
+                        const alertOverlay = document.getElementById('prophecy-alert-overlay');
+                        const alertBox = alertOverlay.querySelector('div');
+                        
+                        document.getElementById('prophecy-alert-text').textContent = prophecyLog.text;
+                        
+                        alertOverlay.classList.remove('hidden');
+                        alertBox.classList.remove('animate-alert');
+                        void alertBox.offsetWidth; // Reinicia a animação CSS
+                        alertBox.classList.add('animate-alert');
+                        
+                        setTimeout(() => { alertOverlay.classList.add('hidden'); }, 4000);
+                        
+                        lastAnimatedLog = prophecyLog.text;
                     }
                 }
+                isFirstUIUpdate = false; // A partir de agora, qualquer profecia nova vai aparecer
 
                 (localGameState.log || []).forEach(logEntry => {
                     const p = document.createElement('p');
