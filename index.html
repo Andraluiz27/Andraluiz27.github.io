@@ -211,9 +211,79 @@
                 </div>
 
                 <hr class="border-gray-700">
+                <button id="open-rules-btn" class="w-full py-3 border border-gray-500 text-gray-300 hover:bg-gray-800 rounded font-bold uppercase tracking-wide transition-colors mb-4">Regras do Jogo</button>
                 <button id="toggle-music-btn" class="w-full py-3 border border-indigo-600 text-indigo-400 hover:bg-indigo-900/30 rounded font-bold uppercase tracking-wide transition-colors mb-4">🔇 Ativar Música</button>
                 
                 <button onclick="window.location.reload()" class="w-full py-3 border border-red-600 text-red-500 hover:bg-red-900/30 rounded font-bold uppercase tracking-wide transition-colors">Abandonar Partida</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="rules-modal" class="hidden fixed inset-0 z-[130] bg-black/90 backdrop-blur-md flex items-center justify-center p-2 md:p-6">
+        <div class="bg-gray-900 w-full max-w-3xl h-[85vh] md:h-[75vh] rounded-lg border border-amber-600 flex flex-col shadow-2xl overflow-hidden">
+            
+            <div class="bg-gray-800 p-4 border-b border-gray-700 flex justify-between items-center shrink-0">
+                <h2 class="text-xl md:text-2xl font-bold text-amber-400 font-lobby tracking-wide">Regras do Jogo</h2>
+                <button id="close-rules-btn" class="text-gray-400 hover:text-white text-4xl leading-none">&times;</button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto text-gray-300 text-sm md:text-base space-y-6 leading-relaxed no-scrollbar">
+                
+                <div>
+                    <h3 class="text-lg font-bold text-amber-500 mb-2 uppercase tracking-wide">Objetivo do Jogo</h3>
+                    <p>O objetivo é manipular a captura de domínios para cumprir profecias específicas. No modo Competitivo, vence o primeiro jogador a cumprir 3 profecias. No modo Cooperativo, os jogadores devem trabalhar juntos para cumprir 7 profecias compartilhadas antes que o grimório se esgote.</p>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-bold text-amber-500 mb-2 uppercase tracking-wide">Tipos de Cartas</h3>
+                    <ul class="list-disc pl-5 space-y-1 text-gray-400">
+                        <li><strong class="text-gray-200">Demônios:</strong> São a base do jogo. Possuem Afinidade (Riqueza, Conhecimento ou Guerra), Hierarquia (Baixa, Média ou Alta) e Título.</li>
+                        <li><strong class="text-gray-200">Metais:</strong> Servem como base para invocar demônios de hierarquias específicas.</li>
+                        <li><strong class="text-gray-200">Selo de Salomão:</strong> Carta lendária de uso único, mantida oculta na mão até o momento certo.</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-bold text-amber-500 mb-2 uppercase tracking-wide">A Ordem de Hierarquia</h3>
+                    <p class="mb-2">Para sobrepor uma carta no domínio, é preciso respeitar a ordem crescente de poder.</p>
+                    <ul class="list-decimal pl-5 space-y-1 text-gray-400 mb-2">
+                        <li><strong class="text-gray-200">Títulos de Demônios:</strong> Presidente -> Conde -> Marquês -> Duque.</li>
+                        <li><strong class="text-gray-200">Metais:</strong> Mercúrio -> Estanho -> Prata -> Cobre.</li>
+                    </ul>
+                    <p><strong class="text-red-400">O Rei:</strong> A carta mais poderosa. Pertence à Alta Hierarquia e sua função exclusiva é encerrar um domínio em andamento.</p>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-bold text-amber-500 mb-2 uppercase tracking-wide">Regras de Jogada</h3>
+                    <ul class="list-disc pl-5 space-y-2 text-gray-400">
+                        <li><strong class="text-gray-200">Início de Domínio:</strong> Se a mesa estiver vazia, qualquer carta pode ser jogada (exceto o Rei ou o Selo).</li>
+                        <li><strong class="text-gray-200">Demônio sobre Demônio:</strong> O título jogado deve ser de hierarquia IGUAL ou MAIOR que o título do demônio no topo da mesa.</li>
+                        <li><strong class="text-gray-200">Metal sobre Metal:</strong> O metal jogado deve ser IGUAL ou MAIOR na sua própria hierarquia de metais.</li>
+                        <li><strong class="text-gray-200">Demônio sobre Metal:</strong> Um demônio só pode ser jogado sobre um metal se houver correspondência exata de título: Presidentes exigem Mercúrio; Condes exigem Estanho; Marqueses exigem Prata; Duques exigem Cobre.</li>
+                        <li><strong class="text-gray-200">Jogando o Rei:</strong> Pode ser jogado sobre qualquer carta (exceto o Selo). Ele encerra o domínio imediatamente e o jogador que o invocou captura todas as cartas da mesa.</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-bold text-purple-400 mb-2 uppercase tracking-wide">O Selo de Salomão</h3>
+                    <p>Esta carta não pode ser jogada normalmente. Ela só pode ser usada como uma reação imediata no momento em que o oponente joga um Rei. Ao usar o Selo, você rouba o domínio encerrado pelo oponente para si. O Selo vai para a mesa e conta como uma carta adicional para o cumprimento de profecias (como "A Multidão de Potestades").</p>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-bold text-red-500 mb-2 uppercase tracking-wide">Sacrifício e Aniquilação</h3>
+                    <p class="mb-2">Se no seu turno você não possuir nenhuma jogada legal que respeite as regras de hierarquia, você é obrigado a realizar um Sacrifício.</p>
+                    <ul class="list-disc pl-5 space-y-1 text-gray-400">
+                        <li>O Sacrifício consiste em selecionar e descartar 2 cartas da sua mão para, em seguida, jogar 1 carta validamente, iniciando um novo domínio.</li>
+                        <li>Cada sacrifício reduz o número total de cartas da sua mão permanentemente.</li>
+                        <li><strong class="text-red-400">Aniquilação:</strong> Se você precisar realizar o seu terceiro sacrifício na partida (ou se não tiver cartas suficientes para o custo), você sofre Aniquilação e perde o jogo imediatamente.</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-bold text-amber-500 mb-2 uppercase tracking-wide">Fim do Jogo pelo Grimório</h3>
+                    <p>Se a última carta do grimório (baralho de compras) for comprada, o jogo se encerra imediatamente, não havendo mais turnos. A vitória é então decidida por quem tiver o maior número de profecias cumpridas. Em caso de pontuações iguais, o jogo termina em Empate.</p>
+                </div>
+                
             </div>
         </div>
     </div>
