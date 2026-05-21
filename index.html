@@ -135,8 +135,10 @@
             </div>
         </header>
 
-        <main class="flex-grow flex flex-col items-center justify-center relative p-4 overflow-hidden z-10">
-            <div id="domain-board-cards" class="flex justify-center items-center h-48 md:h-64 w-full px-8"></div>
+        <main class="flex-grow flex flex-col items-center justify-center relative w-full p-2 md:p-4 overflow-hidden z-10">
+            <div class="w-full overflow-x-auto no-scrollbar">
+                <div id="domain-board-cards" class="flex justify-center items-center h-48 md:h-64 w-max min-w-full px-8 mx-auto snap-x"></div>
+            </div>
         </main>
 
         <div class="shrink-0 w-full bg-gradient-to-t from-gray-900/95 to-transparent pt-4 pb-2 px-2 flex justify-center gap-2 md:gap-6 z-20">
