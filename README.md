@@ -42,8 +42,6 @@ Dois Modos de Jogo:
 
       Jogue!
 
-Acesse as regras em: [MANUAL GOETIA (1).pdf](https://github.com/user-attachments/files/22852641/MANUAL.GOETIA.1.pdf)
-
 🛠️ Tecnologias Utilizadas
 
         FrontEnd: HTML5, Tailwind CSS, JavaScript (ES6 Modules).
