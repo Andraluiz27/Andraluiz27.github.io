@@ -748,7 +748,16 @@
                 }
 
                 if (localGameState.game_over) {
-                    endGameUI(localGameState.winner, localGameState.win_reason, localGameState.gameMode, localGameState);
+                    // Impede que o sistema crie vários cronômetros se a página atualizar
+                    if (!window.endGameTimerStarted) {
+                        window.endGameTimerStarted = true;
+                        
+                        // Espera 4 segundos exatos (o tempo da animação da profecia e de leitura do log) 
+                        // antes de travar a tela com o modal de Fim de Jogo ou Empate.
+                        setTimeout(() => {
+                            endGameUI(localGameState.winner, localGameState.win_reason, localGameState.gameMode, localGameState);
+                        }, 4000);
+                    }
                     if(unsubscribe) unsubscribe();
                 }
 
@@ -766,14 +775,27 @@
                             await playCard(2, cpuDecision.cardIndex, newState);
                 
                         } else if (cpuDecision.action === 'aniquilado') {
-                            addLogToState(newState, `CPU não pode fazer um sacrifício e é aniquilada!`);
+                            addLogToState(newState, `🚨 ANIQUILAÇÃO: CPU não possui cartas suficientes para o sacrifício!`);
                             newState.game_over = true;
                             newState.winner = 1; 
                             newState.win_reason = 'Aniquilação';
                             await updateAndRefreshState(newState);
                 
                         } else if (cpuDecision.action === 'sacrifice_sequence') {
-                            addLogToState(newState, `CPU não tem jogadas e deve fazer um Sacrifício.`);
+                            const currentSacrifices = newState.player2.sacrifices_made || 0;
+                            
+                            // CPU sofre aniquilação se tentar fazer o 3º sacrifício
+                            if (currentSacrifices >= 2) {
+                                addLogToState(newState, `🚨 ANIQUILAÇÃO: CPU atingiu o limite de 3 sacrifícios!`);
+                                newState.game_over = true;
+                                newState.winner = 1;
+                                newState.win_reason = 'Aniquilação';
+                                await updateAndRefreshState(newState);
+                                return;
+                            }
+                            
+                            newState.player2.sacrifices_made = currentSacrifices + 1;
+                            addLogToState(newState, `CPU não tem jogadas e fará o seu ${newState.player2.sacrifices_made}º Sacrifício.`);
                             
                             const sortedDiscardIndices = cpuDecision.discardIndices.sort((a, b) => b - a);
                             const discardedCards = [];
@@ -782,7 +804,7 @@
                                 discardedCards.push(discarded);
                             });
                             newState.removed_from_game.push(...discardedCards);
-                            addLogToState(newState, `CPU sacrifica e descarta 2 cartas.`);
+                            addLogToState(newState, `CPU sacrifica e descarta 2 cartas (Sacrifício ${newState.player2.sacrifices_made}/3).`);
                             
                             const cardToPlayObject = cpuHandBeforeMove[cpuDecision.playIndex];
                             const finalPlayIndex = newState[cpuPlayerId].hand.findIndex(c => c.Nome === cardToPlayObject.Nome);
@@ -913,6 +935,18 @@
                                addLogToState(newState, "O Grimório se esgotou! O jogo termina.");
                                newState.game_over = true;
                                newState.win_reason = 'Esgotamento';
+                               
+                               // Aplica a mesma checagem nova de pontos/empate aqui também
+                               if (newState.gameMode === 'cooperative') {
+                                    if ((newState.sharedProphecies || []).filter(p => p.completed).length < 7) newState.winner = -1;
+                               } else {
+                                    const p1Score = (newState.player1.prophecies || []).filter(p => p.completed).length + (newState.publicProphecies || []).filter(p => p.completedBy === 1).length;
+                                    const p2Score = (newState.player2.prophecies || []).filter(p => p.completed).length + (newState.publicProphecies || []).filter(p => p.completedBy === 2).length;
+                                    
+                                    if (p1Score > p2Score) newState.winner = 1;
+                                    else if (p2Score > p1Score) newState.winner = 2;
+                                    else newState.winner = 0; // Empate direto
+                               }
                             }
                         }
                         
@@ -941,10 +975,25 @@
                         showCustomAlert("Jogada ilegal.");
                     }
                 } else {
-                    if (hand.length < 3) {
-                        addLogToState(localGameState, `${playerName} não pode fazer um sacrifício (mão < 3 cartas) e é aniquilado!`);
+                    const currentSacrifices = localGameState[`player${playerNumber}`].sacrifices_made || 0;
+                    
+                    // Verifica se já vai estourar o limite com o 3º sacrifício
+                    if (currentSacrifices >= 2) {
                         let newState = JSON.parse(JSON.stringify(localGameState));
-                        const winner = localGameState.gameMode === 'cooperative' ? -1 : (playerNumber === 1 ? 2 : 1);
+                        addLogToState(newState, `ANIQUILAÇÃO: ${playerName} atingiu o limite de 3 sacrifícios!`);
+                        const winner = newState.gameMode === 'cooperative' ? -1 : (playerNumber === 1 ? 2 : 1);
+                        newState.game_over = true;
+                        newState.winner = winner;
+                        newState.win_reason = 'Aniquilação';
+                        await updateAndRefreshState(newState);
+                        return;
+                    }
+
+                    // Se não tiver cartas suficientes para pagar o custo
+                    if (hand.length < 3) {
+                        let newState = JSON.parse(JSON.stringify(localGameState));
+                        addLogToState(newState, `ANIQUILAÇÃO: ${playerName} não possui cartas suficientes para pagar o sacrifício!`);
+                        const winner = newState.gameMode === 'cooperative' ? -1 : (playerNumber === 1 ? 2 : 1);
                         newState.game_over = true;
                         newState.winner = winner;
                         newState.win_reason = 'Aniquilação';
@@ -953,7 +1002,7 @@
                     }
             
                     sacrificeState = { active: true, stage: 'discarding' };
-                    addLogToState(localGameState, `${getPlayerName(playerNumber, localGameState)} não tem jogadas e deve fazer um Sacrifício.`);
+                    addLogToState(localGameState, `${playerName} não tem jogadas e fará o seu ${currentSacrifices + 1}º Sacrifício.`);
                     updateUI(); 
                 }
             }
@@ -999,15 +1048,11 @@
                         } else {
                             const p1Score = (state.player1.prophecies || []).filter(p => p.completed).length + (state.publicProphecies || []).filter(p => p.completedBy === 1).length;
                             const p2Score = (state.player2.prophecies || []).filter(p => p.completed).length + (state.publicProphecies || []).filter(p => p.completedBy === 2).length;
+                            
+                            // Se alguém tiver mais pontos, vence. Se for igual, empate direto (winner = 0)
                             if (p1Score > p2Score) state.winner = 1;
                             else if (p2Score > p1Score) state.winner = 2;
-                            else {
-                                const p1Kings = state.player1.hand.filter(c => c.Título === 'Rei').length;
-                                const p2Kings = state.player2.hand.filter(c => c.Título === 'Rei').length;
-                                if (p1Kings > p2Kings) state.winner = 1;
-                                else if (p2Kings > p1Kings) state.winner = 2;
-                                else state.winner = 0;
-                            }
+                            else state.winner = 0; 
                         }
                         return;
                     }
@@ -1328,6 +1373,7 @@
 
             document.getElementById('confirm-seal-btn').addEventListener('click', () => { if (localGameState.seal_decision?.active) handleSelo(localGameState.seal_decision.player); });
             // --- COLE O PASSO 4 AQUI ---
+            // --- ESTE É O BLOCO FINAL DO SACRIFÍCIO ---
             document.getElementById('confirm-sacrifice-btn').addEventListener('click', async () => {
                 if (sacrificeSelection.length !== 2) return;
                 
@@ -1344,7 +1390,10 @@
                 });
                 
                 newState.removed_from_game.push(...discardedCards);
-                addLogToState(newState, `🚨 SACRIFÍCIO: ${playerName} não tinha jogadas e foi forçado a descartar 2 cartas!`);
+                
+                // REGISTRA O SACRIFÍCIO E AVISA NO CHAT QUANTOS FALTAM
+                newState[playerId].sacrifices_made = (newState[playerId].sacrifices_made || 0) + 1;
+                addLogToState(newState, `SACRIFÍCIO: ${playerName} descartou 2 cartas (Sacrifício ${newState[playerId].sacrifices_made}/3)!`);
                 
                 sacrificeSelection = []; 
                 sacrificeState.stage = 'playing'; 
