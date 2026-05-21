@@ -1614,6 +1614,20 @@
             document.getElementById('start-cpu-game-btn').addEventListener('click', startMusic);
             document.getElementById('create-game-btn').addEventListener('click', startMusic);
             document.getElementById('join-game-btn').addEventListener('click', startMusic);
+
+            // --- CONTROLE DE ABERTURA DAS REGRAS ---
+            const rulesModal = document.getElementById('rules-modal');
+            const openRulesBtn = document.getElementById('open-rules-btn');
+            const closeRulesBtn = document.getElementById('close-rules-btn');
+
+            openRulesBtn.addEventListener('click', () => {
+                rulesModal.classList.remove('hidden');
+            });
+
+            closeRulesBtn.addEventListener('click', () => {
+                rulesModal.classList.add('hidden');
+            });
+            // ---------------------------------------
         });
     </script>
 
