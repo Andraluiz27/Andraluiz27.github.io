@@ -509,24 +509,30 @@
                 return false;
             }
 
-            function checkEventProphecies(eventName, playerNumber, state) {
-                let fulfilled = false;
-                
-                // No modo cooperativo, checa as profecias da equipe. No competitivo, checa a secreta do jogador.
+            function getFulfillableEventProphecies(eventName, playerNumber, state) {
+                const list = [];
                 const prophecyList = state.gameMode === 'cooperative' ? state.sharedProphecies : state[`player${playerNumber}`].prophecies;
-                
                 (prophecyList || []).forEach(p => {
                     const details = getProphecyDetails(p.id);
                     if (!p.completed && details && details.event === eventName) {
-                        p.completed = true;
-                        fulfilled = true;
-                        // Ajusta o nome que vai aparecer na tela para o Cooperativo
-                        const playerName = state.gameMode === 'cooperative' ? "A equipe" : getPlayerName(playerNumber, state);
-                        addLogToState(state, `${playerName} cumpriu a profecia: ${details.Nome}!`);
+                        list.push({ id: p.id, type: 'secret' }); 
                     }
                 });
-                
-                if (fulfilled) checkWinCondition(state);
+                return list;
+            }
+
+            function completeProphecyInstantly(prophecyId, playerNumber, state) {
+                const details = getProphecyDetails(prophecyId);
+                if (state.gameMode === 'cooperative') {
+                    const prophecy = state.sharedProphecies.find(p => p.id === prophecyId);
+                    if (prophecy) prophecy.completed = true;
+                } else {
+                    const prophecy = state[`player${playerNumber}`].prophecies.find(p => p.id === prophecyId);
+                    if (prophecy) prophecy.completed = true;
+                }
+                const playerName = state.gameMode === 'cooperative' ? "A equipe" : getPlayerName(playerNumber, state);
+                addLogToState(state, `${playerName} cumpriu a profecia: ${details.Nome}!`);
+                checkWinCondition(state);
             }
             
             function findFulfillableDomainProphecies(playerNumber, domain, history, state) {
@@ -906,7 +912,8 @@
                                 newState.play_history.push({ player: 2, card: cardToPlay });
                                 addLogToState(newState, `...e joga ${cardToPlay.Nome}.`);
                 
-                                checkEventProphecies('sacrifice_made', 2, newState);
+                                const pendingSacCpu = getFulfillableEventProphecies('sacrifice_made', 2, newState);
+                                pendingSacCpu.forEach(p => completeProphecyInstantly(p.id, 2, newState));
 
                                 if (newState.gameMode === 'cooperative') {
                                     newState.coop_sacrifice_count = (newState.coop_sacrifice_count || 0) + 1;
@@ -1012,7 +1019,8 @@
                         newState.play_history.push({ player: playerNumber, card: cardToPlay });
                         addLogToState(newState, `...e joga ${cardToPlay.Nome} para iniciar um novo Domínio.`);
                         
-                        checkEventProphecies('sacrifice_made', playerNumber, newState);
+                        const pendingSac = getFulfillableEventProphecies('sacrifice_made', playerNumber, newState);
+                        pendingSac.forEach(p => completeProphecyInstantly(p.id, playerNumber, newState));
 
                         if (newState.gameMode === 'cooperative') {
                             newState.coop_sacrifice_count = (newState.coop_sacrifice_count || 0) + 1;
@@ -1138,14 +1146,18 @@
                 sacrificeSelection = [];
             }
             
-            async function processDomainCapture(playerNumber, state) {
+            async function processDomainCapture(playerNumber, state, pendingEvents = []) {
                 const playerName = getPlayerName(playerNumber, state);
                 addLogToState(state, `${playerName} captura um Domínio com ${state.discard_pile.length} cartas!`, { type: 'capture' });
                 const capturedDomain = [...state.discard_pile];
                 
-                let allFulfillable = [];
+                let allFulfillable = [...pendingEvents];
                 const fulfillableSecretOrShared = findFulfillableDomainProphecies(playerNumber, capturedDomain, state.play_history, state);
-                fulfillableSecretOrShared.forEach(id => allFulfillable.push({ id, type: 'secret' })); 
+                fulfillableSecretOrShared.forEach(id => {
+                    if (!allFulfillable.some(p => p.id === id)) {
+                        allFulfillable.push({ id, type: 'secret' });
+                    }
+                }); 
 
                 if (state.gameMode === 'competitive' && state.publicProphecies) {
                     state.publicProphecies.forEach(p => {
@@ -1217,12 +1229,16 @@
                 
                 newState.seal_decision = { active: false, player: null, king_player: null };
                 
+                let pendingDomainEvents = [];
+                const myPending = getFulfillableEventProphecies('selo_played', playerNumber, newState);
+                pendingDomainEvents.push(...myPending);
+                
                 if(newState.gameMode === 'competitive') {
-                    checkEventProphecies('selo_played', playerNumber, newState);
-                    checkEventProphecies('selo_played', kingPlayerNumber, newState);
+                    const enemyPending = getFulfillableEventProphecies('selo_played', kingPlayerNumber, newState);
+                    enemyPending.forEach(p => completeProphecyInstantly(p.id, kingPlayerNumber, newState));
                 }
                 
-                await processDomainCapture(playerNumber, newState);
+                await processDomainCapture(playerNumber, newState, pendingDomainEvents);
             }
             async function handleDeclineSelo(decliningPlayerNumber) {
                 let newState = JSON.parse(JSON.stringify(localGameState));
@@ -1230,14 +1246,20 @@
                 const playerName = getPlayerName(decliningPlayerNumber, newState);
                 
                 const kingCard = newState.discard_pile[newState.discard_pile.length - 1];
+                let pendingDomainEvents = [];
+                
                 if (kingCard && kingCard.Nome === 'Bael') {
                     addLogToState(newState, `O poder de Bael reverbera!`);
-                    checkEventProphecies('bael_played', 1, newState);
-                    checkEventProphecies('bael_played', 2, newState);
+                    pendingDomainEvents = getFulfillableEventProphecies('bael_played', kingPlayerNumber, newState);
+                    
+                    if (newState.gameMode === 'competitive') {
+                        const enemyPending = getFulfillableEventProphecies('bael_played', decliningPlayerNumber, newState);
+                        enemyPending.forEach(p => completeProphecyInstantly(p.id, decliningPlayerNumber, newState));
+                    }
                 }
                 addLogToState(newState, `${playerName} decide não usar o Selo.`);
                 newState.seal_decision = { active: false, player: null, king_player: null };
-                await processDomainCapture(kingPlayerNumber, newState);
+                await processDomainCapture(kingPlayerNumber, newState, pendingDomainEvents);
             }
 
             async function sendChatMessage() {
