@@ -1201,17 +1201,29 @@
                 const kingPlayerNumber = newState.seal_decision.king_player;
                 const playerName = getPlayerName(playerNumber, newState);
                 addLogToState(newState, `${playerName} usa o Selo de Salomão!`);
+                
                 const seloIndex = newState[`player${playerNumber}`].hand.findIndex(c => c.Nome === 'Selo de Salomão');
                 if(seloIndex === -1) return;
-                newState[`player${playerNumber}`].hand.splice(seloIndex, 1)[0];
+                
+                // Remove o Selo da mão
+                newState[`player${playerNumber}`].hand.splice(seloIndex, 1);
+                
+                // GARANTIA DE REPOSIÇÃO APÓS USAR O SELO
+                if (newState.deck.length > 0) {
+                    const drawnCard = newState.deck.pop();
+                    newState[`player${playerNumber}`].hand.push(drawnCard);
+                    addLogToState(newState, `${playerName} compra uma carta após usar o Selo.`);
+                }
+                
                 newState.seal_decision = { active: false, player: null, king_player: null };
+                
                 if(newState.gameMode === 'competitive') {
                     checkEventProphecies('selo_played', playerNumber, newState);
                     checkEventProphecies('selo_played', kingPlayerNumber, newState);
                 }
+                
                 await processDomainCapture(playerNumber, newState);
             }
-
             async function handleDeclineSelo(decliningPlayerNumber) {
                 let newState = JSON.parse(JSON.stringify(localGameState));
                 const kingPlayerNumber = newState.seal_decision.king_player;
