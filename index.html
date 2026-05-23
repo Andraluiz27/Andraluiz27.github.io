@@ -554,6 +554,8 @@
                 if (state.game_over) return false;
                 let winner = null;
                 let reason = '';
+                
+                // 1. Verificação de Vitória por Profecias (Ascensão)
                 if (state.gameMode === 'cooperative') {
                     const completedCount = (state.sharedProphecies || []).filter(p => p.completed).length;
                     if (completedCount >= 7) {
@@ -575,12 +577,38 @@
                         reason = 'Ascensão';
                     }
                 }
+                
                 if (winner !== null) {
                     state.game_over = true;
                     state.winner = winner;
                     state.win_reason = reason;
                     return true;
                 }
+
+                // 2. Verificação de Esgotamento do Grimório (Nova Trava de Segurança)
+                if (state.deck && state.deck.length === 0) {
+                    addLogToState(state, "O Grimório se esgotou! O jogo termina.");
+                    state.game_over = true;
+                    state.win_reason = 'Esgotamento';
+                    
+                    if (state.gameMode === 'cooperative') {
+                        if ((state.sharedProphecies || []).filter(p => p.completed).length < 7) {
+                            state.winner = -1;
+                        } else {
+                            state.winner = 0;
+                        }
+                    } else {
+                        const p1Score = (state.player1.prophecies || []).filter(p => p.completed).length + (state.publicProphecies || []).filter(p => p.completedBy === 1).length;
+                        const p2Score = (state.player2.prophecies || []).filter(p => p.completed).length + (state.publicProphecies || []).filter(p => p.completedBy === 2).length;
+                        
+                        // Desempate de pontuação ao final do Grimório
+                        if (p1Score > p2Score) state.winner = 1;
+                        else if (p2Score > p1Score) state.winner = 2;
+                        else state.winner = 0; // Empate
+                    }
+                    return true;
+                }
+                
                 return false;
             }
 
@@ -1120,31 +1148,19 @@
             function advanceTurn(lastPlayer, state) {
                 const opponent = lastPlayer === 1 ? 2 : 1;
                 const playerWhoDraws = state.current_player;
+                
                 if (state.deck.length > 0) {
                     const drawnCard = state.deck.pop();
                     state[`player${playerWhoDraws}`].hand.push(drawnCard);
                     addLogToState(state, `${getPlayerName(playerWhoDraws, state)} compra uma carta.`);
-                    if (state.deck.length === 0) {
-                        addLogToState(state, "O Grimório se esgotou! O jogo termina.");
-                        state.game_over = true;
-                        state.win_reason = 'Esgotamento';
-                        if (state.gameMode === 'cooperative') {
-                             if ((state.sharedProphecies || []).filter(p => p.completed).length < 7) state.winner = -1;
-                        } else {
-                            const p1Score = (state.player1.prophecies || []).filter(p => p.completed).length + (state.publicProphecies || []).filter(p => p.completedBy === 1).length;
-                            const p2Score = (state.player2.prophecies || []).filter(p => p.completed).length + (state.publicProphecies || []).filter(p => p.completedBy === 2).length;
-                            
-                            // Se alguém tiver mais pontos, vence. Se for igual, empate direto (winner = 0)
-                            if (p1Score > p2Score) state.winner = 1;
-                            else if (p2Score > p1Score) state.winner = 2;
-                            else state.winner = 0; 
-                        }
-                        return;
-                    }
                 }
+                
                 state.turn_count++;
                 state.current_player = opponent;
                 sacrificeSelection = [];
+                
+                // Força a verificação final para garantir que o esgotamento nunca passe batido
+                checkWinCondition(state);
             }
             
             async function processDomainCapture(playerNumber, state, pendingEvents = []) {
