@@ -1,7 +1,9 @@
 {
+  "id": "/",
   "name": "Goetia",
   "short_name": "Goetia",
   "start_url": "./index.html",
+  "scope": "/",
   "display": "fullscreen",
   "background_color": "#000000",
   "theme_color": "#000000",
