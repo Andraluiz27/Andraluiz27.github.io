@@ -248,7 +248,7 @@
                 
                 <div>
                     <h3 class="text-lg font-bold text-amber-500 mb-2 uppercase tracking-wide">Objetivo do Jogo</h3>
-                    <p>O objetivo é manipular a captura de domínios para cumprir profecias específicas. No modo Competitivo, vence o primeiro jogador a cumprir 3 profecias. No modo Cooperativo, os jogadores devem trabalhar juntos para cumprir 7 profecias compartilhadas antes que o grimório se esgote.</p>
+                    <p>O objetivo é manipular a captura de domínios para cumprir profecias específicas. No modo Competitivo, vence o jogador a ter mais profecias quando a última carta for comprada ou o primeiro jogador a cumprir 5 profecias. No modo Cooperativo, os jogadores devem trabalhar juntos para cumprir 7 profecias compartilhadas antes que o grimório se esgote.</p>
                 </div>
 
                 <div>
@@ -590,10 +590,10 @@
                     const p2SecretScore = (state.player2.prophecies || []).filter(p => p.completed).length;
                     const p2PublicScore = (state.publicProphecies || []).filter(p => p.completedBy === 2).length;
                     const p2Score = p2SecretScore + p2PublicScore;
-                    if (p1Score >= 3) {
+                    if (p1Score >= 5) {
                         winner = 1;
                         reason = 'Ascensão';
-                    } else if (p2Score >= 3) {
+                    } else if (p2Score >= 5) {
                         winner = 2;
                         reason = 'Ascensão';
                     }
@@ -645,7 +645,7 @@
                 let reasonMessage = '';
                 switch(reason) {
                     case 'Ascensão Cooperativa': reasonMessage = 'Vocês ascenderam juntos ao cumprir 7 profecias!'; break;
-                    case 'Ascensão': reasonMessage = 'O Mestre ascendeu ao cumprir três profecias.'; break;
+                    case 'Ascensão': reasonMessage = 'O Mestre ascendeu ao cumprir cinco profecias.'; break;
                     case 'Esgotamento': reasonMessage = gameMode === 'cooperative' ? 'O grimório se esgotou antes de cumprirem o ritual.' : 'O grimório se esgotou. A vitória foi decidida por profecias.'; break;
                     default: reasonMessage = 'O jogo terminou.';
                 }
