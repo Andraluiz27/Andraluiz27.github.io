@@ -423,14 +423,29 @@
                 return wrapper;
             }
 
-            function showCustomAlert(message) {
+            // Nova função de alertas rápidos
+            function showCustomAlert(message, duration = 2000) {
                 const alertBox = document.createElement('div');
-                alertBox.className = 'fixed top-16 left-1/2 transform -translate-x-1/2 bg-red-900/90 text-white border border-red-500 px-6 py-3 rounded shadow-2xl z-[200] font-bold text-sm tracking-wide';
+                // Estilo atualizado: Vermelho, com brilho, cantos arredondados, abaixo do cabeçalho
+                alertBox.className = 'fixed top-24 left-1/2 transform -translate-x-1/2 bg-red-950/95 text-red-100 border-2 border-red-600 px-6 py-2 rounded-full shadow-[0_0_20px_rgba(220,38,38,0.8)] z-[200] font-bold text-xs md:text-sm tracking-widest uppercase transition-all duration-300 pointer-events-none text-center min-w-[200px]';
                 alertBox.textContent = message;
+                
+                // Animação de entrada
+                alertBox.style.opacity = '0';
+                alertBox.style.marginTop = '-10px';
                 document.body.appendChild(alertBox);
-                setTimeout(() => alertBox.remove(), 3000);
-            }
+                
+                setTimeout(() => {
+                    alertBox.style.opacity = '1';
+                    alertBox.style.marginTop = '0px';
+                }, 10);
 
+                // Some automaticamente após a duração (2000ms = 2 segundos)
+                setTimeout(() => {
+                    alertBox.style.opacity = '0';
+                    setTimeout(() => alertBox.remove(), 300);
+                }, duration);
+            }
             async function updateAndRefreshState(state) {
                 if (isCpuGame) {
                     localGameState = state;
@@ -781,6 +796,27 @@
                     }
                 }
                 isFirstUIUpdate = false;
+
+                // --- NOVO GATILHO DE ALERTAS RÁPIDOS NA TELA (Exílio e Passar Vez) ---
+                const topLog = localGameState.log && localGameState.log.length > 0 ? localGameState.log[0].text : "";
+                
+                if (topLog && topLog !== window.lastQuickAlertLog && !isFirstUIUpdate) {
+                    window.lastQuickAlertLog = topLog;
+                    
+                    if (topLog.includes("foi EXILADO")) {
+                        // Se a mesa for exilada, mostra o alerta por 3 segundos para dar tempo de ler
+                        showCustomAlert("O Domínio foi Destruído!", 3000);
+                        
+                    } else if (topLog.includes("passou a vez")) {
+                        // Só mostra o alerta se quem passou NÃO foi você
+                        const myName = localGameState[localPlayerId].name;
+                        if (!topLog.startsWith(myName)) {
+                            const opponentId = localPlayerId === 'player1' ? 'player2' : 'player1';
+                            const oppName = localGameState[opponentId].name;
+                            showCustomAlert(`${oppName} passou a vez!`, 2000);
+                        }
+                    }
+                }
 
                 (localGameState.log || []).forEach(logEntry => {
                     const p = document.createElement('p');
