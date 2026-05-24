@@ -797,23 +797,26 @@
                 }
                 isFirstUIUpdate = false;
 
-                // --- NOVO GATILHO DE ALERTAS RÁPIDOS NA TELA (Exílio e Passar Vez) ---
+                // --- NOVO GATILHO DE ALERTAS (ROBUSTO PARA MULTIPLAYER) ---
                 const topLog = localGameState.log && localGameState.log.length > 0 ? localGameState.log[0].text : "";
                 
                 if (topLog && topLog !== window.lastQuickAlertLog && !isFirstUIUpdate) {
                     window.lastQuickAlertLog = topLog;
                     
-                    if (topLog.includes("foi EXILADO")) {
-                        // Se a mesa for exilada, mostra o alerta por 3 segundos para dar tempo de ler
+                    // Verifica se a ação foi EXÍLIO ou PASSE
+                    const isExile = topLog.includes("foi EXILADO");
+                    const isPass = topLog.includes("passou a vez");
+                    
+                    if (isExile) {
                         showCustomAlert("O Domínio foi Destruído!", 3000);
+                    } else if (isPass) {
+                        // Captura o nome de quem passou (a primeira palavra da mensagem)
+                        const nomeDeQuemPassou = topLog.split(' ')[0];
+                        const meuNome = localGameState[localPlayerId].name;
                         
-                    } else if (topLog.includes("passou a vez")) {
-                        // Só mostra o alerta se quem passou NÃO foi você
-                        const myName = localGameState[localPlayerId].name;
-                        if (!topLog.startsWith(myName)) {
-                            const opponentId = localPlayerId === 'player1' ? 'player2' : 'player1';
-                            const oppName = localGameState[opponentId].name;
-                            showCustomAlert(`${oppName} passou a vez!`, 2000);
+                        // O alerta SÓ dispara se o nome no log NÃO for o seu nome
+                        if (nomeDeQuemPassou !== meuNome) {
+                            showCustomAlert(`${nomeDeQuemPassou} passou a vez!`, 2000);
                         }
                     }
                 }
