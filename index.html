@@ -31,7 +31,7 @@
         font-family: ui-sans-serif, system-ui, sans-serif;
     }
     
-    #fire-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+    #fire-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
 
     /* ----- ESTILOS DO JOGO E WEB APP ----- */
     .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -75,8 +75,6 @@
     <audio id="bg-music" loop>
         <source src="sua-musica.mp3" type="audio/mpeg">
     </audio>
-
-    <canvas id="fire-canvas"></canvas>
 
     <canvas id="fire-canvas"></canvas>
 
@@ -1796,7 +1794,7 @@ document.addEventListener('DOMContentLoaded', () => {
     render();
     
 });
-<script>
+</script>  <script>
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js')
             .then(() => console.log('Service Worker Registado!'))
