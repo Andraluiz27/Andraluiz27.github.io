@@ -118,14 +118,11 @@
 
     <div id="game-ui" class="hidden flex flex-col w-full h-full relative z-10">
     <div id="sacrifice-alert-box" class="hidden absolute top-24 left-1/2 transform -translate-x-1/2 bg-red-950/95 border-2 border-red-500 p-4 rounded-xl shadow-[0_0_40px_rgba(239,68,68,0.6)] text-center z-[80] w-[90%] max-w-sm backdrop-blur-md">
-            <h3 class="text-xl md:text-2xl font-bold text-red-400 mb-2 font-title uppercase tracking-widest animate-pulse">Sacrifício Necessário</h3>
-            <p id="sacrifice-alert-text" class="text-gray-200 text-sm mb-3"></p>
-            <button id="confirm-sacrifice-btn" class="hidden w-full py-2 bg-red-700 hover:bg-red-600 text-white font-bold rounded shadow-lg uppercase tracking-wide transition-colors">Confirmar</button>
-        </div>
-    <div id="prophecy-alert-overlay" class="fixed inset-0 z-[150] flex items-center justify-center pointer-events-none hidden">
-        <div class="bg-black/95 border-4 border-amber-500 p-6 md:p-10 rounded-2xl shadow-[0_0_50px_rgba(245,158,11,0.6)] text-center transform scale-0 text-white backdrop-blur-md">
-            <h2 class="text-3xl md:text-5xl font-bold text-amber-400 mb-2 font-title drop-shadow-lg uppercase tracking-widest">Profecia Cumprida!</h2>
-            <p id="prophecy-alert-text" class="text-lg md:text-2xl font-bold text-gray-200"></p>
+        <h3 class="text-xl md:text-2xl font-bold text-red-400 mb-2 font-title uppercase tracking-widest animate-pulse">Reciclagem</h3>
+        <p id="sacrifice-alert-text" class="text-gray-200 text-sm mb-3"></p>
+        <div class="flex gap-2">
+            <button id="cancel-sacrifice-btn" class="w-1/2 py-2 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded shadow-lg uppercase tracking-wide transition-colors">Cancelar</button>
+            <button id="confirm-sacrifice-btn" class="w-1/2 py-2 bg-red-700 hover:bg-red-600 text-white font-bold rounded shadow-lg uppercase tracking-wide transition-colors opacity-50 cursor-not-allowed" disabled>Confirmar</button>
         </div>
     </div>
         
@@ -163,6 +160,10 @@
             <button id="btn-secret-prophecies" class="flex-1 max-w-[200px] py-2 bg-purple-900/80 hover:bg-purple-800 border border-purple-500 text-purple-100 font-bold text-xs md:text-sm rounded shadow-lg backdrop-blur-sm transition-all uppercase tracking-wide">Profecias Secretas</button>
             <button id="btn-public-prophecies" class="flex-1 max-w-[200px] py-2 bg-purple-900/80 hover:bg-purple-800 border border-purple-500 text-purple-100 font-bold text-xs md:text-sm rounded shadow-lg backdrop-blur-sm transition-all uppercase tracking-wide">Profecias Públicas</button>
             <button id="btn-shared-prophecies" class="hidden flex-1 max-w-[300px] py-2 bg-amber-900/80 hover:bg-amber-800 border border-amber-500 text-amber-100 font-bold text-xs md:text-sm rounded shadow-lg backdrop-blur-sm transition-all uppercase tracking-wide">Profecias Compartilhadas</button>
+        </div>
+
+        <div class="shrink-0 w-full flex justify-center z-40 mt-2 relative pointer-events-none">
+            <button id="pass-turn-btn" class="hidden pointer-events-auto px-6 py-2 bg-red-950 hover:bg-red-800 border-2 border-red-600 text-white font-bold text-sm rounded-full shadow-[0_0_20px_rgba(220,38,38,0.8)] transition-all uppercase tracking-widest z-50">🔥 Passar a Vez</button>
         </div>
 
         <footer class="shrink-0 h-[220px] md:h-[260px] bg-gray-900/95 border-t border-gray-700 backdrop-blur-md pb-12 pt-4 px-2 z-30">
@@ -271,15 +272,15 @@
                 </div>
 
                 <div>
-                    <h3 class="text-lg font-bold text-red-500 mb-2 uppercase tracking-wide">Sacrifício e Aniquilação</h3>
-                    <p class="mb-2">Se no seu turno você não possuir nenhuma jogada legal que respeite as regras de hierarquia, você é obrigado a realizar um Sacrifício.</p>
+                    <h3 class="text-lg font-bold text-red-500 mb-2 uppercase tracking-wide">Passar a Vez e Exílio</h3>
+                    <p class="mb-2">A qualquer momento no seu turno, você pode optar por <strong>Passar a Vez</strong> (Reciclar) em vez de jogar uma carta.</p>
                     <ul class="list-disc pl-5 space-y-1 text-gray-400">
-                        <li>O Sacrifício consiste em selecionar e descartar 2 cartas da sua mão para, em seguida, jogar 1 carta validamente, iniciando um novo domínio.</li>
-                        <li>Cada sacrifício reduz o número total de cartas da sua mão permanentemente.</li>
-                        <li><strong class="text-red-400">Aniquilação:</strong> Se você precisar realizar o seu terceiro sacrifício na partida (ou se não tiver cartas suficientes para o custo), você sofre Aniquilação e perde o jogo imediatamente.</li>
+                        <li>Para passar a vez, você deve selecionar 1 carta da sua mão e enviá-la para o Exílio (removida do jogo), comprando uma nova do grimório em seguida.</li>
+                        <li>Se ambos os jogadores passarem a vez consecutivamente, o Domínio é destruído e removido do jogo.</li>
+                        <li>O jogador que passou por último (causando a destruição da mesa) mantém a vez e joga a primeira carta do novo domínio.</li>
                     </ul>
                 </div>
-
+                
                 <div>
                     <h3 class="text-lg font-bold text-amber-500 mb-2 uppercase tracking-wide">Fim do Jogo pelo Grimório</h3>
                     <p>Se a última carta do grimório (baralho de compras) for comprada, o jogo se encerra imediatamente, não havendo mais turnos. A vitória é então decidida por quem tiver o maior número de profecias cumpridas. Em caso de pontuações iguais, o jogo termina em Empate.</p>
@@ -359,7 +360,7 @@
             const demons = [ {Nome:"Bael", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"}, {Nome:"Paimon", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"}, {Nome:"Beleth", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"}, {Nome:"Purson", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"}, {Nome:"Asmoday", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"}, {Nome:"Vine", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"}, {Nome:"Balam", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"}, {Nome:"Zagan", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"}, {Nome:"Belial", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Riqueza"}, {Nome:"Vassago", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"}, {Nome:"Ipos", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Conhecimento"}, {Nome:"Stolas", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"}, {Nome:"Orobas", Título:"Rei", Hierarquia:"Alta", Metal:"", Afinidade:"Guerra"}, {Nome:"Agares", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Conhecimento"}, {Nome:"Valefor", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Barbatos", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Bathin", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"}, {Nome:"Saleos", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Berith", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Astaroth", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Conhecimento"}, {Nome:"Vepar", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"}, {Nome:"Vual", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Murmur", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Conhecimento"}, {Nome:"Gremory", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Haures", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"}, {Nome:"Amduscias", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"}, {Nome:"Dantalion", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Riqueza"}, {Nome:"Aim", Título:"Duque", Hierarquia:"Média", Metal:"Cobre", Afinidade:"Guerra"}, {Nome:"Amon", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Riqueza"}, {Nome:"Naberius", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"}, {Nome:"Forneus", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Riqueza"}, {Nome:"Phenex", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"}, {Nome:"Orias", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"}, {Nome:"Andras", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Guerra"}, {Nome:"Andrealphus", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Conhecimento"}, {Nome:"Cimeies", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Guerra"}, {Nome:"Decarabia", Título:"Marquês", Hierarquia:"Baixa", Metal:"Prata", Afinidade:"Guerra"}, {Nome:"Botis", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Riqueza"}, {Nome:"Glasya-Labolas", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Conhecimento"}, {Nome:"Ronove", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Guerra"}, {Nome:"Furfur", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Guerra"}, {Nome:"Halphas", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Guerra"}, {Nome:"Andromalius", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Riqueza"}, {Nome:"Furcas", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Conhecimento"}, {Nome:"Leraje", Título:"Conde", Hierarquia:"Baixa", Metal:"Estanho", Afinidade:"Guerra"}, {Nome:"Foras", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Riqueza"}, {Nome:"Gaap", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Conhecimento"}, {Nome:"Malphas", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Guerra"}, {Nome:"Ose", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Conhecimento"}, {Nome:"Amy", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Riqueza"}, {Nome:"Valac", Título:"Presidente", Hierarquia:"Baixa", Metal:"Mercúrio", Afinidade:"Riqueza"} ];
             const metals = [...Array(5).fill({Nome: "Cobre", Título: "Duque"}), ...Array(6).fill({Nome: "Prata", Título: "Marquês"}), ...Array(5).fill({Nome: "Mercúrio", Título: "Presidente"}), ...Array(5).fill({Nome: "Estanho", Título: "Conde"})];
             const seals = Array(3).fill({Nome: "Selo de Salomão"});
-            const allProphecies = [ { id: 'p1', Nome: 'A Aristocracia Perversa', Desc: 'Capture um domínio com ao menos 4 demônios da afinidade Riqueza.', check: (domain) => domain.filter(c => c.Tipo === 'Demonio' && c.Afinidade === 'Riqueza').length >= 4 }, { id: 'p2', Nome: 'O Monólito Vermelho', Desc: 'Capture um domínio com ao menos 3 demônios, incluindo o rei, e que todos sejam da afinidade Guerra.', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio'); const hasKing = demons.some(d => d.Título === 'Rei'); return demons.length >= 3 && hasKing && demons.every(d => d.Afinidade === 'Guerra'); } }, { id: 'p3', Nome: 'A Insurreição dos Iguais', Desc: 'Capture um Domínio com 6 cartas ou mais, onde TODOS os demônios (exceto Reis) são da mesma Hierarquia (Baixa ou Média).', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta'); return domain.length >= 6 && (demons.length > 0 && (demons.every(d => d.Hierarquia === 'Baixa') || demons.every(d => d.Hierarquia === 'Média')) ); } }, { id: 'p4', Nome: 'A Pirâmide Perfeita', Desc: 'Capture um Domínio que contenha a sequência exata de demônios: Presidente -> Conde -> Marquês.', check: (domain) => { if (domain.length < 3) return false; for (let i = 0; i <= domain.length - 3; i++) { const c1 = domain[i]; const c2 = domain[i+1]; const c3 = domain[i+2]; if (c1.Tipo === 'Demonio' && c1.Título === 'Presidente' && c2.Tipo === 'Demonio' && c2.Título === 'Conde' && c3.Tipo === 'Demonio' && c3.Título === 'Marquês') return true; } return false; } }, { id: 'p5', Nome: 'O Tesouro Profano', Desc: 'Capture um domínio que se iniciou e finalizou com uma carta de Metal, antes do Rei, e que tenha ao menos 2 cartas de metal.', check: (domain) => { if (domain.length < 3) return false; const metais = domain.filter(c => c.Tipo === 'Metal'); return domain[0].Tipo === 'Metal' && domain[domain.length - 2].Tipo === 'Metal' && metais.length >= 2; } }, { id: 'p6', Nome: 'O Mosaico do Caos', Desc: 'Capture um domínio com ao menos 5 demônios, incluindo o rei, sem que nenhuma afinidade apareça mais do que duas vezes.', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio'); const hasKing = demons.some(d => d.Título === 'Rei'); const counts = demons.reduce((acc, d) => { acc[d.Afinidade] = (acc[d.Afinidade] || 0) + 1; return acc; }, {}); return demons.length >= 5 && hasKing && Object.values(counts).every(v => v <= 2); } }, { id: 'p7', Nome: 'A Trindade Arcaica', Desc: 'Capture um domínio que contenha pelo menos 3 demônios com o mesmo Título (excluindo Reis).', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Título !== 'Rei'); const titleCounts = demons.reduce((acc, d) => { acc[d.Título] = (acc[d.Título] || 0) + 1; return acc; }, {}); return Object.values(titleCounts).some(count => count >= 3); } }, { id: 'p8', Nome: 'O Salto da Fé', Desc: 'Capture um Domínio com um Duque, onde TODOS os outros demônios são de Baixa Hierarquia e tenha ao menos 4 demônios.', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta'); return demons.length >= 4 && demons.some(d => d.Hierarquia === 'Média') && demons.filter(d => d.Hierarquia === 'Baixa').length === (demons.length - 1); } }, { id: 'p9', Nome: 'A Prata Romana', Desc: 'Capture um domínio que tenha ao menos 3 cartas de Prata.', check: (domain) => domain.filter(c => c.Tipo === 'Metal' && c.Nome === 'Prata').length >= 3 }, { id: 'p10', Nome: 'A Liga Infernal', Desc: 'Capture um Domínio que contenha pelo menos um de cada um dos 4 tipos de Metal.', check: (domain) => { const metalTypes = new Set(domain.filter(c => c.Tipo === 'Metal').map(m => m.Nome)); return metalTypes.size === 4; } }, { id: 'p11', Nome: 'A Legião Pura', Desc: 'Capture um domínio com ao menos 5 cartas, incluindo o rei, não sendo nenhuma delas um Metal.', check: (domain) => { const hasKing = domain.some(d => d.Título === 'Rei'); return domain.length >= 5 && hasKing && domain.filter(c => c.Tipo === 'Metal').length === 0; } }, { id: 'p12', Nome: 'A Linhagem Absoluta', Desc: 'Capture um domínio onde o Rei possua a mesma Afinidade do Duque jogado imediatamente antes dele.', check: (domain) => { if (domain.length < 2) return false; const rei = domain[domain.length - 1]; const anterior = domain[domain.length - 2]; return rei.Título === 'Rei' && anterior.Título === 'Duque' && rei.Afinidade === anterior.Afinidade; } }, { id: 'p13', Nome: 'A Falsa Paz', Desc: 'Capture um domínio com 5 cartas ou mais (incluindo o Rei) sem a presença de NENHUM demônio da afinidade Guerra.', check: (domain) => { return domain.length >= 5 && !domain.some(c => c.Afinidade === 'Guerra'); } }, { id: 'p14', Nome: 'A Corrupção do Sábio', Desc: 'Cumprida se o Selo de Salomão for utilizado na jogada, seja por você ou pelo seu oponente.', check: () => false, event: 'selo_played' }, { id: 'p15', Nome: 'A Plena Corte', Desc: 'Capture um domínio que contenha pelo menos 1 Metal, 1 demônio de Baixa Hierarquia, 1 de Média e o Rei, sem a presença do Selo de Salomão.', check: (domain) => { const temMetal = domain.some(c => c.Tipo === 'Metal'); const temBaixa = domain.some(c => c.Hierarquia === 'Baixa'); const temMedia = domain.some(c => c.Hierarquia === 'Média'); const temRei = domain.some(c => c.Título === 'Rei'); const temSelo = domain.some(c => c.Tipo === 'Lendário' || c.Nome === 'Selo de Salomão'); return temMetal && temBaixa && temMedia && temRei && !temSelo; } }, { id: 'p16', Nome: 'O Grito do Abismo', Desc: 'Cumprida se você for forçado a fazer um Sacrifício.', check: () => false, event: 'sacrifice_made' }, { id: 'p17', Nome: 'A Escala da Loucura', Desc: 'Capture um domínio que tenha uma sequência exata de três demônios da mesma Afinidade.', check: (domain) => { if (domain.length < 3) return false; for (let i = 0; i <= domain.length - 3; i++) { const card1 = domain[i]; const card2 = domain[i+1]; const card3 = domain[i+2]; if (card1.Tipo === 'Demonio' && card2.Tipo === 'Demonio' && card3.Tipo === 'Demonio') { if (card1.Afinidade === card2.Afinidade && card1.Afinidade === card3.Afinidade) return true; } } return false; } }, { id: 'p18', Nome: 'O Mestre dos Marionetes', Desc: 'Capture um domínio que contenha um Duque de Conhecimento e ao menos outros 2 demônios de Conhecimento (ignorando o Rei).', check: (domain) => { const demoniosConhecimento = domain.filter(c => c.Tipo === 'Demonio' && c.Afinidade === 'Conhecimento' && c.Título !== 'Rei'); return demoniosConhecimento.some(d => d.Título === 'Duque') && demoniosConhecimento.length >= 3; } }, { id: 'p19', Nome: 'A Multidão de Potestades', Desc: 'Capture um domínio com ao menos 9 cartas (o Selo de Salomão conta para o limite, caso tenha sido usado).', check: (domain) => { const hasKing = domain.some(c => c.Título === 'Rei'); return domain.length >= 9 && hasKing; } }, { id: 'p20', Nome: 'O Fim da Plebe', Desc: 'Capture um domínio onde o Rei esmaga um demônio de Baixa Hierarquia que foi jogado sobre outro demônio de MESMO Título.', check: (domain) => { if(domain.length < 3) return false; const rei = domain[domain.length-1]; const alvo = domain[domain.length-2]; const vitima = domain[domain.length-3]; return rei.Título === 'Rei' && alvo.Tipo === 'Demonio' && alvo.Hierarquia === 'Baixa' && vitima.Tipo === 'Demonio' && alvo.Título === vitima.Título; } },];
+            const allProphecies = [ { id: 'p1', Nome: 'A Aristocracia Perversa', Desc: 'Capture um domínio com ao menos 4 demônios da afinidade Riqueza.', check: (domain) => domain.filter(c => c.Tipo === 'Demonio' && c.Afinidade === 'Riqueza').length >= 4 }, { id: 'p2', Nome: 'O Monólito Vermelho', Desc: 'Capture um domínio com ao menos 3 demônios, incluindo o rei, e que todos sejam da afinidade Guerra.', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio'); const hasKing = demons.some(d => d.Título === 'Rei'); return demons.length >= 3 && hasKing && demons.every(d => d.Afinidade === 'Guerra'); } }, { id: 'p3', Nome: 'A Insurreição dos Iguais', Desc: 'Capture um Domínio com 6 cartas ou mais, onde TODOS os demônios (exceto Reis) são da mesma Hierarquia (Baixa ou Média).', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta'); return domain.length >= 6 && (demons.length > 0 && (demons.every(d => d.Hierarquia === 'Baixa') || demons.every(d => d.Hierarquia === 'Média')) ); } }, { id: 'p4', Nome: 'A Pirâmide Perfeita', Desc: 'Capture um Domínio que contenha a sequência exata de demônios: Presidente -> Conde -> Marquês.', check: (domain) => { if (domain.length < 3) return false; for (let i = 0; i <= domain.length - 3; i++) { const c1 = domain[i]; const c2 = domain[i+1]; const c3 = domain[i+2]; if (c1.Tipo === 'Demonio' && c1.Título === 'Presidente' && c2.Tipo === 'Demonio' && c2.Título === 'Conde' && c3.Tipo === 'Demonio' && c3.Título === 'Marquês') return true; } return false; } }, { id: 'p5', Nome: 'O Tesouro Profano', Desc: 'Capture um domínio que se iniciou e finalizou com uma carta de Metal, antes do Rei, e que tenha ao menos 2 cartas de metal.', check: (domain) => { if (domain.length < 3) return false; const metais = domain.filter(c => c.Tipo === 'Metal'); return domain[0].Tipo === 'Metal' && domain[domain.length - 2].Tipo === 'Metal' && metais.length >= 2; } }, { id: 'p6', Nome: 'O Mosaico do Caos', Desc: 'Capture um domínio com ao menos 5 demônios, incluindo o rei, sem que nenhuma afinidade apareça mais do que duas vezes.', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio'); const hasKing = demons.some(d => d.Título === 'Rei'); const counts = demons.reduce((acc, d) => { acc[d.Afinidade] = (acc[d.Afinidade] || 0) + 1; return acc; }, {}); return demons.length >= 5 && hasKing && Object.values(counts).every(v => v <= 2); } }, { id: 'p7', Nome: 'A Trindade Arcaica', Desc: 'Capture um domínio que contenha pelo menos 3 demônios com o mesmo Título (excluindo Reis).', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Título !== 'Rei'); const titleCounts = demons.reduce((acc, d) => { acc[d.Título] = (acc[d.Título] || 0) + 1; return acc; }, {}); return Object.values(titleCounts).some(count => count >= 3); } }, { id: 'p8', Nome: 'O Salto da Fé', Desc: 'Capture um Domínio com um Duque, onde TODOS os outros demônios são de Baixa Hierarquia e tenha ao menos 4 demônios.', check: (domain) => { const demons = domain.filter(c => c.Tipo === 'Demonio' && c.Hierarquia !== 'Alta'); return demons.length >= 4 && demons.some(d => d.Hierarquia === 'Média') && demons.filter(d => d.Hierarquia === 'Baixa').length === (demons.length - 1); } }, { id: 'p9', Nome: 'A Prata Romana', Desc: 'Capture um domínio que tenha ao menos 3 cartas de Prata.', check: (domain) => domain.filter(c => c.Tipo === 'Metal' && c.Nome === 'Prata').length >= 3 }, { id: 'p10', Nome: 'A Liga Infernal', Desc: 'Capture um Domínio que contenha pelo menos um de cada um dos 4 tipos de Metal.', check: (domain) => { const metalTypes = new Set(domain.filter(c => c.Tipo === 'Metal').map(m => m.Nome)); return metalTypes.size === 4; } }, { id: 'p11', Nome: 'A Legião Pura', Desc: 'Capture um domínio com ao menos 5 cartas, incluindo o rei, não sendo nenhuma delas um Metal.', check: (domain) => { const hasKing = domain.some(d => d.Título === 'Rei'); return domain.length >= 5 && hasKing && domain.filter(c => c.Tipo === 'Metal').length === 0; } }, { id: 'p12', Nome: 'A Linhagem Absoluta', Desc: 'Capture um domínio onde o Rei possua a mesma Afinidade do Duque jogado imediatamente antes dele.', check: (domain) => { if (domain.length < 2) return false; const rei = domain[domain.length - 1]; const anterior = domain[domain.length - 2]; return rei.Título === 'Rei' && anterior.Título === 'Duque' && rei.Afinidade === anterior.Afinidade; } }, { id: 'p13', Nome: 'A Falsa Paz', Desc: 'Capture um domínio com 5 cartas ou mais (incluindo o Rei) sem a presença de NENHUM demônio da afinidade Guerra.', check: (domain) => { return domain.length >= 5 && !domain.some(c => c.Afinidade === 'Guerra'); } }, { id: 'p14', Nome: 'A Corrupção do Sábio', Desc: 'Cumprida se o Selo de Salomão for utilizado na jogada, seja por você ou pelo seu oponente.', check: () => false, event: 'selo_played' }, { id: 'p15', Nome: 'A Plena Corte', Desc: 'Capture um domínio que contenha pelo menos 1 Metal, 1 demônio de Baixa Hierarquia, 1 de Média e o Rei, sem a presença do Selo de Salomão.', check: (domain) => { const temMetal = domain.some(c => c.Tipo === 'Metal'); const temBaixa = domain.some(c => c.Hierarquia === 'Baixa'); const temMedia = domain.some(c => c.Hierarquia === 'Média'); const temRei = domain.some(c => c.Título === 'Rei'); const temSelo = domain.some(c => c.Tipo === 'Lendário' || c.Nome === 'Selo de Salomão'); return temMetal && temBaixa && temMedia && temRei && !temSelo; } }, { id: 'p17', Nome: 'A Escala da Loucura', Desc: 'Capture um domínio que tenha uma sequência exata de três demônios da mesma Afinidade.', check: (domain) => { if (domain.length < 3) return false; for (let i = 0; i <= domain.length - 3; i++) { const card1 = domain[i]; const card2 = domain[i+1]; const card3 = domain[i+2]; if (card1.Tipo === 'Demonio' && card2.Tipo === 'Demonio' && card3.Tipo === 'Demonio') { if (card1.Afinidade === card2.Afinidade && card1.Afinidade === card3.Afinidade) return true; } } return false; } }, { id: 'p18', Nome: 'O Mestre dos Marionetes', Desc: 'Capture um domínio que contenha um Duque de Conhecimento e ao menos outros 2 demônios de Conhecimento (ignorando o Rei).', check: (domain) => { const demoniosConhecimento = domain.filter(c => c.Tipo === 'Demonio' && c.Afinidade === 'Conhecimento' && c.Título !== 'Rei'); return demoniosConhecimento.some(d => d.Título === 'Duque') && demoniosConhecimento.length >= 3; } }, { id: 'p19', Nome: 'A Multidão de Potestades', Desc: 'Capture um domínio com ao menos 9 cartas (o Selo de Salomão conta para o limite, caso tenha sido usado).', check: (domain) => { const hasKing = domain.some(c => c.Título === 'Rei'); return domain.length >= 9 && hasKing; } }, { id: 'p20', Nome: 'O Fim da Plebe', Desc: 'Capture um domínio onde o Rei esmaga um demônio de Baixa Hierarquia que foi jogado sobre outro demônio de MESMO Título.', check: (domain) => { if(domain.length < 3) return false; const rei = domain[domain.length-1]; const alvo = domain[domain.length-2]; const vitima = domain[domain.length-3]; return rei.Título === 'Rei' && alvo.Tipo === 'Demonio' && alvo.Hierarquia === 'Baixa' && vitima.Tipo === 'Demonio' && alvo.Título === vitima.Título; } },];
             let localGameState = {};
             let localPlayerId = null;
             let gameId = null;
@@ -469,22 +470,12 @@
                     return { action: 'play', cardIndex: legalMoves[0].index };
                 }
             
-                if (cpuHand.length < 3) {
-                    return { action: 'aniquilado' };
-                }
-            
+                // CPU passa a vez reciclando a carta de menor valor
                 const sortedHand = [...cpuHand]
                     .map((card, index) => ({ card, originalIndex: index }))
                     .sort((a, b) => (titleHierarchy[a.card.Título] || 0) - (titleHierarchy[b.card.Título] || 0));
             
-                const indicesToDiscard = [sortedHand[0].originalIndex, sortedHand[1].originalIndex];
-                const indexToPlay = sortedHand[2].originalIndex;
-            
-                return {
-                    action: 'sacrifice_sequence',
-                    discardIndices: indicesToDiscard,
-                    playIndex: indexToPlay
-                };
+                return { action: 'pass', discardIndex: sortedHand[0].originalIndex };
             }
 
             function isLegalMove(cardToPlay, topCard) {
@@ -715,7 +706,14 @@
                     domainBoard.appendChild(empty);
                 }
 
-                // --- CONTROLE DA UI DE SACRIFÍCIO ---
+                // --- CONTROLE DA UI DE PASSAR A VEZ E SACRIFÍCIO ---
+                const passTurnBtn = document.getElementById('pass-turn-btn');
+                if (isMyTurn && !sacrificeState.active && !localGameState.game_over) {
+                    passTurnBtn.classList.remove('hidden');
+                } else {
+                    if(passTurnBtn) passTurnBtn.classList.add('hidden');
+                }
+
                 const sacBox = document.getElementById('sacrifice-alert-box');
                 const sacText = document.getElementById('sacrifice-alert-text');
                 const sacBtn = document.getElementById('confirm-sacrifice-btn');
@@ -723,22 +721,18 @@
                 if (sacrificeState.active && isMyTurn) {
                     sacBox.classList.remove('hidden');
                     if (sacrificeState.stage === 'discarding') {
-                        // Texto limpo e direto ao ponto
-                        sacText.innerHTML = `Selecione <b>2 cartas</b> da sua mão para descartar.<br>Selecionadas: <b class="text-red-400 text-lg">(${sacrificeSelection.length}/2)</b>`;
-                        if (sacrificeSelection.length === 2) {
-                            sacBtn.classList.remove('hidden');
+                        sacText.innerHTML = `Selecione <b>1 carta</b> para reciclar e passar a vez.`;
+                        if (sacrificeSelection.length === 1) {
+                            sacBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                            sacBtn.disabled = false;
                         } else {
-                            sacBtn.classList.add('hidden');
+                            sacBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                            sacBtn.disabled = true;
                         }
-                    } else if (sacrificeState.stage === 'playing') {
-                        // Texto limpo para a segunda fase
-                        sacText.innerHTML = `Selecione <b>1 carta</b> da sua mão para jogar.`;
-                        sacBtn.classList.add('hidden');
-                    }
+                    } 
                 } else {
                     if (sacBox) sacBox.classList.add('hidden');
                 }
-
                 // --- MÃO DO JOGADOR ---
                 const handContainer = document.getElementById('player-hand');
                 handContainer.innerHTML = '';
@@ -898,70 +892,37 @@
                         const cpuPlayerName = getPlayerName(2, newState);
                 
                         if (cpuDecision.action === 'play') {
+                            newState.consecutive_passes = 0;
                             await playCard(2, cpuDecision.cardIndex, newState);
                 
-                        } else if (cpuDecision.action === 'aniquilado') {
-                            addLogToState(newState, `🚨 ANIQUILAÇÃO: CPU não possui cartas suficientes para o sacrifício!`);
-                            newState.game_over = true;
-                            newState.winner = 1; 
-                            newState.win_reason = 'Aniquilação';
-                            await updateAndRefreshState(newState);
-                
-                        } else if (cpuDecision.action === 'sacrifice_sequence') {
-                            const currentSacrifices = newState.player2.sacrifices_made || 0;
+                        } else if (cpuDecision.action === 'pass') {
+                            const discardIndex = cpuDecision.discardIndex;
+                            const discarded = newState[cpuPlayerId].hand.splice(discardIndex, 1)[0];
+                            newState.removed_from_game.push(discarded);
                             
-                            // CPU sofre aniquilação se tentar fazer o 3º sacrifício
-                            if (currentSacrifices >= 2) {
-                                addLogToState(newState, `🚨 ANIQUILAÇÃO: CPU atingiu o limite de 3 sacrifícios!`);
-                                newState.game_over = true;
-                                newState.winner = 1;
-                                newState.win_reason = 'Aniquilação';
+                            newState.consecutive_passes = (newState.consecutive_passes || 0) + 1;
+                            addLogToState(newState, `CPU reciclou uma carta e passou a vez.`);
+                            
+                            if (newState.deck.length > 0) {
+                                newState[cpuPlayerId].hand.push(newState.deck.pop());
+                            }
+                            
+                            if (newState.consecutive_passes >= 2) {
+                                addLogToState(newState, `🔥 Os dois passaram! O Domínio de ${newState.discard_pile.length} cartas foi EXILADO!`);
+                                newState.removed_from_game.push(...newState.discard_pile);
+                                newState.discard_pile = [];
+                                newState.consecutive_passes = 0;
+                                newState.turn_count++; // Mantém a vez na CPU
+                            } else {
+                                newState.turn_count++;
+                                newState.current_player = 1; 
+                            }
+                            
+                            if (checkWinCondition(newState)) {
                                 await updateAndRefreshState(newState);
                                 return;
                             }
-                            
-                            newState.player2.sacrifices_made = currentSacrifices + 1;
-                            addLogToState(newState, `CPU não tem jogadas e fará o seu ${newState.player2.sacrifices_made}º Sacrifício.`);
-                            
-                            const sortedDiscardIndices = cpuDecision.discardIndices.sort((a, b) => b - a);
-                            const discardedCards = [];
-                            sortedDiscardIndices.forEach(index => {
-                                const discarded = newState[cpuPlayerId].hand.splice(index, 1)[0];
-                                discardedCards.push(discarded);
-                            });
-                            newState.removed_from_game.push(...discardedCards);
-                            addLogToState(newState, `CPU sacrifica e descarta 2 cartas (Sacrifício ${newState.player2.sacrifices_made}/3).`);
-                            
-                            const cardToPlayObject = cpuHandBeforeMove[cpuDecision.playIndex];
-                            const finalPlayIndex = newState[cpuPlayerId].hand.findIndex(c => c.Nome === cardToPlayObject.Nome);
-                
-                            if (finalPlayIndex > -1) {
-                                const cardToPlay = newState[cpuPlayerId].hand.splice(finalPlayIndex, 1)[0];
-                                newState.discard_pile.push(cardToPlay);
-                                newState.play_history.push({ player: 2, card: cardToPlay });
-                                addLogToState(newState, `...e joga ${cardToPlay.Nome}.`);
-                
-                                const pendingSacCpu = getFulfillableEventProphecies('sacrifice_made', 2, newState);
-                                pendingSacCpu.forEach(p => completeProphecyInstantly(p.id, 2, newState));
-
-                                if (newState.gameMode === 'cooperative') {
-                                    newState.coop_sacrifice_count = (newState.coop_sacrifice_count || 0) + 1;
-                                }
-                
-                                if (newState.deck.length > 0) {
-                                    newState[cpuPlayerId].hand.push(newState.deck.pop());
-                                    addLogToState(newState, `CPU compra uma carta.`);
-                                }
-                
-                                newState.turn_count++;
-                                newState.current_player = 1; 
-                
-                                if (checkWinCondition(newState)) {
-                                    await updateAndRefreshState(newState);
-                                    return;
-                                }
-                                await updateAndRefreshState(newState);
-                            }
+                            await updateAndRefreshState(newState);
                         }
                     }, 1500); 
                 }
@@ -1019,104 +980,29 @@
                 if (localGameState.game_over || !isMyTurn) return;
             
                 const playerId = `player${playerNumber}`;
-                const playerName = getPlayerName(playerNumber, localGameState);
                 const hand = localGameState[playerId].hand;
             
                 if (sacrificeState.active) {
-                    let newState = JSON.parse(JSON.stringify(localGameState));
-            
                     if (sacrificeState.stage === 'discarding') {
-                        // Permite marcar e desmarcar a carta clicada
                         if (sacrificeSelection.includes(index)) {
                             sacrificeSelection = sacrificeSelection.filter(i => i !== index);
-                        } else if (sacrificeSelection.length < 2) {
+                        } else if (sacrificeSelection.length < 1) {
                             sacrificeSelection.push(index);
                         }
                         updateUI(); 
-                        // Removemos a execução automática! Agora o descarte só ocorre ao clicar no botão Confirmar.
-                    }
-                    else if (sacrificeState.stage === 'playing') {
-                        const cardToPlay = newState[playerId].hand[index];
-            
-                        if (cardToPlay.Nome === 'Selo de Salomão') {
-                            showCustomAlert("O Selo de Salomão não pode ser jogado durante um Sacrifício.");
-                            return;
-                        }
-                        
-                        newState[playerId].hand.splice(index, 1);
-                        newState.discard_pile.push(cardToPlay);
-                        newState.play_history.push({ player: playerNumber, card: cardToPlay });
-                        addLogToState(newState, `...e joga ${cardToPlay.Nome} para iniciar um novo Domínio.`);
-                        
-                        const pendingSac = getFulfillableEventProphecies('sacrifice_made', playerNumber, newState);
-                        pendingSac.forEach(p => completeProphecyInstantly(p.id, playerNumber, newState));
-
-                        if (newState.gameMode === 'cooperative') {
-                            newState.coop_sacrifice_count = (newState.coop_sacrifice_count || 0) + 1;
-                        }
-                        
-                        // GARANTIA DE COMPRA DE CARTA
-                        if (newState.deck.length > 0) {
-                            const drawnCard = newState.deck.pop();
-                            newState[playerId].hand.push(drawnCard);
-                            addLogToState(newState, `${playerName} compra uma carta.`);
-                        }
-                        
-                        sacrificeState = { active: false, stage: null };
-                        newState.turn_count++;
-                        newState.current_player = playerNumber === 1 ? 2 : 1;
-                        
-                        // Verifica fim de jogo após a compra
-                        if (checkWinCondition(newState)) {
-                            await updateAndRefreshState(newState);
-                            return;
-                        }
-                        await updateAndRefreshState(newState);
                     }
                     return;
                 }
                 
                 const topCard = localGameState.discard_pile.length > 0 ? localGameState.discard_pile[localGameState.discard_pile.length - 1] : null;
-                const hasLegalMoves = hand.some(card => isLegalMove(card, topCard));
-            
-                if (hasLegalMoves) {
-                    const cardToPlay = hand[index];
-                    if (isLegalMove(cardToPlay, topCard)) {
-                        let newState = JSON.parse(JSON.stringify(localGameState));
-                        await playCard(playerNumber, index, newState);
-                    } else {
-                        showCustomAlert("Jogada ilegal.");
-                    }
+                const cardToPlay = hand[index];
+                
+                if (isLegalMove(cardToPlay, topCard)) {
+                    let newState = JSON.parse(JSON.stringify(localGameState));
+                    newState.consecutive_passes = 0; // Zera o contador de passes consecutivos
+                    await playCard(playerNumber, index, newState);
                 } else {
-                    const currentSacrifices = localGameState[`player${playerNumber}`].sacrifices_made || 0;
-                    
-                    // Verifica se já vai estourar o limite com o 3º sacrifício
-                    if (currentSacrifices >= 2) {
-                        let newState = JSON.parse(JSON.stringify(localGameState));
-                        addLogToState(newState, `ANIQUILAÇÃO: ${playerName} atingiu o limite de 3 sacrifícios!`);
-                        const winner = newState.gameMode === 'cooperative' ? -1 : (playerNumber === 1 ? 2 : 1);
-                        newState.game_over = true;
-                        newState.winner = winner;
-                        newState.win_reason = 'Aniquilação';
-                        await updateAndRefreshState(newState);
-                        return;
-                    }
-
-                    // Se não tiver cartas suficientes para pagar o custo
-                    if (hand.length < 3) {
-                        let newState = JSON.parse(JSON.stringify(localGameState));
-                        addLogToState(newState, `ANIQUILAÇÃO: ${playerName} não possui cartas suficientes para pagar o sacrifício!`);
-                        const winner = newState.gameMode === 'cooperative' ? -1 : (playerNumber === 1 ? 2 : 1);
-                        newState.game_over = true;
-                        newState.winner = winner;
-                        newState.win_reason = 'Aniquilação';
-                        await updateAndRefreshState(newState);
-                        return;
-                    }
-            
-                    sacrificeState = { active: true, stage: 'discarding' };
-                    addLogToState(localGameState, `${playerName} não tem jogadas e fará o seu ${currentSacrifices + 1}º Sacrifício.`);
-                    updateUI(); 
+                    showCustomAlert("Jogada ilegal. Você pode Passar a Vez se precisar.");
                 }
             }
 
@@ -1378,7 +1264,7 @@
                 let newGameState = { deck: [], discard_pile: [], play_history: [], removed_from_game: [], log: [], chat: [], player1: { name: playerName, hand: [], prophecies: [], domains_captured: 0, uid: auth.currentUser?.uid || null }, player2: { name: 'Aguardando...', hand: [], prophecies: [], domains_captured: 0, uid: null }, current_player: 1, turn_count: 1, game_over: false, winner: null, status: 'waiting', win_reason: null, seal_decision: { active: false, player: null, king_player: null }, prophecy_choice: { active: false, player: null, choices: [], domain_owner: null, votes: {player1: null, player2: null} }, gameMode: selectedGameMode };
                 
                 let shuffledDeck = [...fullDeck].sort(() => Math.random() - 0.5);
-                const excludedPublicIds = ['p14', 'p15', 'p16'];
+                const excludedPublicIds = ['p14'];
                 const publicEligibleProphecies = allProphecies.filter(p => !excludedPublicIds.includes(p.id));
                 let shuffledPublic = [...publicEligibleProphecies].sort(() => Math.random() - 0.5);
                 const publicPropheciesSelection = shuffledPublic.slice(0, 2);
@@ -1501,29 +1387,59 @@
             document.getElementById('confirm-seal-btn').addEventListener('click', () => { if (localGameState.seal_decision?.active) handleSelo(localGameState.seal_decision.player); });
             // --- COLE O PASSO 4 AQUI ---
             // --- ESTE É O BLOCO FINAL DO SACRIFÍCIO ---
+            // --- BOTÕES DE PASSAR A VEZ ---
+            document.getElementById('pass-turn-btn').addEventListener('click', () => {
+                sacrificeState = { active: true, stage: 'discarding' };
+                sacrificeSelection = [];
+                updateUI();
+            });
+
+            document.getElementById('cancel-sacrifice-btn').addEventListener('click', () => {
+                sacrificeState = { active: false, stage: null };
+                sacrificeSelection = [];
+                updateUI();
+            });
+
             document.getElementById('confirm-sacrifice-btn').addEventListener('click', async () => {
-                if (sacrificeSelection.length !== 2) return;
+                if (sacrificeSelection.length !== 1) return;
                 
                 let newState = JSON.parse(JSON.stringify(localGameState));
                 const playerNumber = localPlayerId === 'player1' ? 1 : 2;
                 const playerId = `player${playerNumber}`;
                 const playerName = getPlayerName(playerNumber, newState);
                 
-                const sortedIndices = sacrificeSelection.sort((a, b) => b - a);
-                const discardedCards = [];
-                sortedIndices.forEach(i => {
-                    const discarded = newState[playerId].hand.splice(i, 1)[0];
-                    discardedCards.push(discarded);
-                });
+                const discardIndex = sacrificeSelection[0];
+                const discardedCard = newState[playerId].hand.splice(discardIndex, 1)[0];
+                newState.removed_from_game.push(discardedCard);
                 
-                newState.removed_from_game.push(...discardedCards);
+                newState.consecutive_passes = (newState.consecutive_passes || 0) + 1;
+                addLogToState(newState, `${playerName} reciclou uma carta e passou a vez.`);
                 
-                // REGISTRA O SACRIFÍCIO E AVISA NO CHAT QUANTOS FALTAM
-                newState[playerId].sacrifices_made = (newState[playerId].sacrifices_made || 0) + 1;
-                addLogToState(newState, `SACRIFÍCIO: ${playerName} descartou 2 cartas (Sacrifício ${newState[playerId].sacrifices_made}/3)!`);
+                // Repõe a carta imediatamente
+                if (newState.deck.length > 0) {
+                    newState[playerId].hand.push(newState.deck.pop());
+                }
                 
                 sacrificeSelection = []; 
-                sacrificeState.stage = 'playing'; 
+                sacrificeState = { active: false, stage: null }; 
+
+                // Lógica da Explosão do Domínio (Exílio)
+                if (newState.consecutive_passes >= 2) {
+                    addLogToState(newState, `🔥 Os dois passaram! O Domínio de ${newState.discard_pile.length} cartas foi EXILADO!`);
+                    newState.removed_from_game.push(...newState.discard_pile);
+                    newState.discard_pile = [];
+                    newState.consecutive_passes = 0;
+                    // O jogador que causou o empate mantém a vez
+                    newState.turn_count++; 
+                } else {
+                    newState.turn_count++;
+                    newState.current_player = playerNumber === 1 ? 2 : 1;
+                }
+
+                if (checkWinCondition(newState)) {
+                    await updateAndRefreshState(newState);
+                    return;
+                }
                 await updateAndRefreshState(newState);
             });
             // FIM DO BLOCO DO PASSO 4
@@ -1598,7 +1514,7 @@
                 const fullDeck = [...demonDeck, ...metalDeck, ...sealDeck];
                 let shuffledDeck = [...fullDeck].sort(() => Math.random() - 0.5);
 
-                const excludedPublicIds = ['p14', 'p15', 'p16'];
+                const excludedPublicIds = ['p14'];
                 const publicEligibleProphecies = allProphecies.filter(p => !excludedPublicIds.includes(p.id));
                 let shuffledPublic = [...publicEligibleProphecies].sort(() => Math.random() - 0.5);
                 const publicPropheciesSelection = shuffledPublic.slice(0, 2);
