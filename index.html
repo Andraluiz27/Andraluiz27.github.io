@@ -617,7 +617,6 @@
                     case 'Ascensão Cooperativa': reasonMessage = 'Vocês ascenderam juntos ao cumprir 7 profecias!'; break;
                     case 'Ascensão': reasonMessage = 'O Mestre ascendeu ao cumprir três profecias.'; break;
                     case 'Esgotamento': reasonMessage = gameMode === 'cooperative' ? 'O grimório se esgotou antes de cumprirem o ritual.' : 'O grimório se esgotou. A vitória foi decidida por profecias.'; break;
-                    case 'Aniquilação': reasonMessage = gameMode === 'cooperative' ? 'Um dos jogadores foi aniquilado.' : 'O oponente não pôde continuar e foi aniquilado.'; break;
                     default: reasonMessage = 'O jogo terminou.';
                 }
                 reasonText.textContent = reasonMessage;
