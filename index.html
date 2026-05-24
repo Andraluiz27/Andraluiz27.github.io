@@ -1217,6 +1217,7 @@
                 const kingCard = newState.discard_pile[newState.discard_pile.length - 1];
                 let pendingDomainEvents = [];
                 
+                // Verifica poderes do Rei Bael caso o Selo seja declinado
                 if (kingCard && kingCard.Nome === 'Bael') {
                     addLogToState(newState, `O poder de Bael reverbera!`);
                     pendingDomainEvents = getFulfillableEventProphecies('bael_played', kingPlayerNumber, newState);
@@ -1226,8 +1227,13 @@
                         enemyPending.forEach(p => completeProphecyInstantly(p.id, decliningPlayerNumber, newState));
                     }
                 }
+                
                 addLogToState(newState, `${playerName} decide não usar o Selo.`);
+                
+                // CORREÇÃO: Limpa o estado da decisão
                 newState.seal_decision = { active: false, player: null, king_player: null };
+                
+                // CORREÇÃO: Chama a captura logo após declinar para destravar o jogo
                 await processDomainCapture(kingPlayerNumber, newState, pendingDomainEvents);
             }
 
